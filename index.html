@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Klarity — spike v0</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#fff; --ink:#1a1f29; --ink2:#5b6675; --line:#e7ebf0;
+    --good:#1f9d6b; --good-bg:#e8f7ef; --warn:#c8821a; --warn-bg:#fdf3e3;
+    --split:#6b5bd2; --split-bg:#efecfb; --bad:#cf4b4b;
+    --chip:#f1f4f8; --shadow:0 8px 30px rgba(20,28,40,.10);
+    font-synthesis:none;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(160deg,#11161f,#1b2330);min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;color:var(--ink);
+    display:flex;flex-direction:column;align-items:center;padding:28px 14px 60px;gap:18px}
+
+  .masthead{color:#cdd6e3;text-align:center;max-width:420px}
+  .masthead h1{margin:0 0 4px;font-size:22px;letter-spacing:-.4px;color:#fff}
+  .masthead h1 span{color:#7fd3aa}
+  .masthead p{margin:0;font-size:13px;line-height:1.45;color:#9fadbf}
+
+  /* phone */
+  .phone{width:390px;max-width:100%;background:var(--panel);border-radius:34px;overflow:hidden;
+    box-shadow:var(--shadow);border:1px solid #20283400;position:relative;min-height:760px;display:flex;flex-direction:column}
+  .statusbar{height:34px;background:#fff;display:flex;align-items:center;justify-content:center}
+  .statusbar i{width:42px;height:5px;border-radius:3px;background:#dfe5ec}
+
+  .topbar{display:flex;align-items:center;gap:10px;padding:6px 16px 12px}
+  .brand{font-weight:800;font-size:18px;letter-spacing:-.5px}
+  .brand b{color:var(--good)}
+  .spacer{flex:1}
+  .back{border:0;background:var(--chip);border-radius:10px;padding:7px 11px;font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer}
+
+  .screen{padding:0 16px 26px;overflow:auto;flex:1}
+
+  /* profile selector */
+  .profile{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+  .profile button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:600;color:var(--ink2);cursor:pointer}
+  .profile button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .profile-hint{font-size:11.5px;color:var(--ink2);margin:-6px 0 16px;line-height:1.4}
+
+  .section-label{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink2);margin:4px 2px 10px}
+
+  /* product list */
+  .plist{display:flex;flex-direction:column;gap:10px}
+  .pcard{display:flex;align-items:center;gap:13px;border:1px solid var(--line);border-radius:16px;padding:13px;cursor:pointer;background:#fff;transition:.12s}
+  .pcard:hover{border-color:#cfd8e2;transform:translateY(-1px)}
+  .pemoji{width:46px;height:46px;border-radius:12px;background:var(--chip);display:grid;place-items:center;font-size:24px;flex:none}
+  .pmeta{flex:1;min-width:0}
+  .pmeta b{display:block;font-size:15px;letter-spacing:-.2px}
+  .pmeta span{font-size:12.5px;color:var(--ink2)}
+  .mini-pill{font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap}
+
+  .scan-cta{margin:18px 2px 6px;display:flex;align-items:center;gap:10px;justify-content:center;
+    color:var(--ink2);font-size:12.5px}
+  .scan-cta b{color:var(--ink)}
+
+  /* tone helpers */
+  .good{color:var(--good)} .warn{color:var(--warn)} .split{color:var(--split)} .bad{color:var(--bad)}
+  .bg-good{background:var(--good-bg);color:var(--good)} .bg-warn{background:var(--warn-bg);color:var(--warn)}
+  .bg-split{background:var(--split-bg);color:var(--split)}
+
+  /* product result */
+  .hero{border-radius:20px;padding:18px;border:1px solid var(--line);margin-bottom:14px}
+  .hero-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+  .hero-emoji{width:58px;height:58px;border-radius:15px;background:var(--chip);display:grid;place-items:center;font-size:30px;flex:none}
+  .hero-name b{font-size:18px;letter-spacing:-.3px;display:block}
+  .hero-name span{font-size:13px;color:var(--ink2)}
+
+  .verdict-pill{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:15px;
+    padding:9px 15px;border-radius:999px;margin-bottom:10px}
+  .verdict-pill .dot{width:9px;height:9px;border-radius:50%;background:currentColor}
+  .headline{font-size:14.5px;line-height:1.5;color:var(--ink);margin:2px 0 0}
+
+  .axis{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+  .axis-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .axis-head b{font-size:13px}
+  .axis-head .tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+  .nutri-flags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px}
+  .nutri-flags .nf{font-size:12px;padding:5px 10px;border-radius:10px;background:var(--chip);font-weight:600}
+  .nutri-flags .nf b{font-weight:800}
+  .axis-sum{font-size:12.5px;color:var(--ink2);line-height:1.45}
+
+  .add-row{display:flex;align-items:center;gap:11px;padding:12px 4px;border-top:1px solid var(--line);cursor:pointer}
+  .add-row:first-of-type{border-top:0}
+  .add-ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:13px;font-weight:800;flex:none}
+  .add-meta{flex:1;min-width:0}
+  .add-meta b{font-size:13.5px;display:block;letter-spacing:-.1px}
+  .add-meta span{font-size:11.5px;color:var(--ink2)}
+  .add-row .chev{color:#c2ccd6;font-size:18px}
+
+  .callout{border-radius:14px;padding:13px 14px;font-size:12.5px;line-height:1.5;margin:12px 0 2px;
+    background:#f7f9fc;color:var(--ink2);border:1px dashed var(--line)}
+  .callout b{color:var(--ink)}
+
+  /* evidence trail */
+  .et-head{display:flex;align-items:center;gap:13px;margin-bottom:6px}
+  .et-head .add-ic{width:44px;height:44px;font-size:15px;border-radius:12px}
+  .et-head b{font-size:18px;letter-spacing:-.3px;display:block}
+  .et-head span{font-size:12.5px;color:var(--ink2)}
+  .et-verdict{margin:14px 0}
+  .et-headline{font-size:15px;line-height:1.5;font-weight:600;margin:4px 0 18px}
+
+  .et-block-label{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink2);margin:18px 2px 9px}
+
+  .exp{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:6px}
+  .exp .cell{background:var(--chip);border-radius:12px;padding:11px}
+  .exp .cell small{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--ink2);display:block;margin-bottom:4px}
+  .exp .cell span{font-size:12.5px;line-height:1.35;color:var(--ink)}
+  .exp-note{font-size:12px;color:var(--ink2);line-height:1.45;margin:9px 2px 0}
+
+  .ev{border:1px solid var(--line);border-radius:13px;padding:12px;margin-bottom:9px;position:relative}
+  .ev.dismissed{opacity:.62;background:#fbfcfd}
+  .ev-top{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+  .tierbadge{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;flex:none}
+  .tA{background:#1f9d6b}.tB{background:#3f7fd0}.tC{background:#c8821a}.tD{background:#9aa6b3}
+  .ev-claim{font-size:13.5px;font-weight:700;flex:1;line-height:1.3}
+  .applies{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:999px;white-space:nowrap}
+  .ap-yes{background:var(--warn-bg);color:var(--warn)} .ap-no{background:#eef1f4;color:#909aa6;text-decoration:line-through} .ap-split{background:var(--split-bg);color:var(--split)}
+  .ev-why{font-size:12.5px;line-height:1.5;color:var(--ink2)}
+  .ev-tierlabel{font-size:10.5px;color:#9aa6b3;margin-top:6px;font-weight:600}
+
+  .openq{border:1px solid var(--split);background:var(--split-bg);border-radius:14px;padding:14px;margin:14px 0}
+  .openq b{color:var(--split);font-size:12px;letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:6px}
+  .openq p{margin:0;font-size:13px;line-height:1.5;color:#3f3470}
+
+  .subnote{border:1px solid var(--good);background:var(--good-bg);border-radius:14px;padding:14px;margin:12px 0}
+  .subnote b{color:var(--good);font-size:12px;letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:6px}
+  .subnote p{margin:0;font-size:13px;line-height:1.5;color:#155c40}
+
+  .guidance{border:1px solid var(--line);background:#fff;border-radius:14px;padding:14px;margin:12px 0}
+  .guidance b{font-size:12px;letter-spacing:.4px;text-transform:uppercase;color:var(--ink2);display:block;margin-bottom:6px}
+  .guidance p{margin:0;font-size:13px;line-height:1.5}
+
+  .footer-note{font-size:11px;color:#8f9bab;text-align:center;max-width:390px;line-height:1.5;margin-top:2px}
+  .footer-note code{background:#1b2330;color:#9fb0c4;padding:1px 5px;border-radius:4px;font-size:10.5px}
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <h1><span>Klarity</span> — the calm scanner</h1>
+    <p>Same one-second glance as Yuka. Calibrated to evidence and dose, framed by frequency not morality, and personalized to you. Spike v0 — every screen backed by a real seeded call.</p>
+  </div>
+
+  <div class="phone">
+    <div class="statusbar"><i></i></div>
+    <div class="topbar">
+      <div class="brand">Klar<b>ity</b></div>
+      <div class="spacer"></div>
+      <button class="back" id="backBtn" style="display:none">‹ Back</button>
+    </div>
+    <div class="screen" id="screen"></div>
+  </div>
+
+  <div class="footer-note">
+    Illustrative spike — verdicts hand-authored from the evidence trail, not live data. Try switching the profile, then open <b>Rainbow Chews</b> → Titanium dioxide to see the contested state shift.<br>
+    Data model in <code>data.js</code>. This is the artifact to put in front of a skeptical dietitian.
+  </div>
+
+<script src="data.js"></script>
+<script>
+/* ----------------------------- engine ------------------------------------ */
+const state = { view: "list", productId: null, additiveId: null, profileId: "standard" };
+
+// Resolve an additive's verdict under the active profile.
+function resolveAdditive(addId, profile){
+  const a = ADDITIVES[addId];
+  let verdict = a.baseVerdict;
+  let subnote = null;
+
+  // Surface a subgroup note if the profile has the matching condition.
+  for(const cond of profile.conditions){
+    if(a.subgroupNotes && a.subgroupNotes[cond]){
+      subnote = a.subgroupNotes[cond];
+      // an open subgroup question can nudge an 'everyday' up to 'sometimes' for that user
+      if(verdict === "everyday") verdict = "sometimes";
+    }
+  }
+
+  // Contested cases resolve by the user's VALUES, not by picking a regulator.
+  let contestedLean = null;
+  if(a.baseVerdict === "contested"){
+    if(profile.values === "precaution") contestedLean = "skip";
+    else if(profile.values === "risk") contestedLean = "fine";
+    else contestedLean = "your-call";
+  }
+  return { verdict, subnote, contestedLean };
+}
+
+// Product-level glance = worst meaningful additive verdict, kept distinct from nutrition.
+function resolveProduct(prodId, profile){
+  const p = PRODUCTS[prodId];
+  const order = { everyday:0, sometimes:1, contested:2 };
+  let worst = "everyday", driver = null;
+  for(const id of p.additives){
+    const r = resolveAdditive(id, profile);
+    if(order[r.verdict] > order[worst] || (r.verdict==="contested")){
+      // contested doesn't dominate 'sometimes' numerically; we surface it but keep nutrition separate
+    }
+    if(order[r.verdict] >= order[worst]){ worst = r.verdict; driver = id; }
+  }
+  return { additiveVerdict: worst, driver };
+}
+
+const VICON = { everyday: "✓", sometimes: "!", contested: "⚖" };
+const vToneClass = { good:"bg-good", warn:"bg-warn", split:"bg-split" };
+
+/* ----------------------------- views ------------------------------------- */
+function render(){
+  const el = document.getElementById("screen");
+  document.getElementById("backBtn").style.display = state.view === "list" ? "none" : "block";
+  if(state.view === "list") el.innerHTML = viewList();
+  else if(state.view === "product") el.innerHTML = viewProduct();
+  else if(state.view === "additive") el.innerHTML = viewAdditive();
+  el.scrollTop = 0;
+  wire();
+}
+
+function profileBar(){
+  const hints = {
+    standard:"Default. Contested cases land on “your call” — we show both camps and let you decide.",
+    ibd:"Surfaces gut-relevant subgroup notes (carrageenan, emulsifiers) that a standard user doesn’t see.",
+    precaution:"Contested + avoidable + no benefit → we lean “reasonable to skip.” Your cost, not a regulator’s side.",
+    risk_ok:"Contested cases with strong risk-based backing land on “fine at typical intake.”",
+  };
+  const btns = Object.values(PROFILES).map(p =>
+    `<button data-prof="${p.id}" class="${p.id===state.profileId?'on':''}">${p.label}</button>`).join("");
+  return `<div class="profile">${btns}</div><div class="profile-hint">${hints[state.profileId]}</div>`;
+}
+
+function viewList(){
+  const prof = PROFILES[state.profileId];
+  const cards = Object.values(PRODUCTS).map(p=>{
+    const r = resolveProduct(p.id, prof);
+    const v = VERDICTS[r.additiveVerdict];
+    return `<div class="pcard" data-prod="${p.id}">
+      <div class="pemoji">${p.emoji}</div>
+      <div class="pmeta"><b>${p.name}</b><span>${p.brand} · ${p.serving}</span></div>
+      <div class="mini-pill ${vToneClass[v.tone]}">${VICON[v.key]} ${v.label}</div>
+    </div>`;
+  }).join("");
+  return `${profileBar()}
+    <div class="section-label">Tap to scan a product</div>
+    <div class="plist">${cards}</div>
+    <div class="scan-cta">📷 &nbsp;In the real app: <b>point camera at a barcode</b></div>`;
+}
+
+function viewProduct(){
+  const prof = PROFILES[state.profileId];
+  const p = PRODUCTS[state.productId];
+  const r = resolveProduct(p.id, prof);
+  const v = VERDICTS[r.additiveVerdict];
+  const nt = p.nutrition.tone;
+  const ntClass = nt==="good"?"bg-good":nt==="warn"?"bg-warn":"bg-warn";
+  const ntLabel = nt==="good"?"Looks good":nt==="warn"?"Worth knowing":"OK";
+
+  const flags = p.nutrition.flags.map(f=>{
+    const c = f.tone==="good"?"good":f.tone==="warn"?"warn":"";
+    return `<div class="nf"><b class="${c}">${f.v}</b> ${f.k}</div>`;
+  }).join("");
+
+  const addRows = p.additives.map(id=>{
+    const a = ADDITIVES[id];
+    const ar = resolveAdditive(id, prof);
+    const av = VERDICTS[ar.verdict];
+    const t = av.tone==="good"?"bg-good":av.tone==="warn"?"bg-warn":"bg-split";
+    return `<div class="add-row" data-add="${id}">
+      <div class="add-ic ${t}">${VICON[av.key]}</div>
+      <div class="add-meta"><b>${a.name} <span style="font-weight:600;color:#9aa6b3">${a.eNumber}</span></b>
+        <span>${av.label} — ${ar.subnote ? "note for your profile" : av.blurb}</span></div>
+      <div class="chev">›</div>
+    </div>`;
+  }).join("");
+
+  return `${profileBar()}
+    <div class="hero">
+      <div class="hero-top">
+        <div class="hero-emoji">${p.emoji}</div>
+        <div class="hero-name"><b>${p.name}</b><span>${p.brand} · ${p.serving}</span></div>
+      </div>
+      <div class="verdict-pill ${vToneClass[v.tone]}"><span class="dot"></span> ${v.label} · ${v.blurb}</div>
+      <p class="headline">${headlineFor(p, r, prof)}</p>
+    </div>
+
+    <div class="axis">
+      <div class="axis-head"><b>🍎 Nutrition</b><span class="tag ${ntClass}">${ntLabel}</span></div>
+      <div class="nutri-flags">${flags}</div>
+      <div class="axis-sum">${p.nutrition.summary}</div>
+    </div>
+
+    <div class="axis">
+      <div class="axis-head"><b>🧪 Additives</b><span class="tag ${vToneClass[v.tone]}">${v.label}</span></div>
+      ${addRows}
+    </div>
+
+    <div class="callout">${p.note}</div>`;
+}
+
+function headlineFor(p, r, prof){
+  const a = ADDITIVES[r.driver];
+  const ar = resolveAdditive(r.driver, prof);
+  if(ar.subnote) return ar.subnote;
+  return a.headline;
+}
+
+function viewAdditive(){
+  const prof = PROFILES[state.profileId];
+  const a = ADDITIVES[state.additiveId];
+  const ar = resolveAdditive(state.additiveId, prof);
+  const av = VERDICTS[ar.verdict];
+  const t = av.tone==="good"?"bg-good":av.tone==="warn"?"bg-warn":"bg-split";
+
+  const evs = a.evidence.map(e=>{
+    const ap = e.applies===true ? `<span class="applies ap-yes">counts</span>`
+             : e.applies==="split" ? `<span class="applies ap-split">contested</span>`
+             : `<span class="applies ap-no">dismissed</span>`;
+    return `<div class="ev ${e.applies===false?'dismissed':''}">
+      <div class="ev-top">
+        <div class="tierbadge t${e.tier}">${e.tier}</div>
+        <div class="ev-claim">${e.claim}</div>${ap}
+      </div>
+      <div class="ev-why">${e.why}</div>
+      <div class="ev-tierlabel">Tier ${e.tier} — ${TIER_LABEL[e.tier]}</div>
+    </div>`;
+  }).join("");
+
+  const exp = a.exposure ? `
+    <div class="et-block-label">Exposure</div>
+    <div class="exp">
+      <div class="cell"><small>Typical intake</small><span>${a.exposure.typical}</span></div>
+      <div class="cell"><small>Where concern arises</small><span>${a.exposure.concerning}</span></div>
+    </div>
+    <div class="exp-note">${a.exposure.note}</div>` : "";
+
+  const openq = a.openQuestion ? `
+    <div class="openq"><b>⚖ Open question — we won’t fake certainty</b>
+      <p>${a.openQuestion.text}</p></div>` : "";
+
+  const sub = ar.subnote ? `
+    <div class="subnote"><b>● For your profile</b><p>${ar.subnote}</p></div>` : "";
+
+  let guidance = "";
+  if(a.baseVerdict === "contested"){
+    let lead = ar.contestedLean==="skip" ? "Given your precaution-leaning setting: reasonable to skip."
+             : ar.contestedLean==="fine" ? "Given your risk-tolerant setting: fine at typical intake."
+             : "Your call — here’s the honest tiebreaker.";
+    guidance = `<div class="guidance"><b>How to decide without picking a side</b>
+      <p><b>${lead}</b> ${a.contestedGuidance||""}</p></div>`;
+  }
+
+  return `
+    <div class="et-head">
+      <div class="add-ic ${t}" style="">${VICON[av.key]}</div>
+      <div><b>${a.name}</b><span>${a.eNumber} · ${a.role}</span></div>
+    </div>
+    <div class="et-verdict"><span class="verdict-pill ${vToneClass[av.tone]}"><span class="dot"></span> ${av.label} · ${av.blurb}</span></div>
+    <p class="et-headline">${a.headline}</p>
+    ${sub}
+    ${guidance}
+    ${exp}
+    <div class="et-block-label">Evidence trail — what counts, what doesn’t</div>
+    ${evs}
+    ${openq}`;
+}
+
+/* ----------------------------- wiring ------------------------------------ */
+function wire(){
+  document.querySelectorAll("[data-prof]").forEach(b=>b.onclick=()=>{ state.profileId=b.dataset.prof; render(); });
+  document.querySelectorAll("[data-prod]").forEach(c=>c.onclick=()=>{ state.productId=c.dataset.prod; state.view="product"; render(); });
+  document.querySelectorAll("[data-add]").forEach(c=>c.onclick=()=>{ state.additiveId=c.dataset.add; state.view="additive"; render(); });
+}
+document.getElementById("backBtn").onclick=()=>{
+  if(state.view==="additive"){ state.view="product"; }
+  else if(state.view==="product"){ state.view="list"; }
+  render();
+};
+render();
+</script>
+</body>
+</html>
