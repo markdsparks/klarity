@@ -8,7 +8,10 @@
     "scheme": "klarity",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Klarity needs your camera to scan food barcodes."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -25,6 +28,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-camera",
       [
         "expo-splash-screen",
         {
