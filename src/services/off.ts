@@ -1,4 +1,4 @@
-import type { OFFProduct, OFFResponse } from '../types/off';
+import type { OFFProduct, OFFResponse, OFFSearchProduct, OFFSearchResponse } from '../types/off';
 
 const BASE = 'https://world.openfoodfacts.org/api/v2/product';
 
@@ -8,6 +8,21 @@ const FIELDS = [
   'quantity', 'nutriments', 'additives_tags', 'ingredients_text',
   'image_url', 'image_front_url',
 ].join(',');
+
+const SEARCH_FIELDS = ['product_name', 'brands', 'code', 'additives_tags', 'serving_size'].join(',');
+
+export async function searchProducts(query: string): Promise<OFFSearchProduct[]> {
+  const url = `https://world.openfoodfacts.org/api/v2/search?q=${encodeURIComponent(query)}&fields=${SEARCH_FIELDS}&page_size=20&sort_by=unique_scans_n`;
+  let res: Response;
+  try {
+    res = await fetch(url, { headers: { 'User-Agent': 'Klarity/1.0 (contact@klarity.app)' } });
+  } catch {
+    throw new Error('NETWORK');
+  }
+  if (!res.ok) throw new Error(`HTTP_${res.status}`);
+  const data: OFFSearchResponse = await res.json();
+  return (data.products ?? []).filter(p => p.code && p.product_name);
+}
 
 export async function fetchProduct(barcode: string): Promise<OFFProduct | null> {
   const url = `${BASE}/${encodeURIComponent(barcode)}.json?fields=${FIELDS}`;

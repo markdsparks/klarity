@@ -31,3 +31,15 @@ export interface OFFResponse {
   status_verbose?: string;
   product?: OFFProduct;
 }
+
+// Search result — product + its barcode (code field)
+export interface OFFSearchProduct extends OFFProduct {
+  code: string;
+}
+
+export interface OFFSearchResponse {
+  count: number;
+  page: number;
+  page_size: number;
+  products: OFFSearchProduct[];
+}
