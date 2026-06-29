@@ -212,8 +212,10 @@ function SearchPanel({ topPad, bottomPad }: { topPad: number; bottomPad: number 
 }
 
 function SearchResultRow({ product }: { product: OFFSearchProduct }) {
-  const matchedCount = matchByETags(product.additives_tags ?? []).length;
-  const totalCount = product.additives_tags?.length ?? 0;
+  const { matched, unknown } = matchByETags(product.additives_tags ?? []);
+  const matchedCount = matched.length;
+  const totalCount = (product.additives_tags?.length ?? 0);
+  const unknownCount = unknown.length;
   const brand = product.brands?.split(',')[0].trim();
 
   return (
@@ -228,7 +230,11 @@ function SearchResultRow({ product }: { product: OFFSearchProduct }) {
         {totalCount > 0 && (
           <View style={styles.additiveBadge}>
             <Text style={styles.additiveBadgeText}>
-              {matchedCount > 0 ? `${matchedCount} flagged` : `${totalCount} additives`}
+              {matchedCount > 0
+                ? `${matchedCount} rated`
+                : unknownCount > 0
+                  ? `${unknownCount} additive${unknownCount > 1 ? 's' : ''}`
+                  : `${totalCount} additive${totalCount > 1 ? 's' : ''}`}
             </Text>
           </View>
         )}
