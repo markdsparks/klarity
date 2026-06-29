@@ -15,7 +15,7 @@ import { matchByETags } from '@/data/additive-index';
 import { ADDITIVES } from '@/data/additives';
 import { fetchProduct } from '@/services/off';
 import type { OFFProduct } from '@/types/off';
-import type { Additive, NutritionTone, VerdictKey } from '@/types/index';
+import type { Additive, NutritionTone, UnknownAdditive, VerdictKey } from '@/types/index';
 
 // ── Glance badge colours (hero dark section) ───────────────────────────────────
 type GlanceKey = VerdictKey | 'clean' | 'unrated';
@@ -75,7 +75,7 @@ type State =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'not_found' }
-  | { status: 'ready'; product: OFFProduct; additiveIds: string[] };
+  | { status: 'ready'; product: OFFProduct; additiveIds: string[]; unknownAdditives: UnknownAdditive[] };
 
 // ── Screen ─────────────────────────────────────────────────────────────────────
 export default function ResultScreen() {
@@ -88,8 +88,9 @@ export default function ResultScreen() {
     fetchProduct(barcode)
       .then(product => {
         if (!product) return setState({ status: 'not_found' });
-        const additiveIds = matchByETags(product.additives_tags ?? []);
-        setState({ status: 'ready', product, additiveIds });
+        const { matched: additiveIds, unknown: unknownAdditives } =
+          matchByETags(product.additives_tags ?? []);
+        setState({ status: 'ready', product, additiveIds, unknownAdditives });
       })
       .catch((err: Error) => setState({
         status: 'error',
@@ -129,7 +130,7 @@ export default function ResultScreen() {
   }
 
   // ── Ready ──
-  const { product, additiveIds } = state;
+  const { product, additiveIds, unknownAdditives } = state;
   const name     = product.product_name || 'Unknown product';
   const brand    = product.brands?.split(',')[0].trim() || '';
   const imageUrl = product.image_front_url ?? product.image_url;
@@ -137,8 +138,7 @@ export default function ResultScreen() {
   const matchedAdditives = additiveIds
     .map(id => ADDITIVES[id])
     .filter((a): a is Additive => !!a);
-  const unknownCount    = (product.additives_tags?.length ?? 0) - additiveIds.length;
-  const glanceKey       = overallAdditiveGlance(matchedAdditives, unknownCount);
+  const glanceKey       = overallAdditiveGlance(matchedAdditives, unknownAdditives.length);
   const additiveGlance  = GLANCE[glanceKey];
   const nutritionGlance = NUTRITION_GLANCE[nutrition.tone];
 
@@ -197,14 +197,14 @@ export default function ResultScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Additives</Text>
-            {(matchedAdditives.length + unknownCount) > 0 && (
+            {(matchedAdditives.length + unknownAdditives.length) > 0 && (
               <Text style={styles.cardMeta}>
-                {matchedAdditives.length + unknownCount} in product
+                {matchedAdditives.length + unknownAdditives.length} in product
               </Text>
             )}
           </View>
 
-          {matchedAdditives.length === 0 && unknownCount === 0 && (
+          {matchedAdditives.length === 0 && unknownAdditives.length === 0 && (
             <Text style={styles.emptyText}>No additives detected.</Text>
           )}
 
@@ -212,13 +212,21 @@ export default function ResultScreen() {
             <AdditiveRow key={additive.id} additive={additive} first={i === 0} />
           ))}
 
-          {unknownCount > 0 && (
-            <View style={[styles.additiveRow, matchedAdditives.length === 0 && styles.rowNoBorder]}>
-              <Text style={styles.unknownText}>
-                +{unknownCount} additive{unknownCount > 1 ? 's' : ''} not yet in our database
-              </Text>
+          {unknownAdditives.length > 0 && matchedAdditives.length > 0 && (
+            <View style={styles.unknownDivider}>
+              <View style={styles.unknownDividerLine} />
+              <Text style={styles.unknownDividerLabel}>Not yet rated</Text>
+              <View style={styles.unknownDividerLine} />
             </View>
           )}
+
+          {unknownAdditives.map((u, i) => (
+            <UnknownAdditiveRow
+              key={u.eNumber}
+              additive={u}
+              first={i === 0 && matchedAdditives.length === 0}
+            />
+          ))}
         </View>
 
         {/* Nutrition */}
@@ -280,6 +288,20 @@ function AdditiveRow({ additive, first }: { additive: Additive; first: boolean }
       </View>
       <Text style={styles.rowChevron}>›</Text>
     </Pressable>
+  );
+}
+
+function UnknownAdditiveRow({ additive, first }: { additive: UnknownAdditive; first: boolean }) {
+  return (
+    <View style={[styles.additiveRow, first && styles.rowNoBorder]}>
+      <View style={styles.additiveInfo}>
+        <Text style={styles.unknownAdditiveName}>{additive.name}</Text>
+        <Text style={styles.unknownAdditiveRole}>{additive.eNumber}</Text>
+      </View>
+      <View style={styles.unratedPill}>
+        <Text style={styles.unratedPillText}>Not rated</Text>
+      </View>
+    </View>
   );
 }
 
@@ -373,7 +395,20 @@ const styles = StyleSheet.create({
   verdictPill:   { borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5 },
   verdictPillText: { fontSize: 11.5, fontWeight: '800' },
   rowChevron:    { fontSize: 18, color: '#d0d8e4' },
-  unknownText:   { fontSize: 12.5, color: '#9fadbf', fontStyle: 'italic' },
+  unknownAdditiveName: { fontSize: 14, fontWeight: '600', color: '#8896a7' },
+  unknownAdditiveRole: { fontSize: 11.5, color: '#b0bcc9' },
+  unratedPill: { borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: '#f1f4f8' },
+  unratedPillText: { fontSize: 11.5, fontWeight: '700', color: '#9fadbf' },
+
+  unknownDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginVertical: 4,
+    paddingTop: 8,
+  },
+  unknownDividerLine: { flex: 1, height: 1, backgroundColor: '#f1f4f8' },
+  unknownDividerLabel: { fontSize: 10, fontWeight: '700', color: '#b0bcc9', letterSpacing: 0.6, textTransform: 'uppercase' },
 
   toneTag:     { borderRadius: 99, paddingHorizontal: 10, paddingVertical: 4 },
   toneTagText: { fontSize: 11.5, fontWeight: '800' },

@@ -102,6 +102,19 @@ export interface Product {
   note?: string;
 }
 
+// ── Additive match result (returned by matchByETags) ──────────────────────────
+
+export interface UnknownAdditive {
+  eNumber: string;   // e.g. "E471"
+  name: string;      // from bundled map, or eNumber as fallback
+  rawTag: string;    // original OFF tag, e.g. "en:e471"
+}
+
+export interface AdditiveMatchResult {
+  matched: string[];            // additive IDs we have authored evidence for
+  unknown: UnknownAdditive[];   // E-numbers present but not yet in our DB
+}
+
 // ── Scan result (what the app computes at scan time) ───────────────────────────
 
 export interface AdditiveResult {
