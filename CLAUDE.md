@@ -147,22 +147,35 @@ npx expo start       # Metro + QR for device
 
 ## Current phase & checklist
 
-**Phase 1 — Make it real** (active)
+**Phase 1 — Make it real** (DONE)
 - [x] Spike v0: evidence model + verdict UI (spike/)
 - [x] Expo SDK 56 + TypeScript + Expo Router scaffold
 - [x] CLAUDE.md, ADR structure, docs layout
-- [ ] TypeScript types: Additive, Product, Verdict, Profile (src/types/index.ts)
-- [ ] Migrate additive data: spike/data.js → src/data/additives.ts
-- [ ] Open Food Facts API client (src/services/off.ts)
-- [ ] Camera screen with barcode scanning (src/app/index.tsx)
-- [ ] Additive detection + evidence lookup
-- [ ] Verdict display screen (matches spike UI feel)
-- [ ] TestFlight build for family testing
+- [x] TypeScript types: Additive, Product, Verdict, Profile (src/types/index.ts)
+- [x] Migrate additive data: spike/data.js → src/data/additives.ts
+- [x] Open Food Facts API client (src/services/off.ts) — barcode + search
+- [x] Camera screen with barcode scanning + search mode toggle
+- [x] Additive detection via OFF additives_tags → E-number index
+- [x] Verdict display screen + additive evidence trail
+- [x] EAS build pipeline + TestFlight distribution (npm run build:preview → npm run submit:ios)
+- [x] Family testing live on TestFlight
 
-**Phase 2 — Scale the evidence layer**
-- [ ] Ingest EFSA OpenFoodTox for Tier A automation
-- [ ] Coverage for top 200 common additives
+**Phase 2 — Scale the evidence layer** (next)
+- [ ] Additive coverage: top 50 most common additives in US packaged food
+- [ ] Ingest EFSA OpenFoodTox for Tier A automation on the long tail
+- [ ] "Unknown additive" state: show name + E-number even when no verdict yet
+- [ ] Scan history (src/app/(tabs)/history.tsx)
 
 **Phase 3 — Personalization**
-- [ ] Profile onboarding
-- [ ] Profile-aware verdict rendering
+- [ ] Profile onboarding (standard / IBD / precaution-leaning / risk-tolerant)
+- [ ] Profile-aware verdict rendering + subgroup notes
+
+## Build & deploy
+
+```bash
+npm run build:preview   # queue EAS cloud build (~12 min)
+npm run submit:ios      # push latest build to TestFlight
+```
+
+EAS project: 03cbdde6-1fd1-4fd5-9bc0-fa273ecbdfbe  
+App Store Connect: https://appstoreconnect.apple.com/apps/6785359519/testflight/ios
