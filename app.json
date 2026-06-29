@@ -9,6 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.klarity.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Klarity needs your camera to scan food barcodes."
       }
