@@ -27,12 +27,14 @@
   "submit": {
     "preview": {
       "ios": {
-        "appleId": "markdsparks@gmail.com"
+        "appleId": "markdsparks@gmail.com",
+        "ascAppId": "6785359519"
       }
     },
     "production": {
       "ios": {
-        "appleId": "markdsparks@gmail.com"
+        "appleId": "markdsparks@gmail.com",
+        "ascAppId": "6785359519"
       }
     }
   }
