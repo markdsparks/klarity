@@ -49,7 +49,7 @@
     "test:watch": "jest",
     "build:preview": "eas build --platform ios --profile preview",
     "build:sim": "eas build --platform ios --profile development",
-    "submit:ios": "eas submit --platform ios --latest"
+    "submit:ios": "eas submit --platform ios --profile preview --latest"
   },
   "jest": {
     "preset": "jest-expo",
