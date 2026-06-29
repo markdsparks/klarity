@@ -1,5 +1,5 @@
 {
-  "name": "klarity-scaffold",
+  "name": "klarity",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
@@ -17,6 +17,7 @@
     "expo-status-bar": "~56.0.4",
     "expo-symbols": "~56.0.6",
     "expo-system-ui": "~56.0.5",
+    "expo-updates": "~56.0.19",
     "expo-web-browser": "~56.0.5",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -40,9 +41,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "build:preview": "eas build --platform ios --profile preview --auto-submit",
-    "build:sim": "eas build --platform ios --profile development"
+    "build:preview": "eas build --platform ios --profile preview",
+    "build:sim": "eas build --platform ios --profile development",
+    "submit:ios": "eas submit --platform ios --latest"
   },
-  "name": "klarity",
   "private": true
 }
