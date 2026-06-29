@@ -11,7 +11,7 @@ function makeProductResponse(product: object | null, status = 1) {
 }
 
 function mockFetch(body: string, ok = true, httpStatus = 200) {
-  global.fetch = jest.fn().mockResolvedValue({
+  (globalThis as any).fetch = jest.fn().mockResolvedValue({
     ok,
     status: httpStatus,
     json: () => Promise.resolve(JSON.parse(body)),
@@ -85,7 +85,7 @@ describe('searchProducts', () => {
   });
 
   it('throws NETWORK on fetch failure', async () => {
-    global.fetch = jest.fn().mockRejectedValue(new Error('failed to connect')) as jest.Mock;
+    (globalThis as any).fetch = jest.fn().mockRejectedValue(new Error('failed to connect')) as jest.Mock;
     await expect(searchProducts('test')).rejects.toThrow('NETWORK');
   });
 
@@ -117,7 +117,7 @@ describe('fetchProduct', () => {
   });
 
   it('throws NETWORK on fetch failure', async () => {
-    global.fetch = jest.fn().mockRejectedValue(new TypeError('Network request failed')) as jest.Mock;
+    (globalThis as any).fetch = jest.fn().mockRejectedValue(new TypeError('Network request failed')) as jest.Mock;
     await expect(fetchProduct('049000050202')).rejects.toThrow('NETWORK');
   });
 
