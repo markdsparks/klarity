@@ -12,6 +12,7 @@
     },
     "preview": {
       "node": "20.18.0",
+      "autoIncrement": true,
       "distribution": "internal",
       "ios": {
         "simulator": false
