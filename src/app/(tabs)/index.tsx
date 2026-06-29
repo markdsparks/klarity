@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { matchByETags } from '@/data/additive-index';
 import { searchProducts } from '@/services/off';
 import type { OFFSearchProduct } from '@/types/off';
 
@@ -37,95 +36,102 @@ export default function ScanScreen() {
     setTimeout(() => setScanning(false), SCAN_COOLDOWN_MS);
   }
 
-  const topPad = insets.top + 12;
-
   return (
     <View style={styles.container}>
-
-      {/* ── Camera (always mounted when permission granted so it's instant on switch) ── */}
+      {/* Camera always mounted when permission granted — instant switch-back */}
       {permission?.granted && (
         <CameraView
-          style={[StyleSheet.absoluteFill, mode !== 'scan' && styles.hidden]}
+          style={StyleSheet.absoluteFill}
           facing="back"
           barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'qr'] }}
           onBarcodeScanned={mode === 'scan' && !scanning ? handleBarcode : undefined}
         />
       )}
 
-      {/* ── Top bar (branding + mode toggle) ── */}
-      <View style={[styles.topBar, { paddingTop: topPad }, mode === 'search' && styles.topBarSearch]}>
-        <Text style={[styles.brand, mode === 'search' && styles.brandDark]}>
-          <Text style={styles.brandGreen}>K</Text>larity
-        </Text>
-        <View style={styles.toggle}>
-          <ToggleBtn label="📷  Scan" active={mode === 'scan'} onPress={() => { setMode('scan'); Keyboard.dismiss(); }} />
-          <ToggleBtn label="🔍  Search" active={mode === 'search'} onPress={() => setMode('search')} />
-        </View>
-      </View>
-
-      {/* ── Scan mode content ── */}
-      {mode === 'scan' && (
-        <>
-          {!permission && <View />}
-
-          {permission && !permission.granted && (
-            <View style={styles.permissionBox}>
-              <Text style={styles.permissionTitle}>Camera access needed</Text>
-              <Text style={styles.permissionBody}>
-                Klarity needs your camera to scan barcodes.
-              </Text>
-              <Pressable style={styles.permissionBtn} onPress={requestPermission}>
-                <Text style={styles.permissionBtnText}>Enable camera</Text>
-              </Pressable>
-            </View>
-          )}
-
-          {permission?.granted && (
-            <>
-              <View style={styles.viewfinderWrapper} pointerEvents="none">
-                <View style={styles.viewfinder}>
-                  <View style={[styles.corner, styles.cornerTL]} />
-                  <View style={[styles.corner, styles.cornerTR]} />
-                  <View style={[styles.corner, styles.cornerBL]} />
-                  <View style={[styles.corner, styles.cornerBR]} />
-                </View>
-                <Text style={styles.scanHint}>Point at a barcode</Text>
-              </View>
-
-              {scanning && (
-                <View style={styles.loadingOverlay}>
-                  <ActivityIndicator size="large" color="#7fd3aa" />
-                  <Text style={styles.loadingText}>Looking up product…</Text>
-                </View>
-              )}
-            </>
-          )}
-        </>
-      )}
-
-      {/* ── Search mode content ── */}
-      {mode === 'search' && (
-        <SearchPanel topPad={topPad} bottomPad={insets.bottom} />
+      {mode === 'scan' ? (
+        <ScanOverlay
+          permission={permission}
+          requestPermission={requestPermission}
+          scanning={scanning}
+          onSearchOpen={() => setMode('search')}
+          safeTop={insets.top}
+        />
+      ) : (
+        <SearchOverlay
+          onClose={() => { setMode('scan'); Keyboard.dismiss(); }}
+          safeTop={insets.top}
+          safeBottom={insets.bottom}
+        />
       )}
     </View>
   );
 }
 
-// ── Mode toggle button ─────────────────────────────────────────────────────────
+// ── Scan overlay — floats above the camera ────────────────────────────────────
 
-function ToggleBtn({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+function ScanOverlay({
+  permission,
+  requestPermission,
+  scanning,
+  onSearchOpen,
+  safeTop,
+}: {
+  permission: { granted: boolean } | null;
+  requestPermission: () => unknown;
+  scanning: boolean;
+  onSearchOpen: () => void;
+  safeTop: number;
+}) {
   return (
-    <Pressable
-      style={[styles.toggleBtn, active && styles.toggleBtnActive]}
-      onPress={onPress}>
-      <Text style={[styles.toggleBtnText, active && styles.toggleBtnTextActive]}>
-        {label}
-      </Text>
-    </Pressable>
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      {/* Header */}
+      <View style={[styles.scanHeader, { paddingTop: safeTop + 10 }]}>
+        <Text style={styles.scanBrand}>
+          <Text style={styles.brandK}>K</Text>larity
+        </Text>
+        <Pressable style={styles.searchPill} onPress={onSearchOpen} hitSlop={12}>
+          <Text style={styles.searchPillText}>Search</Text>
+        </Pressable>
+      </View>
+
+      {/* Permission prompt */}
+      {permission && !permission.granted && (
+        <View style={styles.permissionBox} pointerEvents="box-none">
+          <Text style={styles.permissionTitle}>Camera access needed</Text>
+          <Text style={styles.permissionBody}>
+            Klarity needs your camera to scan barcodes.
+          </Text>
+          <Pressable style={styles.permissionBtn} onPress={requestPermission} pointerEvents="auto">
+            <Text style={styles.permissionBtnText}>Enable camera</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {/* Viewfinder */}
+      {permission?.granted && (
+        <View style={styles.viewfinderWrapper} pointerEvents="none">
+          <View style={styles.viewfinder}>
+            <View style={[styles.corner, styles.cornerTL]} />
+            <View style={[styles.corner, styles.cornerTR]} />
+            <View style={[styles.corner, styles.cornerBL]} />
+            <View style={[styles.corner, styles.cornerBR]} />
+          </View>
+          <Text style={styles.scanHint}>Point at a barcode</Text>
+        </View>
+      )}
+
+      {/* Scan in-progress overlay */}
+      {scanning && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#7fd3aa" />
+          <Text style={styles.loadingText}>Looking up product…</Text>
+        </View>
+      )}
+    </View>
   );
 }
 
-// ── Search panel ───────────────────────────────────────────────────────────────
+// ── Search overlay — white full-screen, header in normal flow ─────────────────
 
 type SearchState =
   | { status: 'idle' }
@@ -133,7 +139,15 @@ type SearchState =
   | { status: 'error' }
   | { status: 'done'; results: OFFSearchProduct[] };
 
-function SearchPanel({ topPad, bottomPad }: { topPad: number; bottomPad: number }) {
+function SearchOverlay({
+  onClose,
+  safeTop,
+  safeBottom,
+}: {
+  onClose: () => void;
+  safeTop: number;
+  safeBottom: number;
+}) {
   const [query, setQuery] = useState('');
   const [state, setState] = useState<SearchState>({ status: 'idle' });
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -156,9 +170,20 @@ function SearchPanel({ topPad, bottomPad }: { topPad: number; bottomPad: number 
   }
 
   return (
-    <View style={[styles.searchPanel, { paddingTop: topPad + 72 }]}>
-      {/* Input */}
-      <View style={styles.searchInputRow}>
+    <View style={styles.searchOverlay}>
+      {/* Header is in normal document flow — input falls naturally below it */}
+      <View style={[styles.searchHeader, { paddingTop: safeTop + 10 }]}>
+        <Pressable onPress={onClose} style={styles.backBtn} hitSlop={12}>
+          <Text style={styles.backBtnText}>← Scan</Text>
+        </Pressable>
+        <Text style={styles.searchHeaderBrand}>
+          <Text style={styles.brandK}>K</Text>larity
+        </Text>
+        <View style={styles.backBtnSpacer} />
+      </View>
+
+      {/* Search input — directly below header, no manual offset needed */}
+      <View style={styles.searchInputWrap}>
         <TextInput
           style={styles.searchInput}
           placeholder="Search products…"
@@ -181,13 +206,13 @@ function SearchPanel({ topPad, bottomPad }: { topPad: number; bottomPad: number 
 
       {state.status === 'loading' && (
         <View style={styles.searchEmpty}>
-          <ActivityIndicator color="#1f9d6b" />
+          <ActivityIndicator color="#1f9d6b" size="large" />
         </View>
       )}
 
       {state.status === 'error' && (
         <View style={styles.searchEmpty}>
-          <Text style={styles.searchEmptyText}>Search failed — check your connection.</Text>
+          <Text style={styles.searchEmptyText}>Search failed — check your connection</Text>
         </View>
       )}
 
@@ -201,7 +226,7 @@ function SearchPanel({ topPad, bottomPad }: { topPad: number; bottomPad: number 
         <FlatList
           data={state.results}
           keyExtractor={p => p.code}
-          contentContainerStyle={{ paddingBottom: bottomPad + 20 }}
+          contentContainerStyle={{ paddingBottom: safeBottom + 20 }}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => <SearchResultRow product={item} />}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -211,42 +236,40 @@ function SearchPanel({ topPad, bottomPad }: { topPad: number; bottomPad: number 
   );
 }
 
+// ── Search result row ─────────────────────────────────────────────────────────
+
+const AVATAR_PALETTE = [
+  { bg: '#e8f7ef', fg: '#1f9d6b' },
+  { bg: '#fdf3e3', fg: '#c8821a' },
+  { bg: '#efecfb', fg: '#6b5bd2' },
+  { bg: '#e8f0fe', fg: '#3d6bcc' },
+  { bg: '#fce8e8', fg: '#c04a4a' },
+];
+
 function SearchResultRow({ product }: { product: OFFSearchProduct }) {
-  const { matched, unknown } = matchByETags(product.additives_tags ?? []);
-  const matchedCount = matched.length;
-  const totalCount = (product.additives_tags?.length ?? 0);
-  const unknownCount = unknown.length;
   const brand = product.brands?.split(',')[0].trim();
+  const initial = (product.product_name?.[0] ?? '?').toUpperCase();
+  const color = AVATAR_PALETTE[initial.charCodeAt(0) % AVATAR_PALETTE.length];
 
   return (
     <Pressable
       style={({ pressed }) => [styles.resultRow, pressed && styles.resultRowPressed]}
       onPress={() => router.push(`/result/${encodeURIComponent(product.code)}`)}>
-      <View style={styles.resultMain}>
+      <View style={[styles.resultAvatar, { backgroundColor: color.bg }]}>
+        <Text style={[styles.resultAvatarText, { color: color.fg }]}>{initial}</Text>
+      </View>
+      <View style={styles.resultInfo}>
         <Text style={styles.resultName} numberOfLines={2}>{product.product_name}</Text>
         {brand ? <Text style={styles.resultBrand}>{brand}</Text> : null}
       </View>
-      <View style={styles.resultMeta}>
-        {totalCount > 0 && (
-          <View style={styles.additiveBadge}>
-            <Text style={styles.additiveBadgeText}>
-              {matchedCount > 0
-                ? `${matchedCount} rated`
-                : unknownCount > 0
-                  ? `${unknownCount} additive${unknownCount > 1 ? 's' : ''}`
-                  : `${totalCount} additive${totalCount > 1 ? 's' : ''}`}
-            </Text>
-          </View>
-        )}
-        <Text style={styles.chevron}>›</Text>
-      </View>
+      <Text style={styles.chevron}>›</Text>
     </Pressable>
   );
 }
 
 // ── Styles ─────────────────────────────────────────────────────────────────────
 
-const CORNER = 24;
+const CORNER = 26;
 const CORNER_W = 3;
 
 const styles = StyleSheet.create({
@@ -254,130 +277,160 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0e1116',
   },
-  hidden: { opacity: 0 },
 
-  topBar: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0,
+  // ── Scan overlay ──────────────────────────────────────────────────────────
+
+  scanHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
     paddingBottom: 14,
-    backgroundColor: 'rgba(14,17,22,0.65)',
-    zIndex: 10,
+    backgroundColor: 'rgba(14,17,22,0.62)',
   },
-  topBarSearch: {
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e7ebf0',
-  },
-  brand: {
+  scanBrand: {
     fontSize: 22,
     fontWeight: '800',
     color: '#fff',
     letterSpacing: -0.5,
-    marginBottom: 10,
   },
-  brandDark: { color: '#1a1f29' },
-  brandGreen: { color: '#7fd3aa' },
-
-  toggle: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 12,
-    padding: 3,
-    gap: 2,
-  },
-  toggleBtn: {
+  brandK: { color: '#7fd3aa' },
+  searchPill: {
+    backgroundColor: 'rgba(255,255,255,0.13)',
+    borderRadius: 99,
     paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderRadius: 9,
+    paddingVertical: 9,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
-  toggleBtnActive: { backgroundColor: '#fff' },
-  toggleBtnText: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.65)' },
-  toggleBtnTextActive: { color: '#1a1f29' },
+  searchPillText: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
 
   viewfinderWrapper: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 20,
+    gap: 24,
   },
-  viewfinder: { width: 260, height: 160, position: 'relative' },
+  viewfinder: { width: 280, height: 180, position: 'relative' },
   corner: { position: 'absolute', width: CORNER, height: CORNER, borderColor: '#7fd3aa' },
-  cornerTL: { top: 0, left: 0, borderTopWidth: CORNER_W, borderLeftWidth: CORNER_W },
-  cornerTR: { top: 0, right: 0, borderTopWidth: CORNER_W, borderRightWidth: CORNER_W },
-  cornerBL: { bottom: 0, left: 0, borderBottomWidth: CORNER_W, borderLeftWidth: CORNER_W },
-  cornerBR: { bottom: 0, right: 0, borderBottomWidth: CORNER_W, borderRightWidth: CORNER_W },
-  scanHint: { color: '#9fadbf', fontSize: 13 },
-
-  loadingOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(14,17,22,0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 12,
-  },
-  loadingText: { color: '#cdd6e3', fontSize: 15 },
+  cornerTL: { top: 0, left: 0, borderTopWidth: CORNER_W, borderLeftWidth: CORNER_W, borderTopLeftRadius: 4 },
+  cornerTR: { top: 0, right: 0, borderTopWidth: CORNER_W, borderRightWidth: CORNER_W, borderTopRightRadius: 4 },
+  cornerBL: { bottom: 0, left: 0, borderBottomWidth: CORNER_W, borderLeftWidth: CORNER_W, borderBottomLeftRadius: 4 },
+  cornerBR: { bottom: 0, right: 0, borderBottomWidth: CORNER_W, borderRightWidth: CORNER_W, borderBottomRightRadius: 4 },
+  scanHint: { color: 'rgba(255,255,255,0.5)', fontSize: 13, letterSpacing: 0.3 },
 
   permissionBox: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
   },
   permissionTitle: { fontSize: 18, fontWeight: '700', color: '#fff', marginBottom: 8 },
-  permissionBody: { fontSize: 14, color: '#9fadbf', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
+  permissionBody: { fontSize: 14, color: '#9fadbf', textAlign: 'center', lineHeight: 20, marginBottom: 20 },
   permissionBtn: { backgroundColor: '#1f9d6b', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 },
   permissionBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 
-  // Search panel
-  searchPanel: {
-    flex: 1,
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(14,17,22,0.82)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 14,
+  },
+  loadingText: { color: '#cdd6e3', fontSize: 15 },
+
+  // ── Search overlay ────────────────────────────────────────────────────────
+
+  searchOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: '#f6f8fa',
   },
-  searchInputRow: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
+  searchHeader: {
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e7ebf0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#dde4ee',
+  },
+  backBtn: { width: 68 },
+  backBtnText: { fontSize: 14, fontWeight: '700', color: '#1f9d6b' },
+  backBtnSpacer: { width: 68 },
+  searchHeaderBrand: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1a1f29',
+    letterSpacing: -0.5,
+  },
+
+  searchInputWrap: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#dde4ee',
   },
   searchInput: {
-    height: 44,
+    height: 48,
     backgroundColor: '#f1f4f8',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    fontSize: 15,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    fontSize: 16,
     color: '#1a1f29',
   },
+
   searchEmpty: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 60,
+    paddingBottom: 80,
   },
-  searchEmptyText: { fontSize: 14, color: '#9fadbf', textAlign: 'center', paddingHorizontal: 32 },
+  searchEmptyText: {
+    fontSize: 14,
+    color: '#9fadbf',
+    textAlign: 'center',
+    paddingHorizontal: 40,
+    lineHeight: 20,
+  },
 
+  // Results
   resultRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 13,
+    paddingVertical: 14,
     backgroundColor: '#fff',
-    gap: 12,
+    gap: 13,
+    minHeight: 68,
   },
-  resultRowPressed: { backgroundColor: '#f6f8fa' },
-  resultMain: { flex: 1, gap: 2 },
-  resultName: { fontSize: 14, fontWeight: '600', color: '#1a1f29', lineHeight: 19 },
-  resultBrand: { fontSize: 12, color: '#8896a7' },
-  resultMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  additiveBadge: {
-    backgroundColor: '#f1f4f8',
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+  resultRowPressed: { backgroundColor: '#f3f6f9' },
+  resultAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
-  additiveBadgeText: { fontSize: 11, fontWeight: '600', color: '#5b6675' },
-  chevron: { color: '#c8d0da', fontSize: 18 },
-  separator: { height: 1, backgroundColor: '#f1f4f8', marginLeft: 16 },
+  resultAvatarText: { fontSize: 18, fontWeight: '800' },
+  resultInfo: { flex: 1, gap: 3 },
+  resultName: { fontSize: 14, fontWeight: '700', color: '#1a1f29', lineHeight: 19 },
+  resultBrand: { fontSize: 12, color: '#8896a7', lineHeight: 16 },
+  chevron: { color: '#bec9d4', fontSize: 20 },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#e4eaf2',
+    marginLeft: 71,
+  },
 });
