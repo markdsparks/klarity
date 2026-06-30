@@ -41,25 +41,59 @@ const VERDICT_STYLE: Record<VerdictKey, { bg: string; fg: string; label: string 
   contested: { bg: '#efecfb', fg: '#6b5bd2', label: 'Contested' },
 };
 
-// ── Nutrition helpers ──────────────────────────────────────────────────────────
-function toneNutrition(p: OFFProduct): { tone: NutritionTone; summary: string } {
-  const n = p.nutriments ?? {};
-  const sugar  = n['sugars_100g']          ?? 0;
-  const sodium = n['sodium_100g']          ?? 0;
-  const satFat = n['saturated-fat_100g']   ?? 0;
+// ── FDA 2020 Daily Values (per serving reference) ─────────────────────────────
+const FDA_DV = { sugar: 50, satFat: 20, sodium: 2.3, fiber: 28, protein: 50 };
 
-  if (sugar > 20 || sodium > 0.8 || satFat > 10) {
-    const items = [
-      sugar  > 20  ? 'sugar'    : null,
-      sodium > 0.8 ? 'sodium'   : null,
-      satFat > 10  ? 'sat fat'  : null,
-    ].filter(Boolean).join(', ');
-    return { tone: 'warn', summary: `High in ${items}` };
-  }
-  if (sugar > 10 || sodium > 0.4 || satFat > 5) {
-    return { tone: 'ok', summary: 'Moderate levels — frequency matters' };
-  }
-  return { tone: 'good', summary: 'Clean nutrition at this serving' };
+type ServingNutrients = {
+  factor: number;
+  calories?: number;
+  sugar?: number;   sugarDv?: number;
+  satFat?: number;  satFatDv?: number;
+  sodium?: number;  sodiumDv?: number;
+  protein?: number; proteinDv?: number;
+  fiber?: number;   fiberDv?: number;
+};
+
+function computeServingNutrients(p: OFFProduct): ServingNutrients {
+  const n = p.nutriments ?? {};
+  const factor = p.serving_quantity ? p.serving_quantity / 100 : 1;
+  const dv = (val: number | undefined, ref: number) =>
+    val != null ? Math.round(val / ref * 100) : undefined;
+
+  const calories = n['energy-kcal_100g']   != null ? n['energy-kcal_100g']!   * factor : undefined;
+  const sugar    = n.sugars_100g           != null ? n.sugars_100g!           * factor : undefined;
+  const satFat   = n['saturated-fat_100g'] != null ? n['saturated-fat_100g']! * factor : undefined;
+  const sodium   = n.sodium_100g           != null ? n.sodium_100g!           * factor : undefined;
+  const protein  = n.proteins_100g         != null ? n.proteins_100g!         * factor : undefined;
+  const fiber    = n.fiber_100g            != null ? n.fiber_100g!            * factor : undefined;
+
+  return {
+    factor,
+    calories,
+    sugar,   sugarDv:   dv(sugar,   FDA_DV.sugar),
+    satFat,  satFatDv:  dv(satFat,  FDA_DV.satFat),
+    sodium,  sodiumDv:  dv(sodium,  FDA_DV.sodium),
+    protein, proteinDv: dv(protein, FDA_DV.protein),
+    fiber,   fiberDv:   dv(fiber,   FDA_DV.fiber),
+  };
+}
+
+function toneNutrition(sn: ServingNutrients): { tone: NutritionTone; summary: string } {
+  const { sugarDv = 0, sodiumDv = 0, satFatDv = 0 } = sn;
+
+  const highItems: string[] = [];
+  if (sugarDv  >= 20) highItems.push(`sugar (${sugarDv}% DV)`);
+  if (sodiumDv >= 20) highItems.push(`sodium (${sodiumDv}% DV)`);
+  if (satFatDv >= 20) highItems.push(`sat fat (${satFatDv}% DV)`);
+  if (highItems.length > 0) return { tone: 'warn', summary: `High in ${highItems.join(' and ')}` };
+
+  const modItems: string[] = [];
+  if (sugarDv  >= 10) modItems.push('sugar');
+  if (sodiumDv >= 10) modItems.push('sodium');
+  if (satFatDv >= 10) modItems.push('sat fat');
+  if (modItems.length > 0) return { tone: 'ok', summary: `Moderate ${modItems.join(', ')} — frequency matters` };
+
+  return { tone: 'good', summary: 'Clean nutrition per serving' };
 }
 
 function overallAdditiveGlance(matched: Additive[], unknownCount: number): GlanceKey {
@@ -134,7 +168,8 @@ export default function ResultScreen() {
   const name     = product.product_name || 'Unknown product';
   const brand    = product.brands?.split(',')[0].trim() || '';
   const imageUrl = product.image_front_url ?? product.image_url;
-  const nutrition = toneNutrition(product);
+  const sn = computeServingNutrients(product);
+  const nutrition = toneNutrition(sn);
   const matchedAdditives = additiveIds
     .map(id => ADDITIVES[id])
     .filter((a): a is Additive => !!a);
@@ -233,23 +268,28 @@ export default function ResultScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Nutrition</Text>
-            <View style={[styles.toneTag, {
-              backgroundColor: nutrition.tone === 'good' ? '#e8f7ef' : '#fdf3e3',
-            }]}>
-              <Text style={[styles.toneTagText, {
-                color: nutrition.tone === 'good' ? '#1f9d6b' : '#c8821a',
+            <View style={styles.cardHeaderRight}>
+              {product.serving_size ? (
+                <Text style={styles.cardMeta}>per {product.serving_size}</Text>
+              ) : null}
+              <View style={[styles.toneTag, {
+                backgroundColor: nutrition.tone === 'good' ? '#e8f7ef' : '#fdf3e3',
               }]}>
-                {nutritionGlance.label}
-              </Text>
+                <Text style={[styles.toneTagText, {
+                  color: nutrition.tone === 'good' ? '#1f9d6b' : '#c8821a',
+                }]}>
+                  {nutritionGlance.label}
+                </Text>
+              </View>
             </View>
           </View>
           <Text style={styles.nutritionSummary}>{nutrition.summary}</Text>
-          <NutrientRow label="Calories"  value={product.nutriments?.['energy-kcal_100g']}    unit="kcal" />
-          <NutrientRow label="Sugar"     value={product.nutriments?.sugars_100g}              unit="g"    warnAbove={10}  />
-          <NutrientRow label="Sat fat"   value={product.nutriments?.['saturated-fat_100g']}   unit="g"    warnAbove={5}   />
-          <NutrientRow label="Sodium"    value={product.nutriments?.sodium_100g}              unit="g"    warnAbove={0.4} />
-          <NutrientRow label="Protein"   value={product.nutriments?.proteins_100g}            unit="g"    />
-          <NutrientRow label="Fiber"     value={product.nutriments?.fiber_100g}               unit="g"    />
+          <NutrientRow label="Calories" value={sn.calories}  unit="kcal" />
+          <NutrientRow label="Sugar"    value={sn.sugar}     unit="g"  dvPct={sn.sugarDv}   highlight={sn.sugarDv   != null && sn.sugarDv   >= 20 ? 'warn' : null} />
+          <NutrientRow label="Sat fat"  value={sn.satFat}    unit="g"  dvPct={sn.satFatDv}  highlight={sn.satFatDv  != null && sn.satFatDv  >= 20 ? 'warn' : null} />
+          <NutrientRow label="Sodium"   value={sn.sodium}    unit="g"  dvPct={sn.sodiumDv}  highlight={sn.sodiumDv  != null && sn.sodiumDv  >= 20 ? 'warn' : null} />
+          <NutrientRow label="Protein"  value={sn.protein}   unit="g"  dvPct={sn.proteinDv} highlight={sn.proteinDv != null && sn.proteinDv >= 10 ? 'good' : null} />
+          <NutrientRow label="Fiber"    value={sn.fiber}     unit="g"  dvPct={sn.fiberDv}   highlight={sn.fiberDv   != null && sn.fiberDv   >= 10 ? 'good' : null} />
         </View>
       </View>
     </ScrollView>
@@ -305,17 +345,23 @@ function UnknownAdditiveRow({ additive, first }: { additive: UnknownAdditive; fi
   );
 }
 
-function NutrientRow({ label, value, unit, warnAbove }: {
-  label: string; value?: number; unit: string; warnAbove?: number;
+function NutrientRow({ label, value, unit, dvPct, highlight }: {
+  label: string; value?: number; unit: string;
+  dvPct?: number; highlight?: 'warn' | 'good' | null;
 }) {
   if (value == null) return null;
-  const warn = warnAbove != null && value > warnAbove;
+  const color = highlight === 'warn' ? '#c8821a' : highlight === 'good' ? '#1f9d6b' : '#1a1f29';
   return (
     <View style={styles.nutrientRow}>
       <Text style={styles.nutrientLabel}>{label}</Text>
-      <Text style={[styles.nutrientValue, warn && styles.nutrientWarn]}>
-        {value.toFixed(1)} {unit}
-      </Text>
+      <View style={styles.nutrientRight}>
+        <Text style={[styles.nutrientValue, { color }]}>
+          {unit === 'kcal' ? Math.round(value) : value.toFixed(1)} {unit}
+        </Text>
+        {dvPct != null && (
+          <Text style={[styles.nutrientDv, { color }]}>{dvPct}% DV</Text>
+        )}
+      </View>
     </View>
   );
 }
@@ -423,6 +469,8 @@ const styles = StyleSheet.create({
     borderTopColor: '#f1f4f8',
   },
   nutrientLabel: { fontSize: 13.5, color: '#5b6675' },
-  nutrientValue: { fontSize: 13.5, fontWeight: '600', color: '#1a1f29' },
-  nutrientWarn:  { color: '#c8821a' },
+  nutrientRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  nutrientValue: { fontSize: 13.5, fontWeight: '600' },
+  nutrientDv:    { fontSize: 11, fontWeight: '700', opacity: 0.85 },
+  cardHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
 });
