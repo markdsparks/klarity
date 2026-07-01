@@ -14,7 +14,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { matchByETags } from '@/data/additive-index';
 import { ADDITIVES } from '@/data/additives';
 import { fetchProduct } from '@/services/off';
+import { fetchUSDANutrition } from '@/services/usda';
 import type { OFFProduct } from '@/types/off';
+import type { USDANutrition } from '@/types/usda';
 import type { Additive, NutritionTone, UnknownAdditive, VerdictKey } from '@/types/index';
 
 // ── Glance badge colours (hero dark section) ───────────────────────────────────
@@ -45,6 +47,7 @@ const VERDICT_STYLE: Record<VerdictKey, { bg: string; fg: string; label: string 
 const FDA_DV = { sugar: 50, satFat: 20, sodium: 2.3, fiber: 28, protein: 50 };
 
 type ServingNutrients = {
+  source: 'usda' | 'off';
   factor: number;
   calories?: number;
   sugar?: number;   sugarDv?: number;
@@ -54,20 +57,38 @@ type ServingNutrients = {
   fiber?: number;   fiberDv?: number;
 };
 
-function computeServingNutrients(p: OFFProduct): ServingNutrients {
-  const n = p.nutriments ?? {};
-  const factor = p.serving_quantity ? p.serving_quantity / 100 : 1;
-  const dv = (val: number | undefined, ref: number) =>
+function computeServingNutrients(p: OFFProduct, usda: USDANutrition | null): ServingNutrients {
+  const dv = (val: number | undefined, ref: number): number | undefined =>
     val != null ? Math.round(val / ref * 100) : undefined;
 
-  const calories = n['energy-kcal_100g']   != null ? n['energy-kcal_100g']!   * factor : undefined;
-  const sugar    = n.sugars_100g           != null ? n.sugars_100g!           * factor : undefined;
-  const satFat   = n['saturated-fat_100g'] != null ? n['saturated-fat_100g']! * factor : undefined;
-  const sodium   = n.sodium_100g           != null ? n.sodium_100g!           * factor : undefined;
-  const protein  = n.proteins_100g         != null ? n.proteins_100g!         * factor : undefined;
-  const fiber    = n.fiber_100g            != null ? n.fiber_100g!            * factor : undefined;
+  // USDA data is already per-serving (manufacturer-submitted label values)
+  if (usda) {
+    return {
+      source: 'usda',
+      factor: 1,
+      calories: usda.calories,
+      sugar:    usda.sugar,        sugarDv:   dv(usda.sugar,        FDA_DV.sugar),
+      satFat:   usda.saturatedFat, satFatDv:  dv(usda.saturatedFat, FDA_DV.satFat),
+      sodium:   usda.sodium,       sodiumDv:  dv(usda.sodium,       FDA_DV.sodium),
+      protein:  usda.protein,      proteinDv: dv(usda.protein,      FDA_DV.protein),
+      fiber:    usda.fiber,        fiberDv:   dv(usda.fiber,        FDA_DV.fiber),
+    };
+  }
+
+  // Fall back to OFF per-100g values scaled to serving size
+  const n = p.nutriments ?? {};
+  const factor = p.serving_quantity ? p.serving_quantity / 100 : 1;
+  const scale = (val: number | undefined) => val != null ? val * factor : undefined;
+
+  const calories = scale(n['energy-kcal_100g']);
+  const sugar    = scale(n.sugars_100g);
+  const satFat   = scale(n['saturated-fat_100g']);
+  const sodium   = scale(n.sodium_100g);
+  const protein  = scale(n.proteins_100g);
+  const fiber    = scale(n.fiber_100g);
 
   return {
+    source: 'off',
     factor,
     calories,
     sugar,   sugarDv:   dv(sugar,   FDA_DV.sugar),
@@ -109,7 +130,7 @@ type State =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'not_found' }
-  | { status: 'ready'; product: OFFProduct; additiveIds: string[]; unknownAdditives: UnknownAdditive[] };
+  | { status: 'ready'; product: OFFProduct; additiveIds: string[]; unknownAdditives: UnknownAdditive[]; usdaNutrition: USDANutrition | null };
 
 // ── Screen ─────────────────────────────────────────────────────────────────────
 export default function ResultScreen() {
@@ -119,12 +140,12 @@ export default function ResultScreen() {
 
   useEffect(() => {
     if (!barcode) return;
-    fetchProduct(barcode)
-      .then(product => {
+    Promise.all([fetchProduct(barcode), fetchUSDANutrition(barcode)])
+      .then(([product, usdaNutrition]) => {
         if (!product) return setState({ status: 'not_found' });
         const { matched: additiveIds, unknown: unknownAdditives } =
           matchByETags(product.additives_tags ?? []);
-        setState({ status: 'ready', product, additiveIds, unknownAdditives });
+        setState({ status: 'ready', product, additiveIds, unknownAdditives, usdaNutrition });
       })
       .catch((err: Error) => setState({
         status: 'error',
@@ -164,11 +185,11 @@ export default function ResultScreen() {
   }
 
   // ── Ready ──
-  const { product, additiveIds, unknownAdditives } = state;
+  const { product, additiveIds, unknownAdditives, usdaNutrition } = state;
   const name     = product.product_name || 'Unknown product';
   const brand    = product.brands?.split(',')[0].trim() || '';
   const imageUrl = product.image_front_url ?? product.image_url;
-  const sn = computeServingNutrients(product);
+  const sn = computeServingNutrients(product, usdaNutrition);
   const nutrition = toneNutrition(sn);
   const matchedAdditives = additiveIds
     .map(id => ADDITIVES[id])
@@ -267,10 +288,19 @@ export default function ResultScreen() {
         {/* Nutrition */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Nutrition</Text>
+            <View style={styles.cardTitleRow}>
+              <Text style={styles.cardTitle}>Nutrition</Text>
+              {sn.source === 'usda' && (
+                <View style={styles.usdaBadge}>
+                  <Text style={styles.usdaBadgeText}>USDA</Text>
+                </View>
+              )}
+            </View>
             <View style={styles.cardHeaderRight}>
-              {product.serving_size ? (
-                <Text style={styles.cardMeta}>per {product.serving_size}</Text>
+              {(usdaNutrition?.householdServing || product.serving_size) ? (
+                <Text style={styles.cardMeta}>
+                  per {usdaNutrition?.householdServing?.toLowerCase() ?? product.serving_size}
+                </Text>
               ) : null}
               <View style={[styles.toneTag, {
                 backgroundColor: nutrition.tone === 'good' ? '#e8f7ef' : '#fdf3e3',
@@ -423,6 +453,9 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase', color: '#8896a7' },
   cardMeta:  { fontSize: 12, color: '#b0bcc9' },
+  cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  usdaBadge:     { backgroundColor: '#e8f7ef', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  usdaBadgeText: { fontSize: 9, fontWeight: '800', color: '#1f9d6b', letterSpacing: 0.5 },
 
   emptyText: { fontSize: 14, color: '#9fadbf', paddingBottom: 4 },
 
