@@ -114,11 +114,25 @@ From `src/constants/theme.ts`. The spike's visual design (`spike/index.html`) is
 
 ## Dev workflow
 
+### Testing loop (fastest → slowest — use the fastest tier that covers the change)
+
+1. **Expo Go on Mark's iPhone — the default inner loop.** `npm start` on the Mac,
+   scan the QR with the phone camera (Expo Go app installed, same Wi-Fi).
+   Hot reload in ~1s, real camera/barcode scanning. This is how Mark tests
+   day-to-day progress — do NOT push to TestFlight just to show progress.
+2. **iOS Simulator** (`npm run ios`) — no camera, but Search mode + everything
+   downstream works. Needs Xcode.
+3. **Web** (`npm run web`) — Claude's own verification loop; limited camera.
+4. **Dev-client build** (`npm run build:sim`, ~12 min once) — only if Expo Go
+   can't load a native module we use. Rebuild only when native deps change.
+5. **TestFlight** (`npm run build:preview` → `npm run submit:ios`) — release
+   channel for the family, not a testing channel.
+
 ```bash
+npm start            # Metro + QR for Expo Go on device  ← default
 npm run ios          # iOS simulator
 npm run android      # Android emulator
 npm run web          # Browser (limited camera)
-npx expo start       # Metro + QR for device
 ```
 
 ---
