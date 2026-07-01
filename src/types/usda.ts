@@ -4,7 +4,7 @@ export interface USDAFoodNutrient {
   nutrientId: number;
   nutrientName: string;
   unitName: string;
-  value: number;
+  value: number;  // per 100g — NOT per serving, despite how this looks on /foods/search
 }
 
 export interface USDAFood {
@@ -24,7 +24,31 @@ export interface USDASearchResponse {
   foods?: USDAFood[];
 }
 
-// Normalized nutrition extracted from a USDA match — values are per-serving
+// The /food/{fdcId} detail endpoint's labelNutrients mirrors the printed
+// Nutrition Facts panel exactly — these are true per-serving values, unlike
+// the per-100g foodNutrients array shared with the search response.
+export interface USDALabelNutrientValue {
+  value: number;
+}
+
+export interface USDALabelNutrients {
+  calories?: USDALabelNutrientValue;
+  fat?: USDALabelNutrientValue;
+  saturatedFat?: USDALabelNutrientValue;
+  carbohydrates?: USDALabelNutrientValue;
+  fiber?: USDALabelNutrientValue;
+  sugars?: USDALabelNutrientValue;
+  addedSugar?: USDALabelNutrientValue;
+  protein?: USDALabelNutrientValue;
+  sodium?: USDALabelNutrientValue;  // mg
+}
+
+export interface USDAFoodDetail {
+  fdcId: number;
+  labelNutrients?: USDALabelNutrients;
+}
+
+// Normalized nutrition extracted from a USDA match — values are always per-serving
 export interface USDANutrition {
   calories?: number;
   totalFat?: number;

@@ -1,4 +1,9 @@
-import type { USDANutrition, USDASearchResponse } from '../types/usda';
+import type {
+  USDAFood,
+  USDAFoodDetail,
+  USDANutrition,
+  USDASearchResponse,
+} from '../types/usda';
 
 const BASE = 'https://api.nal.usda.gov/fdc/v1';
 
@@ -6,7 +11,8 @@ const BASE = 'https://api.nal.usda.gov/fdc/v1';
 // DEMO_KEY works but is capped at 30 req/hr / 50 req/day
 const API_KEY = process.env.EXPO_PUBLIC_USDA_API_KEY ?? 'DEMO_KEY';
 
-// USDA nutrient IDs for the fields we display
+// USDA nutrient IDs for the fields we display — used only for the per-100g
+// fallback path (foodNutrients on /foods/search); labelNutrients uses names.
 const NIDS = {
   calories:     1008,
   totalFat:     1004,
@@ -24,51 +30,92 @@ function gtinVariants(barcode: string): string[] {
   return [...new Set([barcode, barcode.padStart(14, '0')])];
 }
 
-export async function fetchUSDANutrition(barcode: string): Promise<USDANutrition | null> {
-  const url =
-    `${BASE}/foods/search?query=${encodeURIComponent(barcode)}&dataType=Branded&pageSize=10&api_key=${API_KEY}`;
-
+async function fetchJson<T>(url: string): Promise<T | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 5000);
-
-  let res: Response;
   try {
-    res = await fetch(url, {
+    const res = await fetch(url, {
       headers: { 'User-Agent': 'Klarity/1.0 (contact@klarity.app)' },
       signal: controller.signal,
     });
+    if (!res.ok) return null;
+    return await res.json() as T;
   } catch {
+    return null;  // network error or timeout — caller falls back
+  } finally {
     clearTimeout(timer);
-    return null;  // network error or timeout — fall back to OFF silently
   }
-  clearTimeout(timer);
+}
 
-  if (!res.ok) return null;
-
-  const data: USDASearchResponse = await res.json();
-  if (!data.foods?.length) return null;
+async function findMatch(barcode: string): Promise<USDAFood | null> {
+  const url = `${BASE}/foods/search?query=${encodeURIComponent(barcode)}&dataType=Branded&pageSize=10&api_key=${API_KEY}`;
+  const data = await fetchJson<USDASearchResponse>(url);
+  if (!data?.foods?.length) return null;
 
   const variants = gtinVariants(barcode);
-  const match = data.foods.find(f => f.gtinUpc && variants.includes(f.gtinUpc));
-  if (!match) return null;
+  return data.foods.find(f => f.gtinUpc && variants.includes(f.gtinUpc)) ?? null;
+}
 
+// /foods/search only returns nutrients per 100g under names identical to what a
+// per-serving label would use ("Total lipid (fat)", etc). Scaling requires a
+// gram-based serving size — USDA branded data occasionally mislabels
+// servingSizeUnit (e.g. "MG"/"IU" on what is clearly a solid food), so we only
+// trust the scale when the unit is unambiguously grams.
+function scalePer100g(match: USDAFood): USDANutrition | null {
+  const unit = match.servingSizeUnit?.trim().toUpperCase();
+  const isGrams = unit === 'GRM' || unit === 'G';
+  if (!isGrams || match.servingSize == null) return null;
+
+  const factor = match.servingSize / 100;
   const nmap = new Map(match.foodNutrients.map(n => [n.nutrientId, n.value]));
-  const get = (id: number): number | undefined => nmap.get(id);
-
-  const sodiumMg = get(NIDS.sodium);
+  const scale = (id: number): number | undefined => {
+    const v = nmap.get(id);
+    return v != null ? v * factor : undefined;
+  };
+  const sodiumMg = scale(NIDS.sodium);
 
   return {
-    calories:      get(NIDS.calories),
-    totalFat:      get(NIDS.totalFat),
-    protein:       get(NIDS.protein),
-    carbs:         get(NIDS.carbs),
-    fiber:         get(NIDS.fiber),
-    sugar:         get(NIDS.sugar),
-    addedSugar:    get(NIDS.addedSugar),
-    saturatedFat:  get(NIDS.saturatedFat),
-    sodium:        sodiumMg != null ? sodiumMg / 1000 : undefined,
-    servingSize:   match.servingSize,
-    servingSizeUnit: match.servingSizeUnit,
+    calories:     scale(NIDS.calories),
+    totalFat:     scale(NIDS.totalFat),
+    protein:      scale(NIDS.protein),
+    carbs:        scale(NIDS.carbs),
+    fiber:        scale(NIDS.fiber),
+    sugar:        scale(NIDS.sugar),
+    addedSugar:   scale(NIDS.addedSugar),
+    saturatedFat: scale(NIDS.saturatedFat),
+    sodium:       sodiumMg != null ? sodiumMg / 1000 : undefined,
+    servingSize:      match.servingSize,
+    servingSizeUnit:  match.servingSizeUnit,
     householdServing: match.householdServingFullText,
   };
+}
+
+export async function fetchUSDANutrition(barcode: string): Promise<USDANutrition | null> {
+  const match = await findMatch(barcode);
+  if (!match) return null;
+
+  // labelNutrients (only on the /food/{fdcId} detail endpoint) mirrors the
+  // printed Nutrition Facts panel exactly — the authoritative per-serving source.
+  const detail = await fetchJson<USDAFoodDetail>(`${BASE}/food/${match.fdcId}?api_key=${API_KEY}`);
+  const label = detail?.labelNutrients;
+  if (label) {
+    return {
+      calories:     label.calories?.value,
+      totalFat:     label.fat?.value,
+      protein:      label.protein?.value,
+      carbs:        label.carbohydrates?.value,
+      fiber:        label.fiber?.value,
+      sugar:        label.sugars?.value,
+      addedSugar:   label.addedSugar?.value,
+      saturatedFat: label.saturatedFat?.value,
+      sodium:       label.sodium?.value != null ? label.sodium.value / 1000 : undefined,
+      servingSize:      match.servingSize,
+      servingSizeUnit:  match.servingSizeUnit,
+      householdServing: match.householdServingFullText,
+    };
+  }
+
+  // Detail call failed or this item has no label data — fall back to scaling
+  // the per-100g search result. Never treat per-100g values as per-serving.
+  return scalePer100g(match);
 }
