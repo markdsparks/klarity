@@ -43,18 +43,20 @@ const VERDICT_STYLE: Record<VerdictKey, { bg: string; fg: string; label: string 
   contested: { bg: '#efecfb', fg: '#6b5bd2', label: 'Contested' },
 };
 
-// ── FDA 2020 Daily Values (per serving reference) ─────────────────────────────
-const FDA_DV = { sugar: 50, satFat: 20, sodium: 2.3, fiber: 28, protein: 50 };
+// ── FDA 2020 Daily Values ──────────────────────────────────────────────────────
+const FDA_DV = { totalFat: 78, carbs: 275, sugar: 50, satFat: 20, sodium: 2.3, fiber: 28, protein: 50 };
 
 type ServingNutrients = {
   source: 'usda' | 'off';
   factor: number;
   calories?: number;
-  sugar?: number;   sugarDv?: number;
-  satFat?: number;  satFatDv?: number;
-  sodium?: number;  sodiumDv?: number;
-  protein?: number; proteinDv?: number;
-  fiber?: number;   fiberDv?: number;
+  totalFat?: number; fatDv?: number;
+  carbs?: number;    carbsDv?: number;
+  sugar?: number;    sugarDv?: number;
+  satFat?: number;   satFatDv?: number;
+  sodium?: number;   sodiumDv?: number;
+  protein?: number;  proteinDv?: number;
+  fiber?: number;    fiberDv?: number;
 };
 
 function computeServingNutrients(p: OFFProduct, usda: USDANutrition | null): ServingNutrients {
@@ -67,11 +69,13 @@ function computeServingNutrients(p: OFFProduct, usda: USDANutrition | null): Ser
       source: 'usda',
       factor: 1,
       calories: usda.calories,
-      sugar:    usda.sugar,        sugarDv:   dv(usda.sugar,        FDA_DV.sugar),
-      satFat:   usda.saturatedFat, satFatDv:  dv(usda.saturatedFat, FDA_DV.satFat),
-      sodium:   usda.sodium,       sodiumDv:  dv(usda.sodium,       FDA_DV.sodium),
-      protein:  usda.protein,      proteinDv: dv(usda.protein,      FDA_DV.protein),
-      fiber:    usda.fiber,        fiberDv:   dv(usda.fiber,        FDA_DV.fiber),
+      totalFat: usda.totalFat,    fatDv:     dv(usda.totalFat,    FDA_DV.totalFat),
+      carbs:    usda.carbs,       carbsDv:   dv(usda.carbs,       FDA_DV.carbs),
+      sugar:    usda.sugar,       sugarDv:   dv(usda.sugar,       FDA_DV.sugar),
+      satFat:   usda.saturatedFat,satFatDv:  dv(usda.saturatedFat,FDA_DV.satFat),
+      sodium:   usda.sodium,      sodiumDv:  dv(usda.sodium,      FDA_DV.sodium),
+      protein:  usda.protein,     proteinDv: dv(usda.protein,     FDA_DV.protein),
+      fiber:    usda.fiber,       fiberDv:   dv(usda.fiber,       FDA_DV.fiber),
     };
   }
 
@@ -81,6 +85,8 @@ function computeServingNutrients(p: OFFProduct, usda: USDANutrition | null): Ser
   const scale = (val: number | undefined) => val != null ? val * factor : undefined;
 
   const calories = scale(n['energy-kcal_100g']);
+  const totalFat = scale(n.fat_100g);
+  const carbs    = scale(n.carbohydrates_100g);
   const sugar    = scale(n.sugars_100g);
   const satFat   = scale(n['saturated-fat_100g']);
   const sodium   = scale(n.sodium_100g);
@@ -91,11 +97,13 @@ function computeServingNutrients(p: OFFProduct, usda: USDANutrition | null): Ser
     source: 'off',
     factor,
     calories,
-    sugar,   sugarDv:   dv(sugar,   FDA_DV.sugar),
-    satFat,  satFatDv:  dv(satFat,  FDA_DV.satFat),
-    sodium,  sodiumDv:  dv(sodium,  FDA_DV.sodium),
-    protein, proteinDv: dv(protein, FDA_DV.protein),
-    fiber,   fiberDv:   dv(fiber,   FDA_DV.fiber),
+    totalFat, fatDv:     dv(totalFat, FDA_DV.totalFat),
+    carbs,    carbsDv:   dv(carbs,    FDA_DV.carbs),
+    sugar,    sugarDv:   dv(sugar,    FDA_DV.sugar),
+    satFat,   satFatDv:  dv(satFat,   FDA_DV.satFat),
+    sodium,   sodiumDv:  dv(sodium,   FDA_DV.sodium),
+    protein,  proteinDv: dv(protein,  FDA_DV.protein),
+    fiber,    fiberDv:   dv(fiber,    FDA_DV.fiber),
   };
 }
 
@@ -314,12 +322,14 @@ export default function ResultScreen() {
             </View>
           </View>
           <Text style={styles.nutritionSummary}>{nutrition.summary}</Text>
-          <NutrientRow label="Calories" value={sn.calories}  unit="kcal" />
-          <NutrientRow label="Sugar"    value={sn.sugar}     unit="g"  dvPct={sn.sugarDv}   highlight={sn.sugarDv   != null && sn.sugarDv   >= 20 ? 'warn' : null} />
-          <NutrientRow label="Sat fat"  value={sn.satFat}    unit="g"  dvPct={sn.satFatDv}  highlight={sn.satFatDv  != null && sn.satFatDv  >= 20 ? 'warn' : null} />
-          <NutrientRow label="Sodium"   value={sn.sodium}    unit="g"  dvPct={sn.sodiumDv}  highlight={sn.sodiumDv  != null && sn.sodiumDv  >= 20 ? 'warn' : null} />
-          <NutrientRow label="Protein"  value={sn.protein}   unit="g"  dvPct={sn.proteinDv} highlight={sn.proteinDv != null && sn.proteinDv >= 10 ? 'good' : null} />
-          <NutrientRow label="Fiber"    value={sn.fiber}     unit="g"  dvPct={sn.fiberDv}   highlight={sn.fiberDv   != null && sn.fiberDv   >= 10 ? 'good' : null} />
+          <NutrientRow label="Calories"      value={sn.calories} unit="kcal" />
+          <NutrientRow label="Total Fat"     value={sn.totalFat} unit="g" dvPct={sn.fatDv}    />
+          <NutrientRow label="Saturated Fat" value={sn.satFat}   unit="g" dvPct={sn.satFatDv} highlight={sn.satFatDv  != null && sn.satFatDv  >= 20 ? 'warn' : null} sub />
+          <NutrientRow label="Total Carbs"   value={sn.carbs}    unit="g" dvPct={sn.carbsDv}  />
+          <NutrientRow label="Sugar"         value={sn.sugar}    unit="g" dvPct={sn.sugarDv}  highlight={sn.sugarDv   != null && sn.sugarDv   >= 20 ? 'warn' : null} sub />
+          <NutrientRow label="Fiber"         value={sn.fiber}    unit="g" dvPct={sn.fiberDv}  highlight={sn.fiberDv   != null && sn.fiberDv   >= 10 ? 'good' : null} sub />
+          <NutrientRow label="Protein"       value={sn.protein}  unit="g" dvPct={sn.proteinDv} highlight={sn.proteinDv != null && sn.proteinDv >= 10 ? 'good' : null} />
+          <NutrientRow label="Sodium"        value={sn.sodium}   unit="g" dvPct={sn.sodiumDv}  highlight={sn.sodiumDv  != null && sn.sodiumDv  >= 20 ? 'warn' : null} />
         </View>
       </View>
     </ScrollView>
@@ -375,21 +385,22 @@ function UnknownAdditiveRow({ additive, first }: { additive: UnknownAdditive; fi
   );
 }
 
-function NutrientRow({ label, value, unit, dvPct, highlight }: {
+function NutrientRow({ label, value, unit, dvPct, highlight, sub }: {
   label: string; value?: number; unit: string;
-  dvPct?: number; highlight?: 'warn' | 'good' | null;
+  dvPct?: number; highlight?: 'warn' | 'good' | null; sub?: boolean;
 }) {
   if (value == null) return null;
-  const color = highlight === 'warn' ? '#c8821a' : highlight === 'good' ? '#1f9d6b' : '#1a1f29';
+  const valueColor = highlight === 'warn' ? '#c8821a' : highlight === 'good' ? '#1f9d6b' : '#1a1f29';
+  const dvColor    = highlight != null ? valueColor : '#b0bcc9';
   return (
-    <View style={styles.nutrientRow}>
-      <Text style={styles.nutrientLabel}>{label}</Text>
+    <View style={[styles.nutrientRow, sub && styles.nutrientSubRow]}>
+      <Text style={[styles.nutrientLabel, sub && styles.nutrientSubLabel]}>{label}</Text>
       <View style={styles.nutrientRight}>
-        <Text style={[styles.nutrientValue, { color }]}>
+        <Text style={[styles.nutrientValue, sub && styles.nutrientSubValue, { color: valueColor }]}>
           {unit === 'kcal' ? Math.round(value) : value.toFixed(1)} {unit}
         </Text>
         {dvPct != null && (
-          <Text style={[styles.nutrientDv, { color }]}>{dvPct}% DV</Text>
+          <Text style={[styles.nutrientDv, { color: dvColor }]}>{dvPct}% DV</Text>
         )}
       </View>
     </View>
@@ -501,9 +512,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#f1f4f8',
   },
-  nutrientLabel: { fontSize: 13.5, color: '#5b6675' },
+  nutrientLabel:    { fontSize: 13.5, color: '#5b6675' },
+  nutrientSubRow:   { paddingLeft: 16 },
+  nutrientSubLabel: { fontSize: 12.5, color: '#9fadbf' },
+  nutrientSubValue: { fontSize: 12.5, fontWeight: '500' },
   nutrientRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  nutrientValue: { fontSize: 13.5, fontWeight: '600' },
+  nutrientValue: { fontSize: 13.5, fontWeight: '700' },
   nutrientDv:    { fontSize: 11, fontWeight: '700', opacity: 0.85 },
   cardHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
 });

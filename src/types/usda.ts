@@ -27,7 +27,9 @@ export interface USDASearchResponse {
 // Normalized nutrition extracted from a USDA match — values are per-serving
 export interface USDANutrition {
   calories?: number;
+  totalFat?: number;
   protein?: number;
+  carbs?: number;
   fiber?: number;
   sugar?: number;
   saturatedFat?: number;

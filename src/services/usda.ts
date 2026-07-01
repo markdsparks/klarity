@@ -9,7 +9,9 @@ const API_KEY = process.env.EXPO_PUBLIC_USDA_API_KEY ?? 'DEMO_KEY';
 // USDA nutrient IDs for the fields we display
 const NIDS = {
   calories:     1008,
+  totalFat:     1004,
   protein:      1003,
+  carbs:        1005,
   fiber:        1079,
   sugar:        2000,
   saturatedFat: 1258,
@@ -56,7 +58,9 @@ export async function fetchUSDANutrition(barcode: string): Promise<USDANutrition
 
   return {
     calories:      get(NIDS.calories),
+    totalFat:      get(NIDS.totalFat),
     protein:       get(NIDS.protein),
+    carbs:         get(NIDS.carbs),
     fiber:         get(NIDS.fiber),
     sugar:         get(NIDS.sugar),
     saturatedFat:  get(NIDS.saturatedFat),
