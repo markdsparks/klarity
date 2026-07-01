@@ -9,6 +9,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ADDITIVES } from '@/data/additives';
+import { useProfile } from '@/hooks/use-profile';
+import { resolveVerdict } from '@/services/verdict';
 import type { EvidenceTier, VerdictKey } from '@/types/index';
 import { TIER_LABEL } from '@/types/index';
 
@@ -40,9 +42,15 @@ const TIER_COLOUR: Record<EvidenceTier, { bg: string; fg: string }> = {
   D: { bg: '#f1f4f8', fg: '#8896a7' },
 };
 
+const VALUES_LEAN_LABEL: Record<string, string> = {
+  precaution: 'precaution lean',
+  risk: 'risk-tolerant lean',
+};
+
 export default function AdditiveScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
+  const { profile } = useProfile();
   const additive = id ? ADDITIVES[id] : undefined;
 
   if (!additive) {
@@ -56,7 +64,11 @@ export default function AdditiveScreen() {
     );
   }
 
-  const vc = VERDICT_CONFIG[additive.baseVerdict];
+  const result = resolveVerdict(additive, profile);
+  // Contested verdicts may resolve to the user's lean — but the disagreement
+  // stays visible, and the full evidence trail below never changes
+  const resolvedContested = result.verdict !== additive.baseVerdict;
+  const vc = VERDICT_CONFIG[result.verdict];
 
   return (
     <ScrollView
@@ -84,11 +96,30 @@ export default function AdditiveScreen() {
 
       {/* Verdict banner */}
       <View style={[styles.verdictBanner, { backgroundColor: vc.heroBg }]}>
-        <View style={[styles.verdictPill, { backgroundColor: vc.pillBg }]}>
-          <Text style={[styles.verdictPillText, { color: vc.pillFg }]}>{vc.label}</Text>
+        <View style={styles.verdictPillRow}>
+          <View style={[styles.verdictPill, { backgroundColor: vc.pillBg }]}>
+            <Text style={[styles.verdictPillText, { color: vc.pillFg }]}>{vc.label}</Text>
+          </View>
+          {resolvedContested && (
+            <View style={styles.contestedTag}>
+              <Text style={styles.contestedTagText}>Contested</Text>
+            </View>
+          )}
         </View>
-        <Text style={[styles.verdictBlurb, { color: vc.heroFg }]}>{vc.blurb}</Text>
+        <Text style={[styles.verdictBlurb, { color: vc.heroFg }]}>
+          {resolvedContested
+            ? `Regulators genuinely disagree — shown as ${vc.label.toLowerCase()} to match your ${VALUES_LEAN_LABEL[profile.values] ?? profile.values}. Both sides below.`
+            : vc.blurb}
+        </Text>
       </View>
+
+      {/* Subgroup note for the active profile's conditions */}
+      {result.profileNote && (
+        <View style={[styles.card, styles.forYouCard]}>
+          <Text style={[styles.cardLabel, styles.forYouLabel]}>For you</Text>
+          <Text style={styles.forYouText}>{result.profileNote}</Text>
+        </View>
+      )}
 
       {/* Summary */}
       <View style={styles.card}>
@@ -204,8 +235,18 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     gap: 8,
   },
+  verdictPillRow:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
   verdictPill:     { alignSelf: 'flex-start', borderRadius: 99, paddingHorizontal: 14, paddingVertical: 6 },
   verdictPillText: { fontSize: 14, fontWeight: '800', letterSpacing: 0.1 },
+  contestedTag: {
+    borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5,
+    borderWidth: 1, borderColor: '#6b5bd2',
+  },
+  contestedTagText: { fontSize: 11, fontWeight: '800', color: '#6b5bd2', letterSpacing: 0.2 },
+
+  forYouCard:  { borderColor: '#c3e6d5', backgroundColor: '#f0faf5' },
+  forYouLabel: { color: '#1f9d6b' },
+  forYouText:  { fontSize: 14, color: '#1a1f29', lineHeight: 21 },
   verdictBlurb:    { fontSize: 14, fontWeight: '500', lineHeight: 20, opacity: 0.9 },
 
   card: {

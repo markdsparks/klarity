@@ -1,6 +1,7 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -13,8 +14,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useProfile } from '@/hooks/use-profile';
 import { searchProducts } from '@/services/off';
 import type { OFFSearchProduct } from '@/types/off';
+
+const PROFILE_HINT_KEY = 'KLARITY_PROFILE_HINT_DISMISSED_V1';
 
 type Mode = 'scan' | 'search';
 
@@ -26,6 +30,22 @@ export default function ScanScreen() {
   const [scanning, setScanning] = useState(false);
   const lastScanAt = useRef(0);
   const insets = useSafeAreaInsets();
+
+  // One-time hint pointing at the You tab — only while the profile is untouched
+  const { profile, loaded: profileLoaded } = useProfile();
+  const [hintDismissed, setHintDismissed] = useState(true);
+  useEffect(() => {
+    AsyncStorage.getItem(PROFILE_HINT_KEY)
+      .then(v => setHintDismissed(v === '1'))
+      .catch(() => {});
+  }, []);
+  const profileUntouched = profile.values === 'balanced' && profile.conditions.length === 0;
+  const showProfileHint = profileLoaded && profileUntouched && !hintDismissed && mode === 'scan';
+
+  function dismissHint() {
+    setHintDismissed(true);
+    AsyncStorage.setItem(PROFILE_HINT_KEY, '1').catch(() => {});
+  }
 
   function handleBarcode({ data }: { data: string }) {
     const now = Date.now();
@@ -55,6 +75,7 @@ export default function ScanScreen() {
           scanning={scanning}
           onSearchOpen={() => setMode('search')}
           safeTop={insets.top}
+          profileHint={showProfileHint ? { onDismiss: dismissHint } : null}
         />
       ) : (
         <SearchOverlay
@@ -75,12 +96,14 @@ function ScanOverlay({
   scanning,
   onSearchOpen,
   safeTop,
+  profileHint,
 }: {
   permission: { granted: boolean } | null;
   requestPermission: () => unknown;
   scanning: boolean;
   onSearchOpen: () => void;
   safeTop: number;
+  profileHint: { onDismiss: () => void } | null;
 }) {
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
@@ -93,6 +116,23 @@ function ScanOverlay({
           <Text style={styles.searchPillText}>Search</Text>
         </Pressable>
       </View>
+
+      {/* Profile setup hint */}
+      {profileHint && (
+        <View style={styles.profileHint}>
+          <Pressable
+            style={styles.profileHintBody}
+            onPress={() => router.push('/you')}
+            hitSlop={6}>
+            <Text style={styles.profileHintText}>
+              Make verdicts yours — set up your profile →
+            </Text>
+          </Pressable>
+          <Pressable onPress={profileHint.onDismiss} hitSlop={12}>
+            <Text style={styles.profileHintClose}>✕</Text>
+          </Pressable>
+        </View>
+      )}
 
       {/* Permission prompt */}
       {permission && !permission.granted && (
@@ -309,6 +349,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.2,
   },
+
+  profileHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginHorizontal: 16,
+    marginTop: 10,
+    backgroundColor: 'rgba(31,157,107,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(127,211,170,0.35)',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  profileHintBody: { flex: 1 },
+  profileHintText: { color: '#7fd3aa', fontSize: 13, fontWeight: '600' },
+  profileHintClose: { color: 'rgba(127,211,170,0.7)', fontSize: 13, fontWeight: '700' },
 
   viewfinderWrapper: {
     flex: 1,

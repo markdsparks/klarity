@@ -14,6 +14,7 @@ const NIDS = {
   carbs:        1005,
   fiber:        1079,
   sugar:        2000,
+  addedSugar:   1235,
   saturatedFat: 1258,
   sodium:       1093,   // mg — divide by 1000 to get grams
 } as const;
@@ -63,6 +64,7 @@ export async function fetchUSDANutrition(barcode: string): Promise<USDANutrition
     carbs:         get(NIDS.carbs),
     fiber:         get(NIDS.fiber),
     sugar:         get(NIDS.sugar),
+    addedSugar:    get(NIDS.addedSugar),
     saturatedFat:  get(NIDS.saturatedFat),
     sodium:        sodiumMg != null ? sodiumMg / 1000 : undefined,
     servingSize:   match.servingSize,

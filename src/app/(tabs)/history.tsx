@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { clearHistory, loadHistory } from '@/services/history';
+import { clearHistory, distinctScanDays, loadHistory } from '@/services/history';
 import type { AdditiveGlanceKey, ScanHistoryEntry } from '@/types/history';
 import type { NutritionTone } from '@/types/index';
 
@@ -114,6 +114,7 @@ function HistoryRow({ entry }: { entry: ScanHistoryEntry }) {
   const ns = NUTRITION_STYLE[entry.nutritionTone];
   const initial = (entry.productName[0] ?? '?').toUpperCase();
   const avatarColor = AVATAR_PALETTE[initial.charCodeAt(0) % AVATAR_PALETTE.length];
+  const recentDays = distinctScanDays(entry, 14);
 
   return (
     <Pressable
@@ -133,7 +134,11 @@ function HistoryRow({ entry }: { entry: ScanHistoryEntry }) {
       <View style={styles.info}>
         <Text style={styles.productName} numberOfLines={2}>{entry.productName}</Text>
         <Text style={styles.meta}>
-          {[entry.brand, relativeTime(entry.scannedAt)].filter(Boolean).join(' · ')}
+          {[
+            entry.brand,
+            relativeTime(entry.scannedAt),
+            recentDays >= 2 ? `${recentDays} days recently` : null,
+          ].filter(Boolean).join(' · ')}
         </Text>
         {/* Verdict pills */}
         <View style={styles.pills}>
@@ -143,6 +148,11 @@ function HistoryRow({ entry }: { entry: ScanHistoryEntry }) {
           <View style={[styles.pill, { backgroundColor: ns.bg }]}>
             <Text style={[styles.pillText, { color: ns.fg }]}>{ns.label}</Text>
           </View>
+          {entry.buySignal === 'regular' && (
+            <View style={[styles.pill, styles.regularPill]}>
+              <Text style={[styles.pillText, styles.regularPillText]}>Regular buy</Text>
+            </View>
+          )}
         </View>
       </View>
 
@@ -198,9 +208,11 @@ const styles = StyleSheet.create({
   productName: { fontSize: 14, fontWeight: '700', color: '#1a1f29', lineHeight: 19 },
   meta:        { fontSize: 12, color: '#9fadbf' },
 
-  pills: { flexDirection: 'row', gap: 6, marginTop: 2 },
+  pills: { flexDirection: 'row', gap: 6, marginTop: 2, flexWrap: 'wrap' },
   pill:     { borderRadius: 99, paddingHorizontal: 8, paddingVertical: 3 },
   pillText: { fontSize: 10.5, fontWeight: '800' },
+  regularPill:     { borderWidth: 1, borderColor: '#c3e6d5', backgroundColor: '#fff' },
+  regularPillText: { color: '#1f9d6b' },
 
   chevron: { fontSize: 20, color: '#d0d8e4' },
 });

@@ -32,6 +32,7 @@ export interface USDANutrition {
   carbs?: number;
   fiber?: number;
   sugar?: number;
+  addedSugar?: number;    // WHO/AHA guidance is about added sugar — use when present
   saturatedFat?: number;
   sodium?: number;        // grams (converted from USDA's mg)
   servingSize?: number;   // grams

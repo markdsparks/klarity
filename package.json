@@ -59,6 +59,9 @@
     ],
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/(?!(use-latest-callback))|react-navigation|@react-navigation/.*)"
+    ],
+    "setupFiles": [
+      "./jest.setup.js"
     ]
   },
   "private": true
