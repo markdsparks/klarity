@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { matchByETags } from '@/data/additive-index';
 import { ADDITIVES } from '@/data/additives';
 import { fetchProduct } from '@/services/off';
+import { saveToHistory } from '@/services/history';
 import { fetchUSDANutrition } from '@/services/usda';
 import type { OFFProduct } from '@/types/off';
 import type { USDANutrition } from '@/types/usda';
@@ -171,6 +172,21 @@ export default function ResultScreen() {
         const { matched: additiveIds, unknown: unknownAdditives } =
           matchByETags(product.additives_tags ?? []);
         setState({ status: 'ready', product, additiveIds, unknownAdditives, usdaNutrition });
+
+        // Persist to scan history (fire-and-forget — never blocks UI)
+        const matchedAdditives = additiveIds
+          .map(id => ADDITIVES[id])
+          .filter((a): a is Additive => !!a);
+        const sn = computeServingNutrients(product, usdaNutrition);
+        void saveToHistory({
+          barcode,
+          productName: product.product_name || 'Unknown product',
+          brand: product.brands?.split(',')[0].trim() || '',
+          imageUrl: product.image_front_url ?? product.image_url,
+          additiveGlance: overallAdditiveGlance(matchedAdditives, unknownAdditives.length),
+          nutritionTone: toneNutrition(sn).tone,
+          scannedAt: Date.now(),
+        });
       })
       .catch((err: Error) => setState({
         status: 'error',

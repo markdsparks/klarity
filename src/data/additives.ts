@@ -666,6 +666,38 @@ export const ADDITIVES: Record<string, Additive> = {
     subgroupNotes: {},
   },
 
+  lactic_acid: {
+    id: 'lactic_acid',
+    name: 'Lactic Acid',
+    eNumber: 'E270',
+    role: 'Acidulant / preservative',
+    benefit: 'functional',
+    avoidability: 'easy',
+    baseVerdict: 'everyday',
+    headline: "Your own muscles produce lactic acid during exercise. As a food additive it's one of the most naturally occurring and well-tolerated acids used in food.",
+    exposure: {
+      typical: '0.1–2% in fermented or acidified foods',
+      concerning: 'No adverse intake level established — EFSA set no ADI (not necessary)',
+      note: 'Present naturally in yogurt, sauerkraut, cheese, sourdough. The additive form is identical to what your body makes.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'EFSA re-evaluated E270 in 2019 and found no safety concern at current use levels. No ADI needed.',
+        why: 'EFSA Journal 2019;17(6):5770 — full re-evaluation, no ADI required.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS. Also produced endogenously by the human body — serum lactate is a normal metabolite.',
+        why: 'FDA 21 CFR 184.1061; lactic acid is a standard product of human anaerobic metabolism.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
   // ── SOMETIMES — real concern at higher intake ──────────────────────────────
 
   sodium_benzoate: {
