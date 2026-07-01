@@ -7,6 +7,8 @@ import type { Additive } from '../types';
 
 export const ADDITIVES: Record<string, Additive> = {
 
+  // ── Tier A contested / complex ─────────────────────────────────────────────
+
   carrageenan: {
     id: 'carrageenan',
     name: 'Carrageenan',
@@ -246,6 +248,1563 @@ export const ADDITIVES: Record<string, Additive> = {
       ibd: 'If you have IBD or IBS, the emulsifier–gut question is more relevant to you; reasonable to lean toward limiting while the human evidence matures.',
     },
   },
+
+  // ── EVERYDAY — clear safety consensus ─────────────────────────────────────
+
+  citric_acid: {
+    id: 'citric_acid',
+    name: 'Citric acid',
+    eNumber: 'E330',
+    role: 'Acidity regulator / flavoring / preservative',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'The sourness in lemonade — a natural fermentation product that clears every regulator. One of the safest additives on any label.',
+    exposure: {
+      typical: 'Milligrams per serving in most products',
+      concerning: 'None at food levels',
+      note: 'Occurs naturally in citrus; produced commercially by fermenting glucose with Aspergillus niger. Functionally identical regardless of source.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'JECFA ADI "not specified" — highest safety category; FDA GRAS',
+        why: 'Universally approved by all major regulators. Occurs naturally in every citrus fruit and many other foods.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  lecithin: {
+    id: 'lecithin',
+    name: 'Lecithins',
+    aliases: ['lecithin'],
+    eNumber: 'E322',
+    role: 'Emulsifier (from soy, sunflower, or egg)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: "The emulsifier in chocolate and most baked goods — it's the phospholipid your own cell membranes are made of. No safety concern.",
+    exposure: {
+      typical: 'Small fractions of a percent in food',
+      concerning: 'None at food levels',
+      note: 'Soy lecithin is highly refined — residual soy protein is negligible (<0.1%), but very severe soy-allergic individuals may note it on labels.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'JECFA ADI "not specified" / FDA GRAS',
+        why: 'Phospholipids found in all living cell membranes. Approved everywhere without reservation.',
+      },
+      {
+        tier: 'B',
+        applies: false,
+        claim: 'Risk for soy-allergic individuals',
+        why: 'Soy lecithin contains <0.1% soy protein — too little to trigger reactions in all but the most extreme allergies. EFSA and FDA agree it does not require a soy allergen warning.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  xanthan_gum: {
+    id: 'xanthan_gum',
+    name: 'Xanthan gum',
+    eNumber: 'E415',
+    role: 'Thickener / stabilizer (bacterial fermentation product)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'A bacterial fermentation product that thickens salad dressings and gluten-free bread. Passes through you undigested — no safety concerns.',
+    exposure: {
+      typical: '0.1–1% of food weight',
+      concerning: 'None at food levels',
+      note: 'Very high clinical doses (grams/day in tube feeding) can cause GI symptoms in sensitive individuals. Food amounts are far below this.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'JECFA ADI "not specified" / FDA GRAS',
+        why: 'Not digested — functions as dietary fiber. Approved by all major regulators.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  guar_gum: {
+    id: 'guar_gum',
+    name: 'Guar gum',
+    eNumber: 'E412',
+    role: 'Thickener / stabilizer (from guar bean seeds)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: "Powdered guar bean seed that thickens yogurt and ice cream. It's essentially a fiber supplement — no safety concerns, and some evidence of modest benefit.",
+    exposure: {
+      typical: 'Fractions of a gram per serving',
+      concerning: 'None at food levels',
+      note: 'At high supplemental doses, guar gum is used to reduce blood cholesterol and moderate blood sugar. Food amounts are well below this range.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'JECFA ADI "not specified" / FDA GRAS',
+        why: 'Acts as soluble dietary fiber. Universally approved; associated with modest health benefits at higher intakes.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  pectin: {
+    id: 'pectin',
+    name: 'Pectin',
+    eNumber: 'E440',
+    role: 'Gelling agent / thickener (from apple and citrus peel)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: "Extracted from apple and citrus peel to thicken jams. It's dietary fiber — one of the most benign additives on any label.",
+    exposure: {
+      typical: 'Milligrams to low grams per serving',
+      concerning: 'None at food levels',
+      note: 'Soluble fiber that feeds beneficial gut bacteria. At higher doses it actively lowers LDL cholesterol — net beneficial, not a concern.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'JECFA ADI "not specified" / FDA GRAS',
+        why: 'Natural plant polysaccharide with no safety concerns. Documented prebiotic and cholesterol-lowering effects at higher doses.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  msg: {
+    id: 'msg',
+    name: 'Monosodium glutamate (MSG)',
+    aliases: ['msg'],
+    eNumber: 'E621',
+    role: 'Flavor enhancer (umami)',
+    benefit: 'functional',
+    avoidability: 'moderate',
+    baseVerdict: 'everyday',
+    headline: "The only additive with its own persistent myth. Blinded studies have consistently failed to reproduce 'MSG symptoms' — the science is settled.",
+    exposure: {
+      typical: '0.1–0.8 g per dish; contributes 12% sodium vs 39% for table salt',
+      concerning: 'None established at food levels',
+      note: 'Glutamate is an amino acid found in much higher concentrations naturally in tomatoes, parmesan, mushrooms, and soy sauce than any amount added as E621.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'JECFA ADI "not specified" / FDA GRAS',
+        why: 'Glutamic acid is a non-essential amino acid found in every protein-containing food. Universally approved.',
+      },
+      {
+        tier: 'B',
+        applies: false,
+        claim: '"MSG symptom complex" (headache, flushing, chest tightness)',
+        why: 'Multiple double-blind placebo-controlled trials failed to reproduce symptoms at food-relevant doses even in self-identified MSG-sensitive individuals. FDA investigated and found no consistent causal relationship. Nocebo effect explains anecdotal reports.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  potassium_sorbate: {
+    id: 'potassium_sorbate',
+    name: 'Potassium sorbate',
+    eNumber: 'E202',
+    role: 'Preservative — mold and yeast inhibitor',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'A gentle mold inhibitor that keeps cheese, bread, and beverages fresh. Long safety record, generous margin to its ADI.',
+    exposure: {
+      typical: '0.1–0.3% of product weight',
+      concerning: 'None at food levels',
+      note: 'Sorbic acid is found naturally in rowanberries. Metabolized via normal fatty acid pathways.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'JECFA ADI 25 mg/kg bw / FDA GRAS',
+        why: 'Approved everywhere; in use since the 1950s. Effective at very low concentrations, keeping intake well within the ADI.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  mono_diglycerides: {
+    id: 'mono_diglycerides',
+    name: 'Mono- and diglycerides of fatty acids',
+    aliases: ['mono- and diglycerides','mono and diglycerides','mono-diglycerides'],
+    eNumber: 'E471',
+    role: 'Emulsifier (keeps oil and water mixed)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: "One of the most common emulsifiers in packaged food. The historical trans-fat concern was real but is resolved by FDA's 2018 partially hydrogenated oil ban.",
+    exposure: {
+      typical: 'Small fractions of a percent in baked goods, spreads, and frozen food',
+      concerning: 'None at current food levels',
+      note: 'Pre-2018, some mono- and diglycerides were made via partial hydrogenation and contained trans fats. Modern production uses fully refined vegetable or animal fats.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'JECFA ADI "not specified" / FDA GRAS',
+        why: 'Glycerol esters of common fatty acids — chemically similar to fats found naturally in food. Universally approved.',
+      },
+      {
+        tier: 'B',
+        applies: false,
+        claim: 'Possible trans fat source',
+        why: "FDA's 2018 determination that partially hydrogenated oils are no longer GRAS effectively eliminated trans-fat-containing mono- and diglycerides from the US food supply.",
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  calcium_propionate: {
+    id: 'calcium_propionate',
+    name: 'Calcium propionate',
+    eNumber: 'E282',
+    role: 'Mold inhibitor in bread and baked goods',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: "The same acid Swiss cheese makes naturally, added to bread to prevent mold. A single small study linked it to behavior in children — it has not been replicated.",
+    exposure: {
+      typical: '0.1–0.3% of bread weight',
+      concerning: 'None at food levels',
+      note: 'Propionic acid is a short-chain fatty acid naturally produced by gut bacteria and found in dairy. Metabolized normally.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'JECFA ADI "not specified" / FDA GRAS',
+        why: "Propionic acid is naturally produced in Swiss cheese fermentation. EFSA reviewed in 2014 and found no safety concerns.",
+      },
+      {
+        tier: 'B',
+        applies: false,
+        claim: 'Behavioral effects in children (Boris & Mandel 1994)',
+        why: "A small, poorly controlled study; not replicated. EFSA's 2014 safety review explicitly found no basis for behavioral concerns at food use levels.",
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  ssl: {
+    id: 'ssl',
+    name: 'Sodium stearoyl lactylate (SSL)',
+    aliases: ['sodium stearoyl lactylate'],
+    eNumber: 'E481',
+    role: 'Dough conditioner / emulsifier in commercial bread',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'A dough conditioner made from stearic acid and lactic acid — both naturally occurring. Makes bread rise higher and stay soft. No safety concerns.',
+    exposure: {
+      typical: '<0.5% of bread weight',
+      concerning: 'None at food levels',
+      note: 'Both constituent acids occur naturally. Metabolized via normal fatty acid and lactate pathways.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS / EFSA-approved with established ADI',
+        why: 'Long safety record in commercial baking since the 1960s. Approved everywhere without reservation.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  annatto: {
+    id: 'annatto',
+    name: 'Annatto / Bixin',
+    aliases: ['annatto'],
+    eNumber: 'E160B',
+    role: 'Natural orange-yellow color from achiote tree seeds',
+    benefit: 'cosmetic',
+    avoidability: 'easy',
+    baseVerdict: 'everyday',
+    headline: "A natural color from achiote seeds — safe for nearly everyone, but one of the few non-major allergens known to cause rare true allergic reactions that aren't separately declared in the US.",
+    exposure: {
+      typical: 'Trace amounts (ppm range) in colored products',
+      concerning: 'None at food levels for the general population',
+      note: 'Unlike peanuts or tree nuts, annatto is not a designated major allergen in the US — it appears in the ingredient list, but without a special "Contains" declaration.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS / JECFA "not specified"',
+        why: 'Natural carotenoid pigment with centuries of food use. Approved by all major regulators.',
+      },
+      {
+        tier: 'B',
+        applies: true,
+        claim: 'Documented IgE-mediated allergic reactions (rare)',
+        why: 'Small number of confirmed allergic cases in the literature — urticaria, angioedema. Not covered by major US allergen labeling requirements.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  modified_starch: {
+    id: 'modified_starch',
+    name: 'Acetylated distarch adipate',
+    aliases: ['modified corn starch','modified food starch','modified starch'],
+    eNumber: 'E1422',
+    role: 'Thickener (starch modified for heat and acid stability)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: "Food starch chemically stabilized to stay thick through cooking, freezing, and acidic conditions. No safety concerns at food levels.",
+    exposure: {
+      typical: 'Percent-level in sauces, soups, and dressings',
+      concerning: 'None at food levels',
+      note: 'Chemical modifications use food-grade reagents; residual levels after processing are well within safety margins.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'JECFA ADI "not specified" / FDA GRAS',
+        why: 'Modified starches are reviewed individually. E1422 and the broader family of permitted modified starches all clear safety review.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  acesulfame_k: {
+    id: 'acesulfame_k',
+    name: 'Acesulfame K',
+    aliases: ['acesulfame potassium','ace-k','acesulfame-k'],
+    eNumber: 'E950',
+    role: 'High-intensity sweetener (200× sweeter than sugar)',
+    benefit: 'functional',
+    avoidability: 'moderate',
+    baseVerdict: 'everyday',
+    headline: "The sweetener that pairs with aspartame or sucralose in diet drinks. Regulatory consensus is solid; the original 1970s safety studies were dated but EFSA's 2000 re-review held.",
+    exposure: {
+      typical: 'Far below ADI in a normal diet — not metabolized, excreted unchanged',
+      concerning: 'None established at food levels',
+      note: 'JECFA ADI 15 mg/kg bw. Typical intake is a small fraction of this.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA approved 1988 / JECFA ADI 15 mg/kg bw / EFSA affirmed 2000',
+        why: 'Not classified by IARC. EFSA re-evaluated in 2000 and maintained approval.',
+      },
+      {
+        tier: 'C',
+        applies: false,
+        claim: 'Thyroid and metabolic concerns in rodent studies',
+        why: '1970s rodent studies at very high doses showed thyroid effects. EFSA reviewed and concluded no safety concern at food use levels.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  sucralose: {
+    id: 'sucralose',
+    name: 'Sucralose',
+    eNumber: 'E955',
+    role: 'High-intensity sweetener (600× sweeter than sugar)',
+    benefit: 'functional',
+    avoidability: 'moderate',
+    baseVerdict: 'everyday',
+    headline: "The sweetener in Splenda. Regulatory consensus is solid; an emerging gut signal is worth naming for heavy users, but the human evidence is early.",
+    exposure: {
+      typical: 'Micrograms to low milligrams per serving — far below ADI',
+      concerning: 'Gut microbiome effects studied at doses achievable only by heavy daily users',
+      note: 'JECFA ADI 15 mg/kg bw. Passes through largely unchanged.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA approved / JECFA ADI 15 mg/kg bw / EFSA affirmed',
+        why: 'Not classified by IARC. Approved globally with a long post-market safety record.',
+      },
+      {
+        tier: 'D',
+        applies: false,
+        claim: 'Sucralose-6-acetate metabolite causes DNA damage (in vitro, 2023)',
+        why: 'A single in vitro study at high concentrations. In-vitro findings do not extrapolate directly to food-level human exposure — this is the carrageenan/poligeenan misattribution problem in reverse.',
+      },
+      {
+        tier: 'C',
+        applies: true,
+        claim: 'May alter gut microbiome in animal studies',
+        why: 'Several animal studies found microbial population shifts at high doses. Clinical significance at dietary human exposure is unknown.',
+      },
+    ],
+    openQuestion: {
+      text: 'The gut microbiome signal exists in animals; human evidence is early and inconsistent. Not a reason to avoid at typical use, but a genuine area of ongoing research.',
+      subgroup: null,
+    },
+    subgroupNotes: {},
+  },
+
+  lactic_acid: {
+    id: 'lactic_acid',
+    name: 'Lactic Acid',
+    eNumber: 'E270',
+    role: 'Acidulant / preservative',
+    benefit: 'functional',
+    avoidability: 'easy',
+    baseVerdict: 'everyday',
+    headline: "Your own muscles produce lactic acid during exercise. As a food additive it's one of the most naturally occurring and well-tolerated acids used in food.",
+    exposure: {
+      typical: '0.1–2% in fermented or acidified foods',
+      concerning: 'No adverse intake level established — EFSA set no ADI (not necessary)',
+      note: 'Present naturally in yogurt, sauerkraut, cheese, sourdough. The additive form is identical to what your body makes.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'EFSA re-evaluated E270 in 2019 and found no safety concern at current use levels. No ADI needed.',
+        why: 'EFSA Journal 2019;17(6):5770 — full re-evaluation, no ADI required.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS. Also produced endogenously by the human body — serum lactate is a normal metabolite.',
+        why: 'FDA 21 CFR 184.1061; lactic acid is a standard product of human anaerobic metabolism.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  silicon_dioxide: {
+    id: 'silicon_dioxide',
+    name: 'Silicon Dioxide',
+    aliases: ['silica'],
+    eNumber: 'E551',
+    role: 'Anti-caking agent (keeps powders free-flowing)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'Purified sand, essentially. One of the most inert substances used in food — passes through the body without being absorbed in any meaningful amount.',
+    exposure: {
+      typical: 'Trace amounts (<2%) in spice blends, shredded cheese, powdered products',
+      concerning: 'No established adverse intake level',
+      note: 'Same substance (amorphous silica) used in supplement capsules and toothpaste.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'EFSA re-evaluated E551 in 2018 and reconfirmed safety, though recommended better nanoparticle characterization data going forward.',
+        why: 'EFSA Journal 2018;16(1):5088 — re-evaluation found no safety concern at reported use levels.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS as an anti-caking agent up to 2% by weight.',
+        why: 'FDA 21 CFR 172.480.',
+      },
+    ],
+    openQuestion: {
+      text: 'A small fraction of silicon dioxide in food is in nanoparticle form; EFSA asked for more nanoparticle-specific data in its 2018 review. This is a data-quality request, not a flagged hazard.',
+      subgroup: null,
+    },
+    subgroupNotes: {},
+  },
+
+  locust_bean_gum: {
+    id: 'locust_bean_gum',
+    name: 'Locust Bean Gum',
+    eNumber: 'E410',
+    role: 'Thickener (from carob seed)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'A plant-based thickener from carob seeds — chemically a soluble fiber. Long history of food use with no safety signal.',
+    exposure: {
+      typical: '0.1–1% in dairy, sauces, and gluten-free baked goods',
+      concerning: 'No adverse intake level established',
+      note: 'Often used specifically as a carrageenan alternative in "clean label" products.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'EFSA re-evaluated E410 in 2017 and found no need for a numerical ADI — safe at current use levels.',
+        why: 'EFSA Journal 2017;15(1):4646.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS as a stabilizer/thickener.',
+        why: 'FDA 21 CFR 184.1343.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  acacia_gum: {
+    id: 'acacia_gum',
+    name: 'Acacia Gum (Gum Arabic)',
+    aliases: ['gum arabic'],
+    eNumber: 'E414',
+    role: 'Emulsifier / stabilizer (from acacia tree sap)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'Tree sap harvested largely unchanged from acacia trees. It\'s a soluble fiber — some studies show a mild prebiotic effect at typical intake.',
+    exposure: {
+      typical: '1–10% in gummies, glazes, and beverage emulsions',
+      concerning: 'No adverse intake level established',
+      note: 'Used in food for thousands of years — one of the oldest documented food additives.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'EFSA re-evaluated E414 in 2017: no safety concern, no ADI needed.',
+        why: 'EFSA Journal 2017;15(4):4741.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS as an emulsifier and stabilizer.',
+        why: 'FDA 21 CFR 184.1330.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  malic_acid: {
+    id: 'malic_acid',
+    name: 'Malic Acid',
+    eNumber: 'E296',
+    role: 'Acidulant (tart flavor)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'The acid that gives apples their tartness. A normal intermediate in how every cell produces energy (the citric acid cycle).',
+    exposure: {
+      typical: '0.1–1% in sour candy, soft drinks, and juices',
+      concerning: 'No adverse intake level established',
+      note: 'Produced inside your own cells constantly as part of basic metabolism.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'EFSA re-evaluated E296 in 2018 and found no safety concern, no ADI needed.',
+        why: 'EFSA Journal 2018;16(3):5176.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS as a flavoring and pH-adjusting agent.',
+        why: 'FDA 21 CFR 184.1069.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  acetic_acid: {
+    id: 'acetic_acid',
+    name: 'Acetic Acid',
+    eNumber: 'E260',
+    role: 'Acidulant / preservative (the acid in vinegar)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'This is what makes vinegar vinegar. Food-grade acetic acid used as an additive is chemically identical to what fermentation produces naturally.',
+    exposure: {
+      typical: '0.1–5% in pickled foods, condiments, chips seasoning',
+      concerning: 'No adverse intake level established',
+      note: 'You almost certainly already eat this daily via vinegar, bread, and fermented foods.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS; acetic acid is also naturally present in vinegar at 4–8% concentration, far higher than any additive use level.',
+        why: 'FDA 21 CFR 184.1005.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  sodium_ascorbate: {
+    id: 'sodium_ascorbate',
+    name: 'Sodium Ascorbate',
+    eNumber: 'E301',
+    role: 'Antioxidant (vitamin C, sodium salt form)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'The sodium salt of vitamin C — used because it\'s less acidic than ascorbic acid for the same antioxidant effect. Same nutrient, gentler form.',
+    exposure: {
+      typical: '0.01–0.1% in cured meats and packaged foods as an antioxidant',
+      concerning: 'No adverse intake level — vitamin C has a very high safety margin',
+      note: 'Contributes a small amount of sodium; negligible next to the sodium from salt in the same products.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS. Functionally equivalent safety profile to ascorbic acid (vitamin C), one of the most-studied nutrients in existence.',
+        why: 'FDA 21 CFR 182.3731.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  tocopherols: {
+    id: 'tocopherols',
+    name: 'Mixed Tocopherols (Vitamin E)',
+    aliases: ['tocopherols','tocopherol','vitamin e','mixed tocopherols'],
+    eNumber: 'E306',
+    role: 'Antioxidant (prevents fats from going rancid)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'Vitamin E used to keep oils from oxidizing. It\'s an essential nutrient — the "additive" here is also something your body needs.',
+    exposure: {
+      typical: '0.001–0.1% in oils, snacks, and packaged baked goods',
+      concerning: 'No adverse intake level — very high safety margin as an essential vitamin',
+      note: 'Frequently added specifically to replace synthetic antioxidants like BHA/BHT in "clean label" reformulations.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS; also an essential nutrient with an established Recommended Dietary Allowance.',
+        why: 'FDA 21 CFR 182.3890.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  sodium_lactate: {
+    id: 'sodium_lactate',
+    name: 'Sodium Lactate',
+    eNumber: 'E325',
+    role: 'Preservative / moisture retainer (sodium salt of lactic acid)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'The sodium salt form of lactic acid — same safety profile, same substance your muscles produce during exercise.',
+    exposure: {
+      typical: '0.1–2% in deli meats and packaged proteins',
+      concerning: 'No adverse intake level established',
+      note: 'Contributes some sodium; check total sodium per serving on high-use products like deli meat.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'EFSA re-evaluated the lactate salts group in 2019 alongside lactic acid: no safety concern, no ADI needed.',
+        why: 'EFSA Journal 2019;17(6):5776.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS as an antimicrobial and flavor-enhancing agent.',
+        why: 'FDA 21 CFR 184.1768.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  microcrystalline_cellulose: {
+    id: 'microcrystalline_cellulose',
+    name: 'Microcrystalline Cellulose',
+    eNumber: 'E460I',
+    role: 'Anti-caking agent / bulking filler (purified plant fiber)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'Purified cellulose — the same fiber that makes up plant cell walls. Passes through the digestive system essentially unchanged, adding bulk without calories.',
+    exposure: {
+      typical: '0.5–5% in shredded cheese, supplements, and low-fat foods',
+      concerning: 'No adverse intake level established',
+      note: 'Functionally similar to the insoluble fiber in vegetables — it is not absorbed or metabolized.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'EFSA re-evaluated E460 in 2018: no safety concern, no ADI needed.',
+        why: 'EFSA Journal 2018;16(1):5047.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS as a bulking agent, anti-caking agent, and fat replacer.',
+        why: 'FDA 21 CFR 182.1859.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  powdered_cellulose: {
+    id: 'powdered_cellulose',
+    name: 'Powdered Cellulose',
+    aliases: ['powdered cellulose', 'cellulose powder'],
+    eNumber: 'E460II',
+    role: 'Anti-caking agent (prevents shredded cheese from clumping)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'The same purified plant fiber as microcrystalline cellulose, just ground finer — commonly dusted on shredded cheese so it stays free-flowing in the bag.',
+    exposure: {
+      typical: '<2% by weight, mainly on shredded/grated cheese',
+      concerning: 'No adverse intake level established',
+      note: 'Same safety profile as microcrystalline cellulose — an insoluble plant fiber that isn\'t absorbed or metabolized.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'EFSA re-evaluated E460 (both microcrystalline and powdered forms) in 2018: no safety concern, no ADI needed.',
+        why: 'EFSA Journal 2018;16(1):5047.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS as an anti-caking agent for shredded cheese and similar products.',
+        why: 'FDA 21 CFR 182.1859.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  sodium_bicarbonate: {
+    id: 'sodium_bicarbonate',
+    name: 'Sodium Bicarbonate',
+    aliases: ['baking soda'],
+    eNumber: 'E500',
+    role: 'Leavening agent (baking soda)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'Baking soda. The same box in your pantry, used to make baked goods rise.',
+    exposure: {
+      typical: '0.1–1% in baked goods and some snack seasonings',
+      concerning: 'No adverse intake level at food-use levels',
+      note: 'A high-sodium ingredient in aggregate baking, but the amount per serving is small next to salt.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS; among the longest-standing, most thoroughly used leavening agents in food history.',
+        why: 'FDA 21 CFR 184.1736.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  carnauba_wax: {
+    id: 'carnauba_wax',
+    name: 'Carnauba Wax',
+    eNumber: 'E903',
+    role: 'Glazing agent (shine coating on candy and produce)',
+    benefit: 'cosmetic',
+    avoidability: 'easy',
+    baseVerdict: 'everyday',
+    headline: 'Wax harvested from the leaves of a Brazilian palm tree. Used in trace amounts purely for shine — passes through the body unabsorbed.',
+    exposure: {
+      typical: 'A thin coating, well under 0.1% of product weight',
+      concerning: 'No adverse intake level established',
+      note: "It's purely cosmetic — the shine on candy shells, apples, and citrus.",
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS as a glazing and coating agent.',
+        why: 'FDA 21 CFR 184.1978.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  stevia: {
+    id: 'stevia',
+    name: 'Steviol Glycosides (Stevia)',
+    aliases: ['stevia','stevia leaf extract','steviol glycosides','reb a'],
+    eNumber: 'E960',
+    role: 'Non-caloric natural sweetener (from the stevia plant)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'A plant-derived sweetener, 200–300× sweeter than sugar by weight, so used at tiny fractions of a percent. The best-studied natural high-intensity sweetener available.',
+    exposure: {
+      typical: 'Trace amounts (<0.1%) given its sweetening potency',
+      concerning: 'ADI 4 mg/kg body weight/day — realistic intake sits well below this',
+      note: 'Purified steviol glycosides (Reb A, etc.) are what\'s regulated and used — not raw stevia leaf, which is not FDA-approved as a food additive.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'JECFA and EFSA both established an ADI of 4 mg/kg bw/day with no safety concern at that level.',
+        why: 'JECFA 2008 evaluation; EFSA Journal 2010;8(4):1537.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA has issued no objection (GRAS notices) for high-purity steviol glycoside preparations.',
+        why: 'FDA GRAS Notices GRN 000253 and subsequent related filings.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  // ── SOMETIMES — real concern at higher intake ──────────────────────────────
+
+  sodium_benzoate: {
+    id: 'sodium_benzoate',
+    name: 'Sodium benzoate',
+    eNumber: 'E211',
+    role: 'Preservative (mold and bacteria inhibitor in acidic foods)',
+    benefit: 'functional',
+    avoidability: 'easy',
+    baseVerdict: 'sometimes',
+    headline: 'Safe alone — but converts to benzene (a Group 1 carcinogen) when combined with vitamin C. This combination is common in energy drinks and fruit beverages.',
+    exposure: {
+      typical: '0.05–0.1% in beverages',
+      concerning: 'Benzene formation applies when ascorbic acid is also present in the same product',
+      note: "Benzene formation is heat- and UV-accelerated. FDA has found benzene above 5 ppb in a subset of beverages with this combination.",
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS at ≤0.1% / JECFA ADI 5 mg/kg bw',
+        why: 'Sodium benzoate itself has a long approval history. The benzene co-reaction was discovered after initial approval.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'Converts to benzene (IARC Group 1 carcinogen) in the presence of ascorbic acid',
+        why: "Sodium benzoate + ascorbic acid + heat or UV → benzene. FDA surveys confirmed above-threshold benzene levels in some products. It's predictable chemistry, not a theoretical concern.",
+      },
+      {
+        tier: 'B',
+        applies: true,
+        claim: 'Part of the Southampton hyperactivity color-preservative mixture',
+        why: 'The 2007 McCann study combined sodium benzoate with 6 artificial colors. The colors may drive the hyperactivity signal, but the preservative was always present in the mixture.',
+      },
+    ],
+    openQuestion: {
+      text: 'Whether benzene levels in real products pose meaningful risk depends on the specific formulation and storage history — not knowable from the label alone.',
+      subgroup: null,
+    },
+    subgroupNotes: {},
+  },
+
+  tbhq: {
+    id: 'tbhq',
+    name: 'TBHQ (tert-butylhydroquinone)',
+    aliases: ['tbhq','tert-butylhydroquinone'],
+    eNumber: 'E319',
+    role: 'Antioxidant — prevents rancidity in oils and fried foods',
+    benefit: 'functional',
+    avoidability: 'moderate',
+    baseVerdict: 'sometimes',
+    headline: "Keeps fried food from going rancid — approved with strict dose limits. Those limits exist for a reason: liver effects and immune concerns appear in the toxicology record.",
+    exposure: {
+      typical: 'FDA limit: ≤0.02% of total fat content',
+      concerning: 'Liver toxicity and precancerous lesions in rodents above food-level doses',
+      note: 'The tight regulatory ceiling (0.02%) is itself evidence that this is not a zero-concern substance.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS at ≤0.02% fat / JECFA ADI 0–0.7 mg/kg bw',
+        why: 'Approved globally at very low concentrations. The narrow use level reflects underlying caution.',
+      },
+      {
+        tier: 'C',
+        applies: true,
+        claim: 'Liver toxicity and genotoxicity signals in rodents above food doses',
+        why: 'Multiple rodent studies document liver effects. Some in vitro genotoxicity data — not confirmed in vivo at food doses, but the direction of the signal is consistent.',
+      },
+      {
+        tier: 'B',
+        applies: true,
+        claim: 'US National Toxicology Program: possible immune effects',
+        why: 'NTP has raised concerns about TBHQ potentially impacting immune system function. Under continued review.',
+      },
+    ],
+    openQuestion: {
+      text: 'The immune signal is early-stage; the liver toxicology is well-documented at above-limit doses. The question is whether margin at 0.02% is adequate.',
+      subgroup: null,
+    },
+    subgroupNotes: {},
+  },
+
+  bha: {
+    id: 'bha',
+    name: 'BHA (butylated hydroxyanisole)',
+    aliases: ['bha','butylated hydroxyanisole'],
+    eNumber: 'E320',
+    role: 'Antioxidant — prevents rancidity in fats, oils, and cereals',
+    benefit: 'functional',
+    avoidability: 'easy',
+    baseVerdict: 'sometimes',
+    headline: "IARC calls it 'possibly carcinogenic' — but the animal evidence involves a stomach structure humans don't have. The signal is real enough to warrant frequency awareness.",
+    exposure: {
+      typical: 'FDA limit: ≤0.02% of total fat; typically ≤1 mg/day in a normal diet',
+      concerning: 'Forestomach tumors in rodents — a structure absent in humans',
+      note: 'California Prop 65 lists it as a known carcinogen. US National Toxicology Program classifies it as "reasonably anticipated to be a human carcinogen."',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS at ≤0.02% fat; approved by JECFA',
+        why: 'Approved for use; the FDA reviewed the cancer evidence and concluded food levels do not pose a risk. The tight limit reflects underlying caution.',
+      },
+      {
+        tier: 'C',
+        applies: 'split',
+        claim: 'IARC Group 2B: possibly carcinogenic to humans',
+        why: 'Forestomach tumors in rats and hamsters. Humans lack this organ structure, which limits direct extrapolation — but the signal was strong enough for IARC to act.',
+      },
+    ],
+    openQuestion: {
+      text: "Whether the animal cancer signal translates to any human risk at food-level exposures is unresolved. California's Prop 65 listing suggests a precautionary read is reasonable.",
+      subgroup: null,
+    },
+    subgroupNotes: {},
+  },
+
+  bht: {
+    id: 'bht',
+    name: 'BHT (butylated hydroxytoluene)',
+    aliases: ['bht','butylated hydroxytoluene'],
+    eNumber: 'E321',
+    role: 'Antioxidant — prevents rancidity in fats, oils, and cereals',
+    benefit: 'functional',
+    avoidability: 'easy',
+    baseVerdict: 'sometimes',
+    headline: "BHA's companion antioxidant, with a murkier evidence picture — some studies suggest anti-cancer effects at low doses; others suggest pro-cancer effects at high doses.",
+    exposure: {
+      typical: 'FDA limit: ≤0.02% fat; much lower in actual products',
+      concerning: 'High-dose animal studies show both protective and harmful effects depending on context',
+      note: 'EFSA set a stricter ADI (0.25 mg/kg bw) than the US. Not listed by California Prop 65 or IARC. Less concern than BHA, but evidence is mixed.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS at ≤0.02% fat / EFSA ADI 0.25 mg/kg bw',
+        why: "EFSA's 2012 review maintained approval at current use levels.",
+      },
+      {
+        tier: 'C',
+        applies: 'split',
+        claim: 'Anti-carcinogenic at low doses; pro-carcinogenic at high doses in rodents',
+        why: 'The evidence is genuinely biphasic — context-dependent results across studies. Makes a simple verdict difficult.',
+      },
+    ],
+    openQuestion: {
+      text: "Whether BHT is net-positive or net-negative at human exposure levels is unresolved. Rarely the highest-priority concern on a label, but not zero.",
+      subgroup: null,
+    },
+    subgroupNotes: {},
+  },
+
+  phosphoric_acid: {
+    id: 'phosphoric_acid',
+    name: 'Phosphoric acid',
+    eNumber: 'E338',
+    role: 'Acidulant — gives colas their sharp bite',
+    benefit: 'functional',
+    avoidability: 'easy',
+    baseVerdict: 'sometimes',
+    headline: "The acid in Coke. At an occasional soda it's not worth worrying about; the bone health concern becomes real at multiple daily servings.",
+    exposure: {
+      typical: '<100 mg per 12 oz serving',
+      concerning: '3+ servings/day in epidemiology showing lower bone mineral density',
+      note: 'Mechanism debated: direct calcium chelation vs. displacement of calcium-rich drinks. Either way, the pattern that troubles bones is daily multi-can consumption.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS / JECFA ADI "not specified"',
+        why: 'Approved phosphate acidulant with long use history. Safe at typical single-serving intake.',
+      },
+      {
+        tier: 'B',
+        applies: true,
+        claim: 'High cola intake associated with reduced bone mineral density',
+        why: "Epidemiological studies consistently show the association, especially in women. The Framingham Osteoporosis Study found lower BMD at ≥3 cola servings/day. Not seen for non-cola carbonated beverages (same carbonation, no phosphoric acid) — implicating the acid specifically.",
+      },
+    ],
+    openQuestion: {
+      text: 'Whether the bone effect is from phosphoric acid directly or from displacing dairy is debated — but both mechanisms point to the same practical conclusion.',
+      subgroup: null,
+    },
+    subgroupNotes: {},
+  },
+
+  sodium_nitrate: {
+    id: 'sodium_nitrate',
+    name: 'Sodium nitrate',
+    eNumber: 'E251',
+    role: 'Curing salt in processed meats (converts to nitrite in the body)',
+    benefit: 'functional',
+    avoidability: 'easy',
+    baseVerdict: 'sometimes',
+    headline: "Sodium nitrite's partner in cured meats. It converts to nitrite in the body — the processed meat carcinogen verdict applies equally here.",
+    exposure: {
+      typical: 'Same cured meat pattern as nitrite (E250)',
+      concerning: 'Same frequency-dependent risk as E250',
+      note: 'A weekly portion is categorically different from a daily habit. The IARC Group 1 classification applies to the consumption pattern.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'IARC Group 1 processed meat carcinogen — applies via nitrite conversion',
+        why: 'Sodium nitrate converts to nitrite during digestion. Nitrite reacts with amines to form nitrosamines, a class of carcinogens. Same mechanism as E250.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'Dose-response is frequency-dependent',
+        why: 'Risk rises with cumulative intake of cured meats. Frequency framing, not a flat red flag, is the honest representation.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  cmc: {
+    id: 'cmc',
+    name: 'Carboxymethylcellulose (CMC)',
+    aliases: ['cmc','cellulose gum','carboxymethyl cellulose','carboxymethylcellulose'],
+    eNumber: 'E466',
+    role: 'Thickener / emulsifier (chemically modified cellulose)',
+    benefit: 'functional',
+    avoidability: 'moderate',
+    baseVerdict: 'sometimes',
+    headline: 'The emulsifier with the strongest human gut signal. A 2022 randomized controlled trial found real microbiome changes at food-relevant doses.',
+    exposure: {
+      typical: 'Grams per day in heavily processed diets',
+      concerning: 'Human RCT effects seen at 15 g/day — achievable with heavy processed food use',
+      note: 'Used at higher concentrations than polysorbate 80, and now with human trial data rather than just animal data.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS / EFSA-approved with ADI',
+        why: 'Long use history; approved by all major regulators.',
+      },
+      {
+        tier: 'C',
+        applies: true,
+        claim: 'Promotes gut inflammation and shifts microbiome in mice (Chassaing et al. 2015)',
+        why: 'Low dietary doses of CMC in mice reduced gut microbial diversity and promoted low-grade intestinal inflammation — the same pattern seen with polysorbate 80.',
+      },
+      {
+        tier: 'B',
+        applies: true,
+        claim: 'Human RCT (2022): altered gut microbiome at food-relevant doses',
+        why: 'Chassaing et al. 2022 (Cell Host & Microbe) — controlled dietary study in healthy adults found CMC reduced microbiota gene diversity and altered metabolite profiles. Stronger human evidence than most emulsifiers.',
+      },
+    ],
+    openQuestion: {
+      text: 'Whether the 2022 microbiome changes translate into meaningful long-term health effects is unresolved. The direction of the signal is concerning enough to name.',
+      subgroup: 'ibd',
+    },
+    subgroupNotes: {
+      ibd: 'The gut-barrier and microbiome signal is directly relevant for IBD and IBS — reasonable to limit CMC while the long-term evidence matures.',
+    },
+  },
+
+  sulfites: {
+    id: 'sulfites',
+    name: 'Sulfur Dioxide / Sodium Metabisulfite',
+    aliases: ['sulfur dioxide','sodium metabisulfite','sodium bisulfite','potassium metabisulfite','sulfites','sulphites'],
+    eNumber: 'E220',
+    role: 'Preservative (prevents browning and microbial growth)',
+    benefit: 'functional',
+    avoidability: 'moderate',
+    baseVerdict: 'sometimes',
+    headline: 'Safe for most people at typical intake, but a genuine, well-documented trigger for asthma and allergic-type reactions in a sensitive minority — the FDA requires it on labels for this reason.',
+    exposure: {
+      typical: '10–350 ppm in dried fruit, wine, and some processed potatoes',
+      concerning: 'Sulfite-sensitive individuals can react to amounts well within normal serving sizes',
+      note: 'FDA requires sulfite disclosure on labels whenever present above 10 ppm — one of the few additives with a mandatory allergen-style warning.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA requires sulfite labeling due to documented reactions, primarily asthma exacerbation, in an estimated 1% of the population (higher among asthmatics).',
+        why: 'FDA 21 CFR 101.100; longstanding post-market surveillance basis for the labeling requirement.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'JECFA/EFSA ADI 0.7 mg/kg bw/day for the general (non-sensitive) population.',
+        why: 'JECFA evaluation; EFSA Journal 2016;14(4):4438.',
+      },
+    ],
+    openQuestion: {
+      text: 'For sulfite-sensitive individuals, no "safe" dose is well established — avoidance is the standard recommendation, not moderation.',
+      subgroup: null,
+    },
+    subgroupNotes: {
+      asthma: 'If you or a family member has asthma, sulfites are one of the few additives worth actively checking labels for — reactions are well-documented and can be significant.',
+    },
+  },
+
+  pgpr: {
+    id: 'pgpr',
+    name: 'Polyglycerol Polyricinoleate (PGPR)',
+    aliases: ['pgpr','polyglycerol polyricinoleate'],
+    eNumber: 'E476',
+    role: 'Emulsifier (reduces chocolate viscosity, replaces some cocoa butter)',
+    benefit: 'functional',
+    avoidability: 'moderate',
+    baseVerdict: 'sometimes',
+    headline: 'Derived from castor oil, used mainly in chocolate to cut costs and improve flow. Regulatory consensus is favorable, but it belongs to the same emulsifier class flagged in early-stage gut-barrier research.',
+    exposure: {
+      typical: '0.1–0.5% in chocolate and chocolate coatings',
+      concerning: 'EFSA ADI is 7.5 mg/kg bw/day — typical chocolate intake sits well under this',
+      note: 'A small minority report mild digestive upset at large single-serving intakes (multiple chocolate bars at once).',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'EFSA re-evaluated E476 in 2017 and set an ADI of 7.5 mg/kg bw/day — safe at current use levels.',
+        why: 'EFSA Journal 2017;15(depends on issue):4661.',
+      },
+      {
+        tier: 'C',
+        applies: 'split',
+        claim: 'Emulsifiers as a class have been flagged in animal studies for gut-barrier and microbiome effects at high experimental doses.',
+        why: 'Chassaing et al. 2015 (Nature) studied polysorbate 80 and CMC specifically, not PGPR directly — the concern is a class-level hypothesis, not a PGPR-specific finding.',
+      },
+    ],
+    openQuestion: {
+      text: 'Whether the emulsifier-class gut-barrier concern extends to PGPR specifically hasn\'t been directly tested — it\'s an open, class-level question rather than a substance-specific one.',
+      subgroup: 'ibd',
+    },
+    subgroupNotes: {
+      ibd: 'Given the class-level emulsifier signal, it\'s reasonable to treat PGPR the same as other emulsifiers under IBD precaution — moderate rather than avoid.',
+    },
+  },
+
+  sorbitol: {
+    id: 'sorbitol',
+    name: 'Sorbitol',
+    eNumber: 'E420',
+    role: 'Sugar alcohol sweetener / humectant',
+    benefit: 'functional',
+    avoidability: 'moderate',
+    baseVerdict: 'sometimes',
+    headline: 'A well-tolerated sugar substitute at normal intake, but with a well-documented laxative effect once you cross roughly 20-50g in a day — common in sugar-free gum and "diet" candy.',
+    exposure: {
+      typical: '2–10g per serving in sugar-free gum, mints, and diabetic-friendly sweets',
+      concerning: 'FDA requires a laxative-effect warning label above certain intake thresholds',
+      note: 'Effects are dose-dependent and reversible — not a hazard, but a real and common GI side effect worth knowing about.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA requires the label statement "excess consumption may have a laxative effect" on foods likely to result in daily sorbitol intake over 50g (or 10g for some products).',
+        why: 'FDA 21 CFR 101.17(h) — mandatory labeling rule based on well-established gastrointestinal effects.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {
+      ibs: 'Sugar alcohols including sorbitol are on the standard low-FODMAP elimination list — worth limiting if you have IBS regardless of the general-population threshold.',
+    },
+  },
+
+  xylitol: {
+    id: 'xylitol',
+    name: 'Xylitol',
+    eNumber: 'E967',
+    role: 'Sugar alcohol sweetener (also used for dental benefits)',
+    benefit: 'functional',
+    avoidability: 'moderate',
+    baseVerdict: 'sometimes',
+    headline: 'Genuinely beneficial for human teeth (inhibits cavity-causing bacteria) and safe for people at normal intake — but severely toxic to dogs even in small amounts. A real household safety note, not a human dietary one.',
+    exposure: {
+      typical: '2–10g per serving in sugar-free gum, mints, and some baked goods',
+      concerning: 'Same GI laxative effect as other sugar alcohols above ~30-40g/day in humans',
+      note: 'For dogs: even a few grams can cause life-threatening hypoglycemia and liver failure. If you have a dog in the house, this is worth actively keeping out of reach.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA/EFSA: safe for human consumption at typical intake, with the standard sugar-alcohol laxative-effect caveat at high intake.',
+        why: 'FDA GRAS status; EFSA Journal on polyols group re-evaluation.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'ASPCA and veterinary toxicology literature: xylitol causes rapid, severe insulin release in dogs, leading to hypoglycemia and potential liver failure — a well-established veterinary emergency.',
+        why: 'Extensively documented in veterinary toxicology; this is a species-specific metabolic difference, not a human health concern.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {
+      pet_owner: 'If dogs are in the household, treat any xylitol-containing product (gum, mints, some peanut butters) as you would a household chemical — out of paw\'s reach.',
+    },
+  },
+
+  saccharin: {
+    id: 'saccharin',
+    name: 'Saccharin',
+    eNumber: 'E954',
+    role: 'Non-caloric artificial sweetener',
+    benefit: 'functional',
+    avoidability: 'easy',
+    baseVerdict: 'sometimes',
+    headline: 'The oldest artificial sweetener (1879) and the center of a 1970s cancer scare that didn\'t hold up in humans. Formally cleared, but the reputational shadow still lingers on the label.',
+    exposure: {
+      typical: 'Milligrams per serving — 200-700× sweeter than sugar by weight',
+      concerning: 'The 1970s rat bladder tumors occurred via a rat-specific urinary mechanism not present in humans',
+      note: 'The US Congress required a warning label from 1977–2000; it was removed once the human-irrelevance of the rat mechanism was established.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: false,
+        claim: '1970s: linked to bladder cancer in rats, mandatory US warning label required',
+        why: 'The mechanism (a rat-specific urinary protein/calcium phosphate crystal interaction) does not occur in humans — a textbook case of a real animal finding that didn\'t generalize across species.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'US National Toxicology Program delisted saccharin from its Report on Carcinogens in 2000; IARC downgraded it from Group 2B to Group 3 (not classifiable) in 1999.',
+        why: 'Both major bodies reversed their classification once the rat-specific mechanism was understood.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
+  // ── CONTESTED — credible regulatory split ─────────────────────────────────
+
+  red_40: {
+    id: 'red_40',
+    name: 'Allura Red (Red 40)',
+    aliases: ['red 40','fd&c red no. 40','allura red'],
+    eNumber: 'E129',
+    role: 'Synthetic red food color (petroleum-derived)',
+    benefit: 'cosmetic',
+    avoidability: 'easy',
+    baseVerdict: 'contested',
+    headline: "The most-contested food dye in the world. EU requires a hyperactivity warning label. FDA says the evidence doesn't support one. Both positions trace to the same 2007 study.",
+    exposure: {
+      typical: 'Milligrams per serving in colored candies, cereals, and beverages',
+      concerning: 'The Southampton hyperactivity dose was within realistic childhood dietary exposure',
+      note: "It's purely cosmetic — avoidance costs you nothing.",
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: 'split',
+        claim: 'EU: mandatory "may have an adverse effect on activity and attention in children" warning',
+        why: 'Following the 2007 McCann Southampton study, the EU mandated this label on all six Southampton artificial colors. EU Food Safety Authority reviewed and acted on a precautionary basis.',
+      },
+      {
+        tier: 'A',
+        applies: 'split',
+        claim: 'FDA (2011): does not establish a causal relationship; no label required',
+        why: "FDA advisory committee voted 8-6 that the evidence does not support a general causal relationship. No federal action taken.",
+      },
+      {
+        tier: 'B',
+        applies: true,
+        claim: 'McCann et al. 2007 (The Lancet): hyperactivity increased in children',
+        why: 'Randomized, double-blind study in 3-year-olds and 8-9-year-olds. The color mixture + sodium benzoate increased ADHD-like behavior. Red 40 appeared in both tested mixtures.',
+      },
+    ],
+    openQuestion: {
+      text: 'Whether the effect is from the color mixture, sodium benzoate, or a specific dye is unresolved. The precautionary case is strong enough that the EU and several US states have acted.',
+      subgroup: null,
+    },
+    subgroupNotes: {},
+    contestedGuidance: "It's cosmetic — purely about appearance. If you'd rather not bet on an open question for your kids, avoiding it is trivially easy and costs you nothing.",
+  },
+
+  yellow_5: {
+    id: 'yellow_5',
+    name: 'Tartrazine (Yellow 5)',
+    aliases: ['yellow 5','fd&c yellow no. 5','tartrazine'],
+    eNumber: 'E102',
+    role: 'Synthetic yellow food color (petroleum-derived)',
+    benefit: 'cosmetic',
+    avoidability: 'easy',
+    baseVerdict: 'contested',
+    headline: "Same situation as Red 40 — EU warning label, FDA no-action, same 2007 Southampton study. Also documented cross-sensitivity with aspirin in a small subgroup.",
+    exposure: {
+      typical: 'Milligrams per serving in yellow and green colored foods',
+      concerning: 'Same realistic dietary dose as the other Southampton dyes',
+      note: "Purely cosmetic. FDA requires 'Yellow 5' or 'tartrazine' by name on labels — easier to spot than most additives.",
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: 'split',
+        claim: 'EU warning label / FDA no-action — same Southampton split as Red 40',
+        why: 'Tartrazine was in both tested Southampton color mixtures. Identical regulatory response: EU mandatory warning, FDA declined to act.',
+      },
+      {
+        tier: 'B',
+        applies: true,
+        claim: 'Cross-reactivity with aspirin in salicylate-sensitive individuals',
+        why: 'A small subpopulation (~0.1%) with salicylate sensitivity may react to tartrazine. FDA requires it be declared by name on labels for this reason.',
+      },
+    ],
+    openQuestion: {
+      text: 'Whether Yellow 5 specifically (vs. the mixture) drives hyperactivity remains unresolved. The EU treated all six Southampton dyes identically.',
+      subgroup: null,
+    },
+    subgroupNotes: {},
+    contestedGuidance: "Cosmetic only. Easy to avoid. FDA requires the name 'Yellow 5' or 'tartrazine' on labels — unlike most additives, you can find it quickly.",
+  },
+
+  yellow_6: {
+    id: 'yellow_6',
+    name: 'Sunset Yellow (Yellow 6)',
+    aliases: ['yellow 6','fd&c yellow no. 6','sunset yellow'],
+    eNumber: 'E110',
+    role: 'Synthetic orange-yellow food color (petroleum-derived)',
+    benefit: 'cosmetic',
+    avoidability: 'easy',
+    baseVerdict: 'contested',
+    headline: "Third member of the Southampton 6 dye group — same EU warning, same FDA no-action, same open hyperactivity question as Red 40 and Yellow 5.",
+    exposure: {
+      typical: 'Milligrams per serving in orange-colored foods and beverages',
+      concerning: 'Same realistic dietary dose as the other Southampton dyes',
+      note: 'Cosmetic purpose only.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: 'split',
+        claim: 'EU warning label / FDA no-action — identical to Red 40 and Yellow 5',
+        why: 'One of six colors in the Southampton mixture. EU required the hyperactivity warning. FDA reviewed and did not act.',
+      },
+    ],
+    openQuestion: {
+      text: "The Southampton mixture hyperactivity question applies to all six dyes — the individual contribution of Yellow 6 vs. other components isn't isolated.",
+      subgroup: null,
+    },
+    subgroupNotes: {},
+    contestedGuidance: "Purely cosmetic. If you want to sidestep the open hyperactivity question, avoiding artificial colors is easy — natural alternatives (annatto, beet, turmeric) exist.",
+  },
+
+  caramel_color_iv: {
+    id: 'caramel_color_iv',
+    name: 'Caramel color (sulfite ammonia, Type IV)',
+    aliases: ['caramel color','caramel colour'],
+    eNumber: 'E150D',
+    role: 'Brown color in colas, soy sauce, beer, and baked goods',
+    benefit: 'cosmetic',
+    avoidability: 'easy',
+    baseVerdict: 'contested',
+    headline: "The brown in Coke. Manufacturing creates 4-MEI, a possible carcinogen. California listed it; Coke reformulated. FDA says current food-level exposure is fine. Genuinely split.",
+    exposure: {
+      typical: '<5 mcg 4-MEI per 12 oz cola in major brands (post-2012 reformulation)',
+      concerning: 'IARC Group 2B classification based on rodent studies above typical exposure',
+      note: 'Only Types C and D produce 4-MEI — Types A (plain) and B (caustic sulfite) do not. This verdict applies specifically to E150D.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: 'split',
+        claim: 'California Prop 65: 4-MEI listed as a known carcinogen (2011); IARC Group 2B',
+        why: 'California listing drove Coca-Cola and PepsiCo to reduce 4-MEI in US formulations. IARC classified 4-MEI as possibly carcinogenic based on animal studies.',
+      },
+      {
+        tier: 'A',
+        applies: 'split',
+        claim: 'FDA (2014) and EFSA (2012): food-level exposure does not pose a safety concern',
+        why: 'FDA evaluated Prop 65 levels and concluded a consumer would need to drink >1,000 cans/day to reach the animal study dose. EFSA set an ADI with adequate safety margin.',
+      },
+    ],
+    openQuestion: {
+      text: "Whether 4-MEI levels in post-reformulation products represent any meaningful cancer risk is unresolved. The California listing is real; the practical risk at one soda per day is genuinely contested.",
+      subgroup: null,
+    },
+    subgroupNotes: {},
+    contestedGuidance: "Primarily cosmetic — removing the color doesn't change the taste. At one occasional soda, current reformulated levels are likely very low risk. At multiple daily servings, the contested status is more relevant.",
+  },
+
+  red_3: {
+    id: 'red_3',
+    name: 'Erythrosine (Red 3)',
+    aliases: ['red 3','fd&c red no. 3','erythrosine'],
+    eNumber: 'E127',
+    role: 'Synthetic red food color',
+    benefit: 'cosmetic',
+    avoidability: 'easy',
+    baseVerdict: 'contested',
+    headline: 'The FDA banned this in January 2025 under a strict-liability cancer statute — but its own scientists say the cancer mechanism is rat-specific and doesn\'t apply to humans. The EU still permits it. A genuinely unusual case where the US is the stricter regulator.',
+    exposure: {
+      typical: 'Milligrams per serving in candy, maraschino cherries, and some baked goods',
+      concerning: 'The rat tumors occurred via a hormonal mechanism specific to male rat thyroid biology',
+      note: 'US food manufacturers have until January 2027 to reformulate — some products may still contain it during the transition.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: 'split',
+        claim: 'FDA revoked authorization in January 2025 under the Delaney Clause, which prohibits any additive shown to cause cancer in animals regardless of human relevance.',
+        why: 'FDA order, January 15, 2025. The Delaney Clause is a strict-liability statute — it does not weigh whether the mechanism applies to humans, only whether cancer occurred in any animal study.',
+      },
+      {
+        tier: 'A',
+        applies: false,
+        claim: 'FDA\'s own scientific review: the male rat thyroid tumors occurred via a rat-specific hormonal mechanism. No evidence of carcinogenicity in humans or other tested animals.',
+        why: "FDA's own 2025 announcement explicitly states there is no evidence FD&C Red No. 3 causes cancer in humans — the ban proceeded on statutory grounds despite this finding.",
+      },
+      {
+        tier: 'A',
+        applies: 'split',
+        claim: 'EU (as E127) continues to permit erythrosine in a restricted list of foods (e.g., cocktail cherries) under EFSA\'s existing ADI.',
+        why: 'EU regulation retains E127 on its approved additive list with usage restrictions, reflecting a different regulatory judgment on the same underlying data.',
+      },
+    ],
+    openQuestion: {
+      text: 'This is a rare case where a regulator banned a substance specifically while stating the human cancer risk is essentially zero, because the law required it regardless of mechanism. Reasonable people can read this as either "appropriately cautious" or "a statutory quirk not reflecting real risk."',
+      subgroup: null,
+    },
+    subgroupNotes: {},
+    contestedGuidance: 'Purely cosmetic and already being phased out of the US market by law — avoiding it costs nothing and the clock is already running on reformulation regardless of your own view of the risk.',
+  },
+
+  blue_1: {
+    id: 'blue_1',
+    name: 'Brilliant Blue FCF (Blue 1)',
+    aliases: ['blue 1','fd&c blue no. 1','brilliant blue'],
+    eNumber: 'E133',
+    role: 'Synthetic blue food color (petroleum-derived)',
+    benefit: 'cosmetic',
+    avoidability: 'easy',
+    baseVerdict: 'contested',
+    headline: 'Part of the same family of dyes as Red 40 and Yellow 5/6 — EU requires the child hyperactivity warning label, FDA does not. Same underlying Southampton study, same split.',
+    exposure: {
+      typical: 'Milligrams per serving in blue/green candies, cereals, sports drinks, and icing',
+      concerning: 'The Southampton hyperactivity dose was within realistic childhood dietary exposure',
+      note: "It's purely cosmetic — avoidance costs you nothing nutritionally.",
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: 'split',
+        claim: 'EU: mandatory hyperactivity warning label required alongside Red 40, Yellow 5, Yellow 6, and two other dyes.',
+        why: 'Same 2007 McCann Southampton study basis as the other five color additives named in the EU labeling requirement.',
+      },
+      {
+        tier: 'A',
+        applies: 'split',
+        claim: 'FDA: no causal relationship established; no warning label required.',
+        why: 'FDA has repeatedly reviewed the Southampton study and maintained its 2011 position that the evidence does not support a general causal link.',
+      },
+    ],
+    openQuestion: {
+      text: 'Same open question as Red 40 and the other Southampton dyes: whether the effect traces to the color itself, to sodium benzoate (tested alongside it), or to a specific combination.',
+      subgroup: null,
+    },
+    subgroupNotes: {},
+    contestedGuidance: "Cosmetic only, and easy to spot on labels as 'Blue 1' or 'FD&C Blue No. 1.' If you're already avoiding Red 40 for a child, treating this the same way is consistent.",
+  },
+
+  cyclamate: {
+    id: 'cyclamate',
+    name: 'Cyclamate',
+    aliases: ['sodium cyclamate','calcium cyclamate'],
+    eNumber: 'E952',
+    role: 'Non-caloric artificial sweetener',
+    benefit: 'functional',
+    avoidability: 'easy',
+    baseVerdict: 'contested',
+    headline: 'Banned in the US since 1969 over a rat bladder cancer study — but permitted in the EU, Canada, and over 50 other countries after later research found the original study\'s findings didn\'t replicate. The mirror image of the Red 40/Blue 1 pattern: here, the US is stricter.',
+    exposure: {
+      typical: 'Not legally used in US food (banned); milligrams per serving where permitted internationally',
+      concerning: 'The original 1969 concern was bladder tumors in rats fed a cyclamate-saccharin mixture at very high doses',
+      note: 'You will not encounter this in US-purchased products — flagged here mainly so the international contrast is visible if you scan foreign-made products.',
+    },
+    evidence: [
+      {
+        tier: 'C',
+        applies: 'split',
+        claim: '1969: rat study found bladder tumors with a cyclamate-saccharin mixture at high doses, prompting the US ban.',
+        why: "The original study used a 10:1 cyclamate-saccharin blend, making it hard to isolate which substance (if either) was responsible. Subsequent studies using cyclamate alone did not consistently replicate the tumor finding.",
+      },
+      {
+        tier: 'A',
+        applies: false,
+        claim: 'JECFA (WHO/FAO) and EU regulators reviewed later evidence and established an ADI, permitting cyclamate\'s continued use — a different read of the same original data plus decades of follow-up research.',
+        why: 'JECFA maintains an ADI of 11 mg/kg bw/day; the EU permits cyclamate under E952 with this ADI in place.',
+      },
+    ],
+    openQuestion: {
+      text: 'The FDA has not revisited the 1969 ban despite international regulators reaching a different conclusion on the same body of evidence — an unusual case of prolonged US-international divergence in the opposite direction from the color additive disputes.',
+      subgroup: null,
+    },
+    subgroupNotes: {},
+    contestedGuidance: 'Not present in US products, so no action needed domestically — worth knowing about only if you\'re evaluating food purchased abroad.',
+  },
+
 };
 
 export function getAdditive(id: string): Additive | undefined {

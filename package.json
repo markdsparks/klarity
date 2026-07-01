@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@expo/ui": "~56.0.18",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~56.0.12",
     "expo-camera": "~56.0.8",
     "expo-constants": "~56.0.18",
@@ -58,6 +59,9 @@
     ],
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/(?!(use-latest-callback))|react-navigation|@react-navigation/.*)"
+    ],
+    "setupFiles": [
+      "./jest.setup.js"
     ]
   },
   "private": true

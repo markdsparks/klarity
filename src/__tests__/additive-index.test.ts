@@ -35,7 +35,7 @@ describe('matchByETags', () => {
     expect(matched).toEqual(['carrageenan']);
   });
 
-  it('resolves all six hand-authored additives by E-number tag', () => {
+  it('resolves the original six hand-authored additives by E-number tag', () => {
     const tags = ['en:e407', 'en:e250', 'en:e171', 'en:e951', 'en:e300', 'en:e433'];
     const { matched, unknown } = matchByETags(tags);
     expect(matched).toContain('carrageenan');
@@ -51,12 +51,13 @@ describe('matchByETags', () => {
   // ── unknown additives ─────────────────────────────────────────────────────────
 
   it('returns unknown entry for an E-number not in our database', () => {
-    const { matched, unknown } = matchByETags(['en:e471']);
+    // E100 (curcumin) is in the name map but not yet authored in additives.ts
+    const { matched, unknown } = matchByETags(['en:e100']);
     expect(matched).toHaveLength(0);
     expect(unknown).toHaveLength(1);
-    expect(unknown[0].eNumber).toBe('E471');
-    expect(unknown[0].name).toBe('Mono- and diglycerides of fatty acids');
-    expect(unknown[0].rawTag).toBe('en:e471');
+    expect(unknown[0].eNumber).toBe('E100');
+    expect(unknown[0].name).toBe('Curcumin');
+    expect(unknown[0].rawTag).toBe('en:e100');
   });
 
   it('returns E-number as name fallback for a completely unmapped additive', () => {
@@ -67,15 +68,16 @@ describe('matchByETags', () => {
   });
 
   it('separates matched from unknown correctly in a mixed tag list', () => {
-    const { matched, unknown } = matchByETags(['en:e250', 'en:e471', 'en:e412']);
+    // E100 and E101 are in the name map but not yet authored in additives.ts
+    const { matched, unknown } = matchByETags(['en:e250', 'en:e100', 'en:e101']);
     expect(matched).toEqual(['nitrite']);
     expect(unknown).toHaveLength(2);
-    expect(unknown.map(u => u.eNumber)).toContain('E471');
-    expect(unknown.map(u => u.eNumber)).toContain('E412');
+    expect(unknown.map(u => u.eNumber)).toContain('E100');
+    expect(unknown.map(u => u.eNumber)).toContain('E101');
   });
 
   it('deduplicates unknown E-numbers appearing twice', () => {
-    const { unknown } = matchByETags(['en:e471', 'en:e471']);
+    const { unknown } = matchByETags(['en:e100', 'en:e100']);
     expect(unknown).toHaveLength(1);
   });
 
@@ -85,14 +87,16 @@ describe('matchByETags', () => {
     expect(unknown).toHaveLength(0);
   });
 
-  it('includes named entry from the bundled map for a common additive', () => {
-    const { unknown } = matchByETags(['en:e330']);
-    expect(unknown[0].name).toBe('Citric acid');
+  it('includes named entry from the bundled map for an unauthored additive', () => {
+    // E100 is in e-number-names.ts but not yet authored in additives.ts
+    const { unknown } = matchByETags(['en:e100']);
+    expect(unknown[0].name).toBe('Curcumin');
   });
 
-  it('correctly handles suffix E-numbers like E150d', () => {
-    const { unknown } = matchByETags(['en:e150d']);
-    expect(unknown[0].eNumber).toBe('E150D');
-    expect(unknown[0].name).toBe('Caramel color (sulfite ammonia)');
+  it('correctly handles suffix E-numbers like E553b', () => {
+    // E553B (talc) is in e-number-names.ts but not yet authored in additives.ts
+    const { unknown } = matchByETags(['en:e553b']);
+    expect(unknown[0].eNumber).toBe('E553B');
+    expect(unknown[0].name).toBe('Talc');
   });
 });

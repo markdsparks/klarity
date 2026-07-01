@@ -50,6 +50,10 @@ export interface Additive {
   id: string;
   name: string;
   eNumber: string | null;
+  // Alternate ingredient-label phrasings (e.g. "gum arabic" for Acacia Gum, "TBHQ" alone
+  // for the full name). Used to detect this additive in raw ingredients_text when OFF's
+  // own additives_tags parsing missed it.
+  aliases?: string[];
   role: string;
   benefit: AdditiveBenefit;
   avoidability: AdditiveAvoidability;

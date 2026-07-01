@@ -12,10 +12,34 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { matchByETags } from '@/data/additive-index';
+import { matchByIngredientText } from '@/data/ingredient-text-index';
 import { ADDITIVES } from '@/data/additives';
+import { DEFAULT_PROFILE, useProfile } from '@/hooks/use-profile';
 import { fetchProduct } from '@/services/off';
+import {
+  distinctScanDays,
+  frequencyLineEligible,
+  saveToHistory,
+  setBuySignal,
+} from '@/services/history';
+import {
+  computeServingNutrients,
+  sugarBasisDv,
+  toneNutrition,
+  warnThresholds,
+} from '@/services/nutrition';
+import { fetchUSDANutrition } from '@/services/usda';
+import { resolveVerdict } from '@/services/verdict';
+import type { BuySignal, ScanHistoryEntry } from '@/types/history';
 import type { OFFProduct } from '@/types/off';
-import type { Additive, NutritionTone, UnknownAdditive, VerdictKey } from '@/types/index';
+import type { USDANutrition } from '@/types/usda';
+import type {
+  Additive,
+  AdditiveResult,
+  NutritionTone,
+  UnknownAdditive,
+  VerdictKey,
+} from '@/types/index';
 
 // ── Glance badge colours (hero dark section) ───────────────────────────────────
 type GlanceKey = VerdictKey | 'clean' | 'unrated';
@@ -41,33 +65,20 @@ const VERDICT_STYLE: Record<VerdictKey, { bg: string; fg: string; label: string 
   contested: { bg: '#efecfb', fg: '#6b5bd2', label: 'Contested' },
 };
 
-// ── Nutrition helpers ──────────────────────────────────────────────────────────
-function toneNutrition(p: OFFProduct): { tone: NutritionTone; summary: string } {
-  const n = p.nutriments ?? {};
-  const sugar  = n['sugars_100g']          ?? 0;
-  const sodium = n['sodium_100g']          ?? 0;
-  const satFat = n['saturated-fat_100g']   ?? 0;
-
-  if (sugar > 20 || sodium > 0.8 || satFat > 10) {
-    const items = [
-      sugar  > 20  ? 'sugar'    : null,
-      sodium > 0.8 ? 'sodium'   : null,
-      satFat > 10  ? 'sat fat'  : null,
-    ].filter(Boolean).join(', ');
-    return { tone: 'warn', summary: `High in ${items}` };
-  }
-  if (sugar > 10 || sodium > 0.4 || satFat > 5) {
-    return { tone: 'ok', summary: 'Moderate levels — frequency matters' };
-  }
-  return { tone: 'good', summary: 'Clean nutrition at this serving' };
+// History stores the base-verdict glance (objective); the on-screen glance uses
+// profile-resolved verdicts so the hero badge agrees with the rows below it.
+function overallAdditiveGlance(verdicts: VerdictKey[], unknownCount: number): GlanceKey {
+  if (verdicts.length === 0 && unknownCount === 0) return 'clean';
+  if (verdicts.length === 0) return 'unrated';
+  if (verdicts.includes('contested')) return 'contested';
+  if (verdicts.includes('sometimes')) return 'sometimes';
+  return 'everyday';
 }
 
-function overallAdditiveGlance(matched: Additive[], unknownCount: number): GlanceKey {
-  if (matched.length === 0 && unknownCount === 0) return 'clean';
-  if (matched.length === 0) return 'unrated';
-  if (matched.some(a => a.baseVerdict === 'contested')) return 'contested';
-  if (matched.some(a => a.baseVerdict === 'sometimes')) return 'sometimes';
-  return 'everyday';
+function ordinal(n: number): string {
+  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
+  const suffix = { 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] ?? 'th';
+  return `${n}${suffix}`;
 }
 
 // ── State type ─────────────────────────────────────────────────────────────────
@@ -75,28 +86,84 @@ type State =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'not_found' }
-  | { status: 'ready'; product: OFFProduct; additiveIds: string[]; unknownAdditives: UnknownAdditive[] };
+  | {
+      status: 'ready';
+      product: OFFProduct;
+      additiveIds: string[];
+      unknownAdditives: UnknownAdditive[];
+      usdaNutrition: USDANutrition | null;
+      historyEntry: ScanHistoryEntry | null;
+    };
 
 // ── Screen ─────────────────────────────────────────────────────────────────────
 export default function ResultScreen() {
   const { barcode } = useLocalSearchParams<{ barcode: string }>();
   const insets = useSafeAreaInsets();
+  const { profile } = useProfile();
   const [state, setState] = useState<State>({ status: 'loading' });
 
   useEffect(() => {
     if (!barcode) return;
-    fetchProduct(barcode)
-      .then(product => {
-        if (!product) return setState({ status: 'not_found' });
-        const { matched: additiveIds, unknown: unknownAdditives } =
+    let cancelled = false;
+    Promise.all([fetchProduct(barcode), fetchUSDANutrition(barcode)])
+      .then(async ([product, usdaNutrition]) => {
+        if (!product) {
+          if (!cancelled) setState({ status: 'not_found' });
+          return;
+        }
+        const { matched: tagMatched, unknown: unknownAdditives } =
           matchByETags(product.additives_tags ?? []);
-        setState({ status: 'ready', product, additiveIds, unknownAdditives });
+        // OFF's own additives_tags parsing sometimes misses ingredients (nutrition
+        // filled in, ingredient parser never ran) — scan the raw text as a fallback.
+        const textMatched = matchByIngredientText(
+          product.ingredients_text ?? '', new Set(tagMatched)
+        );
+        const additiveIds = [...tagMatched, ...textMatched];
+
+        // Paint first — history persistence must never delay the result screen
+        if (!cancelled) {
+          setState({
+            status: 'ready', product, additiveIds, unknownAdditives, usdaNutrition,
+            historyEntry: null,
+          });
+        }
+
+        // History stores the profile-independent baseline so entries stay
+        // objective if the profile changes later.
+        const matchedAdditives = additiveIds
+          .map(id => ADDITIVES[id])
+          .filter((a): a is Additive => !!a);
+        const sn = computeServingNutrients(product, usdaNutrition);
+        const historyEntry = await saveToHistory({
+          barcode,
+          productName: product.product_name || 'Unknown product',
+          brand: product.brands?.split(',')[0].trim() || '',
+          imageUrl: product.image_front_url ?? product.image_url,
+          additiveGlance: overallAdditiveGlance(
+            matchedAdditives.map(a => a.baseVerdict), unknownAdditives.length,
+          ),
+          nutritionTone: toneNutrition(sn, DEFAULT_PROFILE).tone,
+          scannedAt: Date.now(),
+        });
+
+        if (!cancelled) {
+          setState(s => s.status === 'ready' ? { ...s, historyEntry } : s);
+        }
       })
-      .catch((err: Error) => setState({
-        status: 'error',
-        message: err.message === 'NETWORK' ? 'No internet connection.' : 'Could not load product.',
-      }));
+      .catch((err: Error) => {
+        if (!cancelled) setState({
+          status: 'error',
+          message: err.message === 'NETWORK' ? 'No internet connection.' : 'Could not load product.',
+        });
+      });
+    return () => { cancelled = true; };
   }, [barcode]);
+
+  function answerBuySignal(signal: BuySignal) {
+    if (state.status !== 'ready' || !state.historyEntry || !barcode) return;
+    void setBuySignal(barcode, signal);
+    setState({ ...state, historyEntry: { ...state.historyEntry, buySignal: signal } });
+  }
 
   // ── Loading ──
   if (state.status === 'loading') {
@@ -130,17 +197,36 @@ export default function ResultScreen() {
   }
 
   // ── Ready ──
-  const { product, additiveIds, unknownAdditives } = state;
+  const { product, additiveIds, unknownAdditives, usdaNutrition, historyEntry } = state;
   const name     = product.product_name || 'Unknown product';
   const brand    = product.brands?.split(',')[0].trim() || '';
   const imageUrl = product.image_front_url ?? product.image_url;
-  const nutrition = toneNutrition(product);
+  const sn = computeServingNutrients(product, usdaNutrition);
+  const nutrition = toneNutrition(sn, profile);
+  const thresholds = warnThresholds(profile);
+  const bloodSugar = profile.conditions.includes('blood_sugar');
+
   const matchedAdditives = additiveIds
     .map(id => ADDITIVES[id])
     .filter((a): a is Additive => !!a);
-  const glanceKey       = overallAdditiveGlance(matchedAdditives, unknownAdditives.length);
+  // Profile-resolved verdicts; condition matches float to the top for visibility
+  const additiveResults: AdditiveResult[] = matchedAdditives
+    .map(a => resolveVerdict(a, profile))
+    .sort((a, b) => (b.profileNote ? 1 : 0) - (a.profileNote ? 1 : 0));
+
+  const glanceKey       = overallAdditiveGlance(
+    additiveResults.map(r => r.verdict), unknownAdditives.length,
+  );
   const additiveGlance  = GLANCE[glanceKey];
   const nutritionGlance = NUTRITION_GLANCE[nutrition.tone];
+
+  // Frequency context — eligibility rule lives in the history service
+  const amber = glanceKey === 'sometimes' || glanceKey === 'contested' || nutrition.tone === 'warn';
+  const showFrequency = historyEntry != null && frequencyLineEligible(historyEntry, amber);
+  const scanDays = historyEntry ? distinctScanDays(historyEntry, 14) : 0;
+  const frequencyFocus = additiveResults.find(r => r.verdict === 'sometimes')?.additive;
+
+  const sugarHot = sugarBasisDv(sn) >= thresholds.sugar;
 
   return (
     <ScrollView
@@ -188,6 +274,34 @@ export default function ResultScreen() {
             fg={nutritionGlance.fg}
           />
         </View>
+
+        {/* Frequency context */}
+        {showFrequency && historyEntry && (
+          <View style={styles.freqCard}>
+            {historyEntry.buySignal === 'regular' ? (
+              <Text style={styles.freqText}>
+                A regular buy for you — {frequencyFocus
+                  ? `for ${frequencyFocus.name.toLowerCase()}, frequency is the whole game.`
+                  : 'how often matters more than any single serving.'}
+              </Text>
+            ) : (
+              <>
+                <Text style={styles.freqText}>
+                  This keeps showing up in your scans — {ordinal(scanDays)} day in two weeks.
+                </Text>
+                <View style={styles.freqAskRow}>
+                  <Text style={styles.freqAskLabel}>Regular buy?</Text>
+                  <Pressable style={styles.freqBtn} onPress={() => answerBuySignal('regular')}>
+                    <Text style={styles.freqBtnText}>Yes</Text>
+                  </Pressable>
+                  <Pressable style={styles.freqBtn} onPress={() => answerBuySignal('just_checking')}>
+                    <Text style={styles.freqBtnText}>Just checking</Text>
+                  </Pressable>
+                </View>
+              </>
+            )}
+          </View>
+        )}
       </View>
 
       {/* ── Light content ── */}
@@ -197,22 +311,22 @@ export default function ResultScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Additives</Text>
-            {(matchedAdditives.length + unknownAdditives.length) > 0 && (
+            {(additiveResults.length + unknownAdditives.length) > 0 && (
               <Text style={styles.cardMeta}>
-                {matchedAdditives.length + unknownAdditives.length} in product
+                {additiveResults.length + unknownAdditives.length} in product
               </Text>
             )}
           </View>
 
-          {matchedAdditives.length === 0 && unknownAdditives.length === 0 && (
+          {additiveResults.length === 0 && unknownAdditives.length === 0 && (
             <Text style={styles.emptyText}>No additives detected.</Text>
           )}
 
-          {matchedAdditives.map((additive, i) => (
-            <AdditiveRow key={additive.id} additive={additive} first={i === 0} />
+          {additiveResults.map((result, i) => (
+            <AdditiveRow key={result.additive.id} result={result} first={i === 0} />
           ))}
 
-          {unknownAdditives.length > 0 && matchedAdditives.length > 0 && (
+          {unknownAdditives.length > 0 && additiveResults.length > 0 && (
             <View style={styles.unknownDivider}>
               <View style={styles.unknownDividerLine} />
               <Text style={styles.unknownDividerLabel}>Not yet rated</Text>
@@ -224,7 +338,7 @@ export default function ResultScreen() {
             <UnknownAdditiveRow
               key={u.eNumber}
               additive={u}
-              first={i === 0 && matchedAdditives.length === 0}
+              first={i === 0 && additiveResults.length === 0}
             />
           ))}
         </View>
@@ -232,24 +346,59 @@ export default function ResultScreen() {
         {/* Nutrition */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Nutrition</Text>
-            <View style={[styles.toneTag, {
-              backgroundColor: nutrition.tone === 'good' ? '#e8f7ef' : '#fdf3e3',
-            }]}>
-              <Text style={[styles.toneTagText, {
-                color: nutrition.tone === 'good' ? '#1f9d6b' : '#c8821a',
+            <View style={styles.cardTitleRow}>
+              <Text style={styles.cardTitle}>Nutrition</Text>
+              {sn.source === 'usda' && (
+                <View style={styles.usdaBadge}>
+                  <Text style={styles.usdaBadgeText}>USDA</Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.cardHeaderRight}>
+              {(usdaNutrition?.householdServing || product.serving_size) ? (
+                <Text style={styles.cardMeta}>
+                  per {usdaNutrition?.householdServing?.toLowerCase() ?? product.serving_size}
+                </Text>
+              ) : null}
+              <View style={[styles.toneTag, {
+                backgroundColor: nutrition.tone === 'good' ? '#e8f7ef' : '#fdf3e3',
               }]}>
-                {nutritionGlance.label}
-              </Text>
+                <Text style={[styles.toneTagText, {
+                  color: nutrition.tone === 'good' ? '#1f9d6b' : '#c8821a',
+                }]}>
+                  {nutritionGlance.label}
+                </Text>
+              </View>
             </View>
           </View>
           <Text style={styles.nutritionSummary}>{nutrition.summary}</Text>
-          <NutrientRow label="Calories"  value={product.nutriments?.['energy-kcal_100g']}    unit="kcal" />
-          <NutrientRow label="Sugar"     value={product.nutriments?.sugars_100g}              unit="g"    warnAbove={10}  />
-          <NutrientRow label="Sat fat"   value={product.nutriments?.['saturated-fat_100g']}   unit="g"    warnAbove={5}   />
-          <NutrientRow label="Sodium"    value={product.nutriments?.sodium_100g}              unit="g"    warnAbove={0.4} />
-          <NutrientRow label="Protein"   value={product.nutriments?.proteins_100g}            unit="g"    />
-          <NutrientRow label="Fiber"     value={product.nutriments?.fiber_100g}               unit="g"    />
+          {nutrition.profileNotes.map(note => (
+            <View key={note} style={styles.profileNoteBanner}>
+              <Text style={styles.profileNoteLabel}>FOR YOU</Text>
+              <Text style={styles.profileNoteText}>{note}</Text>
+            </View>
+          ))}
+          <NutrientRow label="Calories"      value={sn.calories} unit="kcal" />
+          <NutrientRow label="Total Fat"     value={sn.totalFat} unit="g" dvPct={sn.fatDv}    />
+          <NutrientRow label="Saturated Fat" value={sn.satFat}   unit="g" dvPct={sn.satFatDv} highlight={sn.satFatDv != null && sn.satFatDv >= thresholds.satFat ? 'warn' : null} sub />
+          <NutrientRow label="Total Carbs"   value={sn.carbs}    unit="g" dvPct={sn.carbsDv}  />
+          <NutrientRow label="Sugar"         value={sn.sugar}    unit="g" dvPct={sn.sugarDv}  highlight={sn.addedSugar == null && sugarHot ? 'warn' : null} sub />
+          {sn.addedSugar != null && (
+            <NutrientRow label="of which added" value={sn.addedSugar} unit="g" dvPct={sn.addedSugarDv} highlight={sugarHot ? 'warn' : null} sub />
+          )}
+          <NutrientRow label="Fiber"         value={sn.fiber}    unit="g" dvPct={sn.fiberDv}  highlight={sn.fiberDv != null && sn.fiberDv >= 10 ? 'good' : null} sub />
+          {sn.carbs != null && sn.fiber != null && (
+            <NutrientRow
+              label="Net carbs"
+              value={sn.carbs - sn.fiber}
+              unit="g"
+              sub
+              computed={!bloodSugar}
+              highlight={bloodSugar ? 'warn' : null}
+            />
+          )}
+          <NutrientRow label="Protein"       value={sn.protein}  unit="g" dvPct={sn.proteinDv} highlight={sn.proteinDv != null && sn.proteinDv >= 10 ? 'good' : null} />
+          <NutrientRow label="Sodium"        value={sn.sodium}   unit="g" dvPct={sn.sodiumDv}  highlight={sn.sodiumDv != null && sn.sodiumDv >= thresholds.sodium ? 'warn' : null} />
         </View>
       </View>
     </ScrollView>
@@ -271,22 +420,41 @@ function GlanceBadge({
   );
 }
 
-function AdditiveRow({ additive, first }: { additive: Additive; first: boolean }) {
-  const vs = VERDICT_STYLE[additive.baseVerdict];
+function AdditiveRow({ result, first }: { result: AdditiveResult; first: boolean }) {
+  const { additive, verdict, profileNote } = result;
+  const vs = VERDICT_STYLE[verdict];
+  // Only contested verdicts resolve differently — the marker keeps the
+  // disagreement visible even when the pill reflects the user's lean
+  const resolvedContested = verdict !== additive.baseVerdict;
   return (
     <Pressable
       style={[styles.additiveRow, first && styles.rowNoBorder]}
       onPress={() => router.push(`/additive/${additive.id}`)}>
-      <View style={styles.additiveInfo}>
-        <Text style={styles.additiveName}>{additive.name}</Text>
-        <Text style={styles.additiveRole} numberOfLines={1}>
-          {[additive.eNumber, additive.role].filter(Boolean).join(' · ')}
-        </Text>
+      <View style={styles.additiveRowInner}>
+        <View style={styles.additiveMain}>
+          <View style={styles.additiveInfo}>
+            <Text style={styles.additiveName}>{additive.name}</Text>
+            <Text style={styles.additiveRole} numberOfLines={1}>
+              {[additive.eNumber, additive.role].filter(Boolean).join(' · ')}
+            </Text>
+          </View>
+          <View style={styles.pillCol}>
+            <View style={[styles.verdictPill, { backgroundColor: vs.bg }]}>
+              <Text style={[styles.verdictPillText, { color: vs.fg }]}>{vs.label}</Text>
+            </View>
+            {resolvedContested && (
+              <Text style={styles.contestedMarker}>contested</Text>
+            )}
+          </View>
+          <Text style={styles.rowChevron}>›</Text>
+        </View>
+        {profileNote && (
+          <View style={styles.profileNoteBanner}>
+            <Text style={styles.profileNoteLabel}>FOR YOU</Text>
+            <Text style={styles.profileNoteText}>{profileNote}</Text>
+          </View>
+        )}
       </View>
-      <View style={[styles.verdictPill, { backgroundColor: vs.bg }]}>
-        <Text style={[styles.verdictPillText, { color: vs.fg }]}>{vs.label}</Text>
-      </View>
-      <Text style={styles.rowChevron}>›</Text>
     </Pressable>
   );
 }
@@ -294,28 +462,42 @@ function AdditiveRow({ additive, first }: { additive: Additive; first: boolean }
 function UnknownAdditiveRow({ additive, first }: { additive: UnknownAdditive; first: boolean }) {
   return (
     <View style={[styles.additiveRow, first && styles.rowNoBorder]}>
-      <View style={styles.additiveInfo}>
-        <Text style={styles.unknownAdditiveName}>{additive.name}</Text>
-        <Text style={styles.unknownAdditiveRole}>{additive.eNumber}</Text>
-      </View>
-      <View style={styles.unratedPill}>
-        <Text style={styles.unratedPillText}>Not rated</Text>
+      <View style={styles.additiveMain}>
+        <View style={styles.additiveInfo}>
+          <Text style={styles.unknownAdditiveName}>{additive.name}</Text>
+          <Text style={styles.unknownAdditiveRole}>{additive.eNumber}</Text>
+        </View>
+        <View style={styles.unratedPill}>
+          <Text style={styles.unratedPillText}>Not rated</Text>
+        </View>
       </View>
     </View>
   );
 }
 
-function NutrientRow({ label, value, unit, warnAbove }: {
-  label: string; value?: number; unit: string; warnAbove?: number;
+function NutrientRow({ label, value, unit, dvPct, highlight, sub, computed }: {
+  label: string; value?: number; unit: string;
+  dvPct?: number; highlight?: 'warn' | 'good' | null; sub?: boolean; computed?: boolean;
 }) {
   if (value == null) return null;
-  const warn = warnAbove != null && value > warnAbove;
+  const valueColor = computed    ? '#9fadbf'
+    : highlight === 'warn'       ? '#c8821a'
+    : highlight === 'good'       ? '#1f9d6b'
+    : '#1a1f29';
+  const dvColor = highlight != null ? valueColor : '#b0bcc9';
   return (
-    <View style={styles.nutrientRow}>
-      <Text style={styles.nutrientLabel}>{label}</Text>
-      <Text style={[styles.nutrientValue, warn && styles.nutrientWarn]}>
-        {value.toFixed(1)} {unit}
+    <View style={[styles.nutrientRow, sub && styles.nutrientSubRow]}>
+      <Text style={[styles.nutrientLabel, sub && styles.nutrientSubLabel, computed && styles.nutrientComputedLabel]}>
+        {label}
       </Text>
+      <View style={styles.nutrientRight}>
+        <Text style={[styles.nutrientValue, sub && styles.nutrientSubValue, { color: valueColor }]}>
+          {unit === 'kcal' ? Math.round(value) : value.toFixed(1)} {unit}
+        </Text>
+        {dvPct != null && (
+          <Text style={[styles.nutrientDv, { color: dvColor }]}>{dvPct}% DV</Text>
+        )}
+      </View>
     </View>
   );
 }
@@ -358,6 +540,27 @@ const styles = StyleSheet.create({
   glanceAxis:    { fontSize: 10, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', opacity: 0.7 },
   glanceVerdict: { fontSize: 20, fontWeight: '800', letterSpacing: -0.3 },
 
+  // Frequency context card
+  freqCard: {
+    backgroundColor: 'rgba(240,184,117,0.12)',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  freqText: { fontSize: 13, color: '#f0b875', lineHeight: 19, fontWeight: '500' },
+  freqAskRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  freqAskLabel: { fontSize: 12, fontWeight: '700', color: 'rgba(240,184,117,0.8)' },
+  freqBtn: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 99,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(240,184,117,0.35)',
+  },
+  freqBtnText: { fontSize: 12, fontWeight: '700', color: '#f0b875' },
+
   // Light content
   content: { paddingHorizontal: 16, paddingTop: 16, gap: 12 },
 
@@ -377,28 +580,46 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase', color: '#8896a7' },
   cardMeta:  { fontSize: 12, color: '#b0bcc9' },
+  cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  usdaBadge:     { backgroundColor: '#e8f7ef', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  usdaBadgeText: { fontSize: 9, fontWeight: '800', color: '#1f9d6b', letterSpacing: 0.5 },
 
   emptyText: { fontSize: 14, color: '#9fadbf', paddingBottom: 4 },
 
   additiveRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
     paddingVertical: 13,
     borderTopWidth: 1,
     borderTopColor: '#f1f4f8',
   },
   rowNoBorder: { borderTopWidth: 0 },
+  additiveRowInner: { gap: 10 },
+  additiveMain: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   additiveInfo:  { flex: 1, gap: 3 },
   additiveName:  { fontSize: 14, fontWeight: '700', color: '#1a1f29' },
   additiveRole:  { fontSize: 11.5, color: '#9fadbf' },
+  pillCol: { alignItems: 'center', gap: 3 },
   verdictPill:   { borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5 },
   verdictPillText: { fontSize: 11.5, fontWeight: '800' },
+  contestedMarker: { fontSize: 9.5, fontWeight: '700', color: '#6b5bd2', letterSpacing: 0.3 },
   rowChevron:    { fontSize: 18, color: '#d0d8e4' },
   unknownAdditiveName: { fontSize: 14, fontWeight: '600', color: '#8896a7' },
   unknownAdditiveRole: { fontSize: 11.5, color: '#b0bcc9' },
   unratedPill: { borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: '#f1f4f8' },
   unratedPillText: { fontSize: 11.5, fontWeight: '700', color: '#9fadbf' },
+
+  // Profile note banner (shared by additive rows and nutrition card)
+  profileNoteBanner: {
+    backgroundColor: '#f0faf5',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#c3e6d5',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 3,
+    marginBottom: 4,
+  },
+  profileNoteLabel: { fontSize: 9, fontWeight: '800', color: '#1f9d6b', letterSpacing: 0.6 },
+  profileNoteText:  { fontSize: 12.5, color: '#1a1f29', lineHeight: 18 },
 
   unknownDivider: {
     flexDirection: 'row',
@@ -422,7 +643,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#f1f4f8',
   },
-  nutrientLabel: { fontSize: 13.5, color: '#5b6675' },
-  nutrientValue: { fontSize: 13.5, fontWeight: '600', color: '#1a1f29' },
-  nutrientWarn:  { color: '#c8821a' },
+  nutrientLabel:    { fontSize: 13.5, color: '#5b6675' },
+  nutrientSubRow:      { paddingLeft: 16 },
+  nutrientSubLabel:    { fontSize: 12.5, color: '#9fadbf' },
+  nutrientSubValue:    { fontSize: 12.5, fontWeight: '500' },
+  nutrientComputedLabel: { fontStyle: 'italic' },
+  nutrientRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  nutrientValue: { fontSize: 13.5, fontWeight: '700' },
+  nutrientDv:    { fontSize: 11, fontWeight: '700', opacity: 0.85 },
+  cardHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
 });

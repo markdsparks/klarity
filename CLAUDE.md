@@ -160,15 +160,21 @@ npx expo start       # Metro + QR for device
 - [x] EAS build pipeline + TestFlight distribution (npm run build:preview → npm run submit:ios)
 - [x] Family testing live on TestFlight
 
-**Phase 2 — Scale the evidence layer** (next)
-- [ ] Additive coverage: top 50 most common additives in US packaged food
+**Phase 2 — Scale the evidence layer**
+- [x] Additive coverage: 53 hand-authored additives (top US additives covered)
 - [ ] Ingest EFSA OpenFoodTox for Tier A automation on the long tail
-- [ ] "Unknown additive" state: show name + E-number even when no verdict yet
-- [ ] Scan history (src/app/(tabs)/history.tsx)
+- [x] "Unknown additive" state: show name + E-number even when no verdict yet
+- [x] Scan history (src/app/(tabs)/history.tsx)
 
-**Phase 3 — Personalization**
-- [ ] Profile onboarding (standard / IBD / precaution-leaning / risk-tolerant)
-- [ ] Profile-aware verdict rendering + subgroup notes
+**Phase 3 — Personalization** (spec: docs/specs/001)
+- [x] Profile: You tab (values lean + conditions), ProfileContext, AsyncStorage
+- [x] Profile-aware verdict rendering: contested resolves per values (always with
+      visible "contested" marker), subgroup notes surface per conditions
+- [x] Frequency intelligence: distinct-day scan tracking, "Regular buy?" one-tap
+      signal, frequency context line on amber products (scan ≠ consumption rules)
+- [x] Nutrition personalization: added sugar (USDA 1235) replaces total when known;
+      bp / blood_sugar conditions tighten thresholds (docs/nutrition-evidence.md)
+- [ ] Multi-member family profiles (Phase 3.5)
 
 ## Build & deploy
 
