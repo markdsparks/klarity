@@ -51,13 +51,13 @@ describe('matchByETags', () => {
   // ── unknown additives ─────────────────────────────────────────────────────────
 
   it('returns unknown entry for an E-number not in our database', () => {
-    // E551 (silicon dioxide) is in the name map but not yet authored in additives.ts
-    const { matched, unknown } = matchByETags(['en:e551']);
+    // E100 (curcumin) is in the name map but not yet authored in additives.ts
+    const { matched, unknown } = matchByETags(['en:e100']);
     expect(matched).toHaveLength(0);
     expect(unknown).toHaveLength(1);
-    expect(unknown[0].eNumber).toBe('E551');
-    expect(unknown[0].name).toBe('Silicon dioxide');
-    expect(unknown[0].rawTag).toBe('en:e551');
+    expect(unknown[0].eNumber).toBe('E100');
+    expect(unknown[0].name).toBe('Curcumin');
+    expect(unknown[0].rawTag).toBe('en:e100');
   });
 
   it('returns E-number as name fallback for a completely unmapped additive', () => {
@@ -68,16 +68,16 @@ describe('matchByETags', () => {
   });
 
   it('separates matched from unknown correctly in a mixed tag list', () => {
-    // E551 and E414 are in the name map but not yet authored in additives.ts
-    const { matched, unknown } = matchByETags(['en:e250', 'en:e551', 'en:e414']);
+    // E100 and E101 are in the name map but not yet authored in additives.ts
+    const { matched, unknown } = matchByETags(['en:e250', 'en:e100', 'en:e101']);
     expect(matched).toEqual(['nitrite']);
     expect(unknown).toHaveLength(2);
-    expect(unknown.map(u => u.eNumber)).toContain('E551');
-    expect(unknown.map(u => u.eNumber)).toContain('E414');
+    expect(unknown.map(u => u.eNumber)).toContain('E100');
+    expect(unknown.map(u => u.eNumber)).toContain('E101');
   });
 
   it('deduplicates unknown E-numbers appearing twice', () => {
-    const { unknown } = matchByETags(['en:e551', 'en:e551']);
+    const { unknown } = matchByETags(['en:e100', 'en:e100']);
     expect(unknown).toHaveLength(1);
   });
 
@@ -88,15 +88,15 @@ describe('matchByETags', () => {
   });
 
   it('includes named entry from the bundled map for an unauthored additive', () => {
-    // E551 is in e-number-names.ts but not yet authored in additives.ts
-    const { unknown } = matchByETags(['en:e551']);
-    expect(unknown[0].name).toBe('Silicon dioxide');
+    // E100 is in e-number-names.ts but not yet authored in additives.ts
+    const { unknown } = matchByETags(['en:e100']);
+    expect(unknown[0].name).toBe('Curcumin');
   });
 
-  it('correctly handles suffix E-numbers like E553a', () => {
-    // E553A is in e-number-names.ts but not yet authored in additives.ts
-    const { unknown } = matchByETags(['en:e553a']);
-    expect(unknown[0].eNumber).toBe('E553A');
-    expect(unknown[0].name).toBe('Magnesium silicate');
+  it('correctly handles suffix E-numbers like E553b', () => {
+    // E553B (talc) is in e-number-names.ts but not yet authored in additives.ts
+    const { unknown } = matchByETags(['en:e553b']);
+    expect(unknown[0].eNumber).toBe('E553B');
+    expect(unknown[0].name).toBe('Talc');
   });
 });
