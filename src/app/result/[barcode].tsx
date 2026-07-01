@@ -108,13 +108,30 @@ function computeServingNutrients(p: OFFProduct, usda: USDANutrition | null): Ser
 }
 
 function toneNutrition(sn: ServingNutrients): { tone: NutritionTone; summary: string } {
-  const { sugarDv = 0, sodiumDv = 0, satFatDv = 0 } = sn;
+  const { sugarDv = 0, sodiumDv = 0, satFatDv = 0, fiberDv = 0 } = sn;
+
+  // Fiber ≥20% DV meaningfully slows glucose absorption from sugar (human RCT evidence).
+  // High sugar + strong fiber is nutritionally different from high sugar alone.
+  const fiberOffsetsSugar = sugarDv >= 20 && fiberDv >= 20;
 
   const highItems: string[] = [];
-  if (sugarDv  >= 20) highItems.push(`sugar (${sugarDv}% DV)`);
+  if (sugarDv >= 20 && !fiberOffsetsSugar) highItems.push(`sugar (${sugarDv}% DV)`);
   if (sodiumDv >= 20) highItems.push(`sodium (${sodiumDv}% DV)`);
   if (satFatDv >= 20) highItems.push(`sat fat (${satFatDv}% DV)`);
   if (highItems.length > 0) return { tone: 'warn', summary: `High in ${highItems.join(' and ')}` };
+
+  // Sugar is high but fiber offsets it — call this out explicitly
+  if (fiberOffsetsSugar) {
+    const otherMod = [
+      sodiumDv >= 10 ? 'sodium' : null,
+      satFatDv >= 10 ? 'sat fat' : null,
+    ].filter(Boolean).join(', ');
+    const suffix = otherMod ? ` · moderate ${otherMod}` : '';
+    return {
+      tone: 'ok',
+      summary: `High sugar (${sugarDv}% DV) moderated by strong fiber (${fiberDv}% DV)${suffix}`,
+    };
+  }
 
   const modItems: string[] = [];
   if (sugarDv  >= 10) modItems.push('sugar');
@@ -328,6 +345,9 @@ export default function ResultScreen() {
           <NutrientRow label="Total Carbs"   value={sn.carbs}    unit="g" dvPct={sn.carbsDv}  />
           <NutrientRow label="Sugar"         value={sn.sugar}    unit="g" dvPct={sn.sugarDv}  highlight={sn.sugarDv   != null && sn.sugarDv   >= 20 ? 'warn' : null} sub />
           <NutrientRow label="Fiber"         value={sn.fiber}    unit="g" dvPct={sn.fiberDv}  highlight={sn.fiberDv   != null && sn.fiberDv   >= 10 ? 'good' : null} sub />
+          {sn.carbs != null && sn.fiber != null && (
+            <NutrientRow label="Net carbs" value={sn.carbs - sn.fiber} unit="g" sub computed />
+          )}
           <NutrientRow label="Protein"       value={sn.protein}  unit="g" dvPct={sn.proteinDv} highlight={sn.proteinDv != null && sn.proteinDv >= 10 ? 'good' : null} />
           <NutrientRow label="Sodium"        value={sn.sodium}   unit="g" dvPct={sn.sodiumDv}  highlight={sn.sodiumDv  != null && sn.sodiumDv  >= 20 ? 'warn' : null} />
         </View>
@@ -385,16 +405,21 @@ function UnknownAdditiveRow({ additive, first }: { additive: UnknownAdditive; fi
   );
 }
 
-function NutrientRow({ label, value, unit, dvPct, highlight, sub }: {
+function NutrientRow({ label, value, unit, dvPct, highlight, sub, computed }: {
   label: string; value?: number; unit: string;
-  dvPct?: number; highlight?: 'warn' | 'good' | null; sub?: boolean;
+  dvPct?: number; highlight?: 'warn' | 'good' | null; sub?: boolean; computed?: boolean;
 }) {
   if (value == null) return null;
-  const valueColor = highlight === 'warn' ? '#c8821a' : highlight === 'good' ? '#1f9d6b' : '#1a1f29';
-  const dvColor    = highlight != null ? valueColor : '#b0bcc9';
+  const valueColor = computed    ? '#9fadbf'
+    : highlight === 'warn'       ? '#c8821a'
+    : highlight === 'good'       ? '#1f9d6b'
+    : '#1a1f29';
+  const dvColor = highlight != null ? valueColor : '#b0bcc9';
   return (
     <View style={[styles.nutrientRow, sub && styles.nutrientSubRow]}>
-      <Text style={[styles.nutrientLabel, sub && styles.nutrientSubLabel]}>{label}</Text>
+      <Text style={[styles.nutrientLabel, sub && styles.nutrientSubLabel, computed && styles.nutrientComputedLabel]}>
+        {label}
+      </Text>
       <View style={styles.nutrientRight}>
         <Text style={[styles.nutrientValue, sub && styles.nutrientSubValue, { color: valueColor }]}>
           {unit === 'kcal' ? Math.round(value) : value.toFixed(1)} {unit}
@@ -513,9 +538,10 @@ const styles = StyleSheet.create({
     borderTopColor: '#f1f4f8',
   },
   nutrientLabel:    { fontSize: 13.5, color: '#5b6675' },
-  nutrientSubRow:   { paddingLeft: 16 },
-  nutrientSubLabel: { fontSize: 12.5, color: '#9fadbf' },
-  nutrientSubValue: { fontSize: 12.5, fontWeight: '500' },
+  nutrientSubRow:      { paddingLeft: 16 },
+  nutrientSubLabel:    { fontSize: 12.5, color: '#9fadbf' },
+  nutrientSubValue:    { fontSize: 12.5, fontWeight: '500' },
+  nutrientComputedLabel: { fontStyle: 'italic' },
   nutrientRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   nutrientValue: { fontSize: 13.5, fontWeight: '700' },
   nutrientDv:    { fontSize: 11, fontWeight: '700', opacity: 0.85 },
