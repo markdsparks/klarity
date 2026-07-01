@@ -87,6 +87,13 @@ export function warnThresholds(profile: Profile): { sugar: number; sodium: numbe
   };
 }
 
+// WHO/AHA intake guidance is about ADDED sugar — score on it whenever the data
+// source provides it; fall back to total sugars without pretending otherwise.
+// Single owner of the basis rule: tone scoring and row highlighting both use this.
+export function sugarBasisDv(sn: ServingNutrients): number {
+  return sn.addedSugarDv ?? sn.sugarDv ?? 0;
+}
+
 export interface NutritionAssessment {
   tone: NutritionTone;
   summary: string;
@@ -95,9 +102,7 @@ export interface NutritionAssessment {
 
 export function toneNutrition(sn: ServingNutrients, profile: Profile): NutritionAssessment {
   const t = warnThresholds(profile);
-  // WHO/AHA intake guidance is about ADDED sugar — use it whenever the data
-  // source provides it; fall back to total sugars without pretending otherwise.
-  const sugarBasisDv = sn.addedSugarDv ?? sn.sugarDv ?? 0;
+  const sugarDvBasis = sugarBasisDv(sn);
   const sugarLabel = sn.addedSugarDv != null ? 'added sugar' : 'sugar';
   const { sodiumDv = 0, satFatDv = 0, fiberDv = 0 } = sn;
 
@@ -107,21 +112,21 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
       `You flagged blood pressure — one serving is ${sodiumDv}% of the daily sodium value.`,
     );
   }
-  if (profile.conditions.includes('blood_sugar') && sugarBasisDv >= 15) {
+  if (profile.conditions.includes('blood_sugar') && sugarDvBasis >= 15) {
     const netCarbs = sn.carbs != null && sn.fiber != null
       ? ` (${(sn.carbs - sn.fiber).toFixed(0)} g net carbs)`
       : '';
     profileNotes.push(
-      `You flagged blood sugar — one serving is ${sugarBasisDv}% of the daily ${sugarLabel} value${netCarbs}.`,
+      `You flagged blood sugar — one serving is ${sugarDvBasis}% of the daily ${sugarLabel} value${netCarbs}.`,
     );
   }
 
   // Fiber ≥20% DV meaningfully slows glucose absorption from sugar (human RCT evidence).
   // High sugar + strong fiber is nutritionally different from high sugar alone.
-  const fiberOffsetsSugar = sugarBasisDv >= t.sugar && fiberDv >= 20;
+  const fiberOffsetsSugar = sugarDvBasis >= t.sugar && fiberDv >= 20;
 
   const highItems: string[] = [];
-  if (sugarBasisDv >= t.sugar && !fiberOffsetsSugar) highItems.push(`${sugarLabel} (${sugarBasisDv}% DV)`);
+  if (sugarDvBasis >= t.sugar && !fiberOffsetsSugar) highItems.push(`${sugarLabel} (${sugarDvBasis}% DV)`);
   if (sodiumDv >= t.sodium) highItems.push(`sodium (${sodiumDv}% DV)`);
   if (satFatDv >= t.satFat) highItems.push(`sat fat (${satFatDv}% DV)`);
   if (highItems.length > 0) {
@@ -137,13 +142,13 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
     const suffix = otherMod ? ` · moderate ${otherMod}` : '';
     return {
       tone: 'ok',
-      summary: `High ${sugarLabel} (${sugarBasisDv}% DV) moderated by strong fiber (${fiberDv}% DV)${suffix}`,
+      summary: `High ${sugarLabel} (${sugarDvBasis}% DV) moderated by strong fiber (${fiberDv}% DV)${suffix}`,
       profileNotes,
     };
   }
 
   const modItems: string[] = [];
-  if (sugarBasisDv >= 10) modItems.push(sugarLabel);
+  if (sugarDvBasis >= 10) modItems.push(sugarLabel);
   if (sodiumDv >= 10) modItems.push('sodium');
   if (satFatDv >= 10) modItems.push('sat fat');
   if (modItems.length > 0) {

@@ -56,6 +56,19 @@ export function distinctScanDays(
   return days.size;
 }
 
+// The frequency context line earns its place only when: the product repeats
+// across distinct days, something on it is worth watching (`amber`), and the
+// user hasn't said they were just checking. Kept here so the rule is unit-testable.
+export function frequencyLineEligible(
+  entry: ScanHistoryEntry,
+  amber: boolean,
+  windowDays: number = 14,
+  now: number = Date.now(),
+): boolean {
+  if (!amber || entry.buySignal === 'just_checking') return false;
+  return distinctScanDays(entry, windowDays, now) >= 2;
+}
+
 export async function saveToHistory(record: ScanRecord): Promise<ScanHistoryEntry> {
   try {
     const existing = await loadHistory();

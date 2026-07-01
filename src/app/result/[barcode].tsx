@@ -16,9 +16,15 @@ import { matchByIngredientText } from '@/data/ingredient-text-index';
 import { ADDITIVES } from '@/data/additives';
 import { DEFAULT_PROFILE, useProfile } from '@/hooks/use-profile';
 import { fetchProduct } from '@/services/off';
-import { distinctScanDays, saveToHistory, setBuySignal } from '@/services/history';
+import {
+  distinctScanDays,
+  frequencyLineEligible,
+  saveToHistory,
+  setBuySignal,
+} from '@/services/history';
 import {
   computeServingNutrients,
+  sugarBasisDv,
   toneNutrition,
   warnThresholds,
 } from '@/services/nutrition';
@@ -114,6 +120,14 @@ export default function ResultScreen() {
         );
         const additiveIds = [...tagMatched, ...textMatched];
 
+        // Paint first — history persistence must never delay the result screen
+        if (!cancelled) {
+          setState({
+            status: 'ready', product, additiveIds, unknownAdditives, usdaNutrition,
+            historyEntry: null,
+          });
+        }
+
         // History stores the profile-independent baseline so entries stay
         // objective if the profile changes later.
         const matchedAdditives = additiveIds
@@ -133,9 +147,7 @@ export default function ResultScreen() {
         });
 
         if (!cancelled) {
-          setState({
-            status: 'ready', product, additiveIds, unknownAdditives, usdaNutrition, historyEntry,
-          });
+          setState(s => s.status === 'ready' ? { ...s, historyEntry } : s);
         }
       })
       .catch((err: Error) => {
@@ -208,14 +220,13 @@ export default function ResultScreen() {
   const additiveGlance  = GLANCE[glanceKey];
   const nutritionGlance = NUTRITION_GLANCE[nutrition.tone];
 
-  // Frequency context — distinct scan days, only on amber products, silenced
-  // when the user said they were just checking
-  const scanDays = historyEntry ? distinctScanDays(historyEntry, 14) : 0;
+  // Frequency context — eligibility rule lives in the history service
   const amber = glanceKey === 'sometimes' || glanceKey === 'contested' || nutrition.tone === 'warn';
-  const showFrequency = scanDays >= 2 && amber && historyEntry?.buySignal !== 'just_checking';
+  const showFrequency = historyEntry != null && frequencyLineEligible(historyEntry, amber);
+  const scanDays = historyEntry ? distinctScanDays(historyEntry, 14) : 0;
   const frequencyFocus = additiveResults.find(r => r.verdict === 'sometimes')?.additive;
 
-  const sugarHot = (sn.addedSugarDv ?? sn.sugarDv ?? 0) >= thresholds.sugar;
+  const sugarHot = sugarBasisDv(sn) >= thresholds.sugar;
 
   return (
     <ScrollView

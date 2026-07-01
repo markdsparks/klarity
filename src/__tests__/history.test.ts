@@ -1,4 +1,4 @@
-import { distinctScanDays, mergeEntry } from '../services/history';
+import { distinctScanDays, frequencyLineEligible, mergeEntry } from '../services/history';
 import type { ScanHistoryEntry, ScanRecord } from '../types/history';
 
 const DAY = 86_400_000;
@@ -68,6 +68,52 @@ describe('distinctScanDays', () => {
     expect(distinctScanDays(entry, 14, NOW)).toBe(1);
   });
 
+  it('legacy entries without timestamps still work after normalization shape', () => {
+    const entry: ScanHistoryEntry = {
+      ...record({ scannedAt: NOW }),
+      scanCount: 1,
+      scanTimestamps: [NOW],
+    };
+    expect(distinctScanDays(entry, 14, NOW)).toBe(1);
+  });
+});
+
+describe('frequencyLineEligible', () => {
+  function repeatEntry(buySignal?: ScanHistoryEntry['buySignal']): ScanHistoryEntry {
+    let entry = mergeEntry(undefined, record({ scannedAt: NOW - 3 * DAY }));
+    entry = mergeEntry(entry, record({ scannedAt: NOW }));
+    return buySignal ? { ...entry, buySignal } : entry;
+  }
+
+  it('shows for a repeat amber product with no buy signal', () => {
+    expect(frequencyLineEligible(repeatEntry(), true, 14, NOW)).toBe(true);
+  });
+
+  it('never shows on green products, however often scanned', () => {
+    expect(frequencyLineEligible(repeatEntry(), false, 14, NOW)).toBe(false);
+  });
+
+  it('never shows on a first scan', () => {
+    const single = mergeEntry(undefined, record({ scannedAt: NOW }));
+    expect(frequencyLineEligible(single, true, 14, NOW)).toBe(false);
+  });
+
+  it('same-day repeats do not qualify (comparison shopping)', () => {
+    let entry = mergeEntry(undefined, record({ scannedAt: NOW - 3_600_000 }));
+    entry = mergeEntry(entry, record({ scannedAt: NOW }));
+    expect(frequencyLineEligible(entry, true, 14, NOW)).toBe(false);
+  });
+
+  it('"just checking" silences the line permanently', () => {
+    expect(frequencyLineEligible(repeatEntry('just_checking'), true, 14, NOW)).toBe(false);
+  });
+
+  it('a declared regular buy stays eligible', () => {
+    expect(frequencyLineEligible(repeatEntry('regular'), true, 14, NOW)).toBe(true);
+  });
+});
+
+describe('distinctScanDays — legacy shape', () => {
   it('legacy entries without timestamps still work after normalization shape', () => {
     const entry: ScanHistoryEntry = {
       ...record({ scannedAt: NOW }),
