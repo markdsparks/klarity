@@ -280,6 +280,7 @@ export const ADDITIVES: Record<string, Additive> = {
   lecithin: {
     id: 'lecithin',
     name: 'Lecithins',
+    aliases: ['lecithin'],
     eNumber: 'E322',
     role: 'Emulsifier (from soy, sunflower, or egg)',
     benefit: 'functional',
@@ -390,6 +391,7 @@ export const ADDITIVES: Record<string, Additive> = {
   msg: {
     id: 'msg',
     name: 'Monosodium glutamate (MSG)',
+    aliases: ['msg'],
     eNumber: 'E621',
     role: 'Flavor enhancer (umami)',
     benefit: 'functional',
@@ -448,6 +450,7 @@ export const ADDITIVES: Record<string, Additive> = {
   mono_diglycerides: {
     id: 'mono_diglycerides',
     name: 'Mono- and diglycerides of fatty acids',
+    aliases: ['mono- and diglycerides','mono and diglycerides','mono-diglycerides'],
     eNumber: 'E471',
     role: 'Emulsifier (keeps oil and water mixed)',
     benefit: 'functional',
@@ -512,6 +515,7 @@ export const ADDITIVES: Record<string, Additive> = {
   ssl: {
     id: 'ssl',
     name: 'Sodium stearoyl lactylate (SSL)',
+    aliases: ['sodium stearoyl lactylate'],
     eNumber: 'E481',
     role: 'Dough conditioner / emulsifier in commercial bread',
     benefit: 'functional',
@@ -538,6 +542,7 @@ export const ADDITIVES: Record<string, Additive> = {
   annatto: {
     id: 'annatto',
     name: 'Annatto / Bixin',
+    aliases: ['annatto'],
     eNumber: 'E160B',
     role: 'Natural orange-yellow color from achiote tree seeds',
     benefit: 'cosmetic',
@@ -570,6 +575,7 @@ export const ADDITIVES: Record<string, Additive> = {
   modified_starch: {
     id: 'modified_starch',
     name: 'Acetylated distarch adipate',
+    aliases: ['modified corn starch','modified food starch','modified starch'],
     eNumber: 'E1422',
     role: 'Thickener (starch modified for heat and acid stability)',
     benefit: 'functional',
@@ -596,6 +602,7 @@ export const ADDITIVES: Record<string, Additive> = {
   acesulfame_k: {
     id: 'acesulfame_k',
     name: 'Acesulfame K',
+    aliases: ['acesulfame potassium','ace-k','acesulfame-k'],
     eNumber: 'E950',
     role: 'High-intensity sweetener (200× sweeter than sugar)',
     benefit: 'functional',
@@ -701,6 +708,7 @@ export const ADDITIVES: Record<string, Additive> = {
   silicon_dioxide: {
     id: 'silicon_dioxide',
     name: 'Silicon Dioxide',
+    aliases: ['silica'],
     eNumber: 'E551',
     role: 'Anti-caking agent (keeps powders free-flowing)',
     benefit: 'functional',
@@ -768,6 +776,7 @@ export const ADDITIVES: Record<string, Additive> = {
   acacia_gum: {
     id: 'acacia_gum',
     name: 'Acacia Gum (Gum Arabic)',
+    aliases: ['gum arabic'],
     eNumber: 'E414',
     role: 'Emulsifier / stabilizer (from acacia tree sap)',
     benefit: 'functional',
@@ -884,6 +893,7 @@ export const ADDITIVES: Record<string, Additive> = {
   tocopherols: {
     id: 'tocopherols',
     name: 'Mixed Tocopherols (Vitamin E)',
+    aliases: ['tocopherols','tocopherol','vitamin e','mixed tocopherols'],
     eNumber: 'E306',
     role: 'Antioxidant (prevents fats from going rancid)',
     benefit: 'functional',
@@ -942,7 +952,7 @@ export const ADDITIVES: Record<string, Additive> = {
   microcrystalline_cellulose: {
     id: 'microcrystalline_cellulose',
     name: 'Microcrystalline Cellulose',
-    eNumber: 'E460',
+    eNumber: 'E460I',
     role: 'Anti-caking agent / bulking filler (purified plant fiber)',
     benefit: 'functional',
     avoidability: 'n/a',
@@ -971,9 +981,43 @@ export const ADDITIVES: Record<string, Additive> = {
     subgroupNotes: {},
   },
 
+  powdered_cellulose: {
+    id: 'powdered_cellulose',
+    name: 'Powdered Cellulose',
+    aliases: ['powdered cellulose', 'cellulose powder'],
+    eNumber: 'E460II',
+    role: 'Anti-caking agent (prevents shredded cheese from clumping)',
+    benefit: 'functional',
+    avoidability: 'n/a',
+    baseVerdict: 'everyday',
+    headline: 'The same purified plant fiber as microcrystalline cellulose, just ground finer — commonly dusted on shredded cheese so it stays free-flowing in the bag.',
+    exposure: {
+      typical: '<2% by weight, mainly on shredded/grated cheese',
+      concerning: 'No adverse intake level established',
+      note: 'Same safety profile as microcrystalline cellulose — an insoluble plant fiber that isn\'t absorbed or metabolized.',
+    },
+    evidence: [
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'EFSA re-evaluated E460 (both microcrystalline and powdered forms) in 2018: no safety concern, no ADI needed.',
+        why: 'EFSA Journal 2018;16(1):5047.',
+      },
+      {
+        tier: 'A',
+        applies: true,
+        claim: 'FDA GRAS as an anti-caking agent for shredded cheese and similar products.',
+        why: 'FDA 21 CFR 182.1859.',
+      },
+    ],
+    openQuestion: null,
+    subgroupNotes: {},
+  },
+
   sodium_bicarbonate: {
     id: 'sodium_bicarbonate',
     name: 'Sodium Bicarbonate',
+    aliases: ['baking soda'],
     eNumber: 'E500',
     role: 'Leavening agent (baking soda)',
     benefit: 'functional',
@@ -1026,6 +1070,7 @@ export const ADDITIVES: Record<string, Additive> = {
   stevia: {
     id: 'stevia',
     name: 'Steviol Glycosides (Stevia)',
+    aliases: ['stevia','stevia leaf extract','steviol glycosides','reb a'],
     eNumber: 'E960',
     role: 'Non-caloric natural sweetener (from the stevia plant)',
     benefit: 'functional',
@@ -1101,6 +1146,7 @@ export const ADDITIVES: Record<string, Additive> = {
   tbhq: {
     id: 'tbhq',
     name: 'TBHQ (tert-butylhydroquinone)',
+    aliases: ['tbhq','tert-butylhydroquinone'],
     eNumber: 'E319',
     role: 'Antioxidant — prevents rancidity in oils and fried foods',
     benefit: 'functional',
@@ -1142,6 +1188,7 @@ export const ADDITIVES: Record<string, Additive> = {
   bha: {
     id: 'bha',
     name: 'BHA (butylated hydroxyanisole)',
+    aliases: ['bha','butylated hydroxyanisole'],
     eNumber: 'E320',
     role: 'Antioxidant — prevents rancidity in fats, oils, and cereals',
     benefit: 'functional',
@@ -1177,6 +1224,7 @@ export const ADDITIVES: Record<string, Additive> = {
   bht: {
     id: 'bht',
     name: 'BHT (butylated hydroxytoluene)',
+    aliases: ['bht','butylated hydroxytoluene'],
     eNumber: 'E321',
     role: 'Antioxidant — prevents rancidity in fats, oils, and cereals',
     benefit: 'functional',
@@ -1279,6 +1327,7 @@ export const ADDITIVES: Record<string, Additive> = {
   cmc: {
     id: 'cmc',
     name: 'Carboxymethylcellulose (CMC)',
+    aliases: ['cmc','cellulose gum','carboxymethyl cellulose','carboxymethylcellulose'],
     eNumber: 'E466',
     role: 'Thickener / emulsifier (chemically modified cellulose)',
     benefit: 'functional',
@@ -1322,6 +1371,7 @@ export const ADDITIVES: Record<string, Additive> = {
   sulfites: {
     id: 'sulfites',
     name: 'Sulfur Dioxide / Sodium Metabisulfite',
+    aliases: ['sulfur dioxide','sodium metabisulfite','sodium bisulfite','potassium metabisulfite','sulfites','sulphites'],
     eNumber: 'E220',
     role: 'Preservative (prevents browning and microbial growth)',
     benefit: 'functional',
@@ -1359,6 +1409,7 @@ export const ADDITIVES: Record<string, Additive> = {
   pgpr: {
     id: 'pgpr',
     name: 'Polyglycerol Polyricinoleate (PGPR)',
+    aliases: ['pgpr','polyglycerol polyricinoleate'],
     eNumber: 'E476',
     role: 'Emulsifier (reduces chocolate viscosity, replaces some cocoa butter)',
     benefit: 'functional',
@@ -1492,6 +1543,7 @@ export const ADDITIVES: Record<string, Additive> = {
   red_40: {
     id: 'red_40',
     name: 'Allura Red (Red 40)',
+    aliases: ['red 40','fd&c red no. 40','allura red'],
     eNumber: 'E129',
     role: 'Synthetic red food color (petroleum-derived)',
     benefit: 'cosmetic',
@@ -1534,6 +1586,7 @@ export const ADDITIVES: Record<string, Additive> = {
   yellow_5: {
     id: 'yellow_5',
     name: 'Tartrazine (Yellow 5)',
+    aliases: ['yellow 5','fd&c yellow no. 5','tartrazine'],
     eNumber: 'E102',
     role: 'Synthetic yellow food color (petroleum-derived)',
     benefit: 'cosmetic',
@@ -1570,6 +1623,7 @@ export const ADDITIVES: Record<string, Additive> = {
   yellow_6: {
     id: 'yellow_6',
     name: 'Sunset Yellow (Yellow 6)',
+    aliases: ['yellow 6','fd&c yellow no. 6','sunset yellow'],
     eNumber: 'E110',
     role: 'Synthetic orange-yellow food color (petroleum-derived)',
     benefit: 'cosmetic',
@@ -1600,6 +1654,7 @@ export const ADDITIVES: Record<string, Additive> = {
   caramel_color_iv: {
     id: 'caramel_color_iv',
     name: 'Caramel color (sulfite ammonia, Type IV)',
+    aliases: ['caramel color','caramel colour'],
     eNumber: 'E150D',
     role: 'Brown color in colas, soy sauce, beer, and baked goods',
     benefit: 'cosmetic',
@@ -1636,6 +1691,7 @@ export const ADDITIVES: Record<string, Additive> = {
   red_3: {
     id: 'red_3',
     name: 'Erythrosine (Red 3)',
+    aliases: ['red 3','fd&c red no. 3','erythrosine'],
     eNumber: 'E127',
     role: 'Synthetic red food color',
     benefit: 'cosmetic',
@@ -1678,6 +1734,7 @@ export const ADDITIVES: Record<string, Additive> = {
   blue_1: {
     id: 'blue_1',
     name: 'Brilliant Blue FCF (Blue 1)',
+    aliases: ['blue 1','fd&c blue no. 1','brilliant blue'],
     eNumber: 'E133',
     role: 'Synthetic blue food color (petroleum-derived)',
     benefit: 'cosmetic',
@@ -1714,6 +1771,7 @@ export const ADDITIVES: Record<string, Additive> = {
   cyclamate: {
     id: 'cyclamate',
     name: 'Cyclamate',
+    aliases: ['sodium cyclamate','calcium cyclamate'],
     eNumber: 'E952',
     role: 'Non-caloric artificial sweetener',
     benefit: 'functional',

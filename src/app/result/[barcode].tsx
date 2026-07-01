@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { matchByETags } from '@/data/additive-index';
+import { matchByIngredientText } from '@/data/ingredient-text-index';
 import { ADDITIVES } from '@/data/additives';
 import { fetchProduct } from '@/services/off';
 import { saveToHistory } from '@/services/history';
@@ -169,8 +170,14 @@ export default function ResultScreen() {
     Promise.all([fetchProduct(barcode), fetchUSDANutrition(barcode)])
       .then(([product, usdaNutrition]) => {
         if (!product) return setState({ status: 'not_found' });
-        const { matched: additiveIds, unknown: unknownAdditives } =
+        const { matched: tagMatched, unknown: unknownAdditives } =
           matchByETags(product.additives_tags ?? []);
+        // OFF's own additives_tags parsing sometimes misses ingredients (nutrition
+        // filled in, ingredient parser never ran) — scan the raw text as a fallback.
+        const textMatched = matchByIngredientText(
+          product.ingredients_text ?? '', new Set(tagMatched)
+        );
+        const additiveIds = [...tagMatched, ...textMatched];
         setState({ status: 'ready', product, additiveIds, unknownAdditives, usdaNutrition });
 
         // Persist to scan history (fire-and-forget — never blocks UI)
