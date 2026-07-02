@@ -298,6 +298,6 @@ export function menuItemGlance(
   );
   return {
     additiveGlance,
-    nutritionTone: toneNutrition(sn, DEFAULT_PROFILE, { intrinsicSugarOnly: item.intrinsicSugarOnly }).tone,
+    nutritionTone: toneNutrition(sn, DEFAULT_PROFILE, { wholeFoodSugarMatrix: item.wholeFoodSugarMatrix }).tone,
   };
 }

@@ -296,11 +296,13 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
         nutrition: null,
       },
     ],
-    // Spec 007: predominantly fresh apples/blueberries/strawberries; the
-    // canned mandarin oranges' light syrup is a minor component, not the
-    // sugar driver — WHO's added-sugar guidance doesn't apply to this item.
-    intrinsicSugarOnly: true,
-    intrinsicSugarBasis: 'Mixed fresh fruit (apples, blueberries, strawberries); canned mandarin oranges are a minor component of the mix, not the sugar driver.',
+    // Spec 007: diced fresh apples/blueberries/strawberries plus whole mandarin
+    // segments — solid, fiber-bearing, cell structure intact (cut, not juiced or
+    // blended). The exemption is about that whole-food matrix, not "natural"
+    // origin; the canned mandarins' light syrup is a minor component, not the
+    // sugar driver.
+    wholeFoodSugarMatrix: true,
+    wholeFoodSugarBasis: 'Diced fresh apples, blueberries, strawberries + whole mandarin segments; solid and fiber-bearing with cell structure intact (cut, not juiced/blended). Canned mandarins are a minor component, not the sugar driver.',
   },
   {
     id: 'cfa_fruit_cup_md',
@@ -317,11 +319,13 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
         nutrition: null,
       },
     ],
-    // Spec 007: predominantly fresh apples/blueberries/strawberries; the
-    // canned mandarin oranges' light syrup is a minor component, not the
-    // sugar driver — WHO's added-sugar guidance doesn't apply to this item.
-    intrinsicSugarOnly: true,
-    intrinsicSugarBasis: 'Mixed fresh fruit (apples, blueberries, strawberries); canned mandarin oranges are a minor component of the mix, not the sugar driver.',
+    // Spec 007: diced fresh apples/blueberries/strawberries plus whole mandarin
+    // segments — solid, fiber-bearing, cell structure intact (cut, not juiced or
+    // blended). The exemption is about that whole-food matrix, not "natural"
+    // origin; the canned mandarins' light syrup is a minor component, not the
+    // sugar driver.
+    wholeFoodSugarMatrix: true,
+    wholeFoodSugarBasis: 'Diced fresh apples, blueberries, strawberries + whole mandarin segments; solid and fiber-bearing with cell structure intact (cut, not juiced/blended). Canned mandarins are a minor component, not the sugar driver.',
   },
   {
     id: 'cfa_fruit_cup_lg',
@@ -338,11 +342,13 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
         nutrition: null,
       },
     ],
-    // Spec 007: predominantly fresh apples/blueberries/strawberries; the
-    // canned mandarin oranges' light syrup is a minor component, not the
-    // sugar driver — WHO's added-sugar guidance doesn't apply to this item.
-    intrinsicSugarOnly: true,
-    intrinsicSugarBasis: 'Mixed fresh fruit (apples, blueberries, strawberries); canned mandarin oranges are a minor component of the mix, not the sugar driver.',
+    // Spec 007: diced fresh apples/blueberries/strawberries plus whole mandarin
+    // segments — solid, fiber-bearing, cell structure intact (cut, not juiced or
+    // blended). The exemption is about that whole-food matrix, not "natural"
+    // origin; the canned mandarins' light syrup is a minor component, not the
+    // sugar driver.
+    wholeFoodSugarMatrix: true,
+    wholeFoodSugarBasis: 'Diced fresh apples, blueberries, strawberries + whole mandarin segments; solid and fiber-bearing with cell structure intact (cut, not juiced/blended). Canned mandarins are a minor component, not the sugar driver.',
   },
   {
     id: 'cfa_kale_crunch_side',

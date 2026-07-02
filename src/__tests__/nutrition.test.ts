@@ -285,12 +285,12 @@ describe('referenceValues — sex/age personalization', () => {
   });
 });
 
-describe('toneNutrition — intrinsic produce sugar exemption (spec 007)', () => {
-  it('a high-sugar item never warns when flagged intrinsicSugarOnly', () => {
+describe('toneNutrition — whole-food sugar matrix exemption (spec 007)', () => {
+  it('a high-sugar item never warns when flagged wholeFoodSugarMatrix', () => {
     const r = toneNutrition(
       nutrients({ sugarDv: 24, sodiumDv: 2 }),
       profileWith(),
-      { intrinsicSugarOnly: true },
+      { wholeFoodSugarMatrix: true },
     );
     expect(r.tone).not.toBe('warn');
     expect(r.highNutrients).not.toContain('sugar');
@@ -298,17 +298,17 @@ describe('toneNutrition — intrinsic produce sugar exemption (spec 007)', () =>
   });
 
   it('does not even land on moderate via the sugar floor when exempted', () => {
-    const r = toneNutrition(nutrients({ sugarDv: 12 }), profileWith(), { intrinsicSugarOnly: true });
+    const r = toneNutrition(nutrients({ sugarDv: 12 }), profileWith(), { wholeFoodSugarMatrix: true });
     expect(r.tone).toBe('good');
   });
 
   it('still surfaces the raw number as a context-only line, never hidden', () => {
-    const r = toneNutrition(nutrients({ sugarDv: 24 }), profileWith(), { intrinsicSugarOnly: true });
-    expect(r.contextLines.some(l => l.includes('24% DV') && l.includes('naturally occurring in whole fruit'))).toBe(true);
+    const r = toneNutrition(nutrients({ sugarDv: 24 }), profileWith(), { wholeFoodSugarMatrix: true });
+    expect(r.contextLines.some(l => l.includes('24% DV') && l.includes('packaged in whole fruit'))).toBe(true);
   });
 
   it('a genuinely high sat fat or sodium is unaffected by the sugar exemption', () => {
-    const r = toneNutrition(nutrients({ sugarDv: 24, sodiumDv: 40 }), profileWith(), { intrinsicSugarOnly: true });
+    const r = toneNutrition(nutrients({ sugarDv: 24, sodiumDv: 40 }), profileWith(), { wholeFoodSugarMatrix: true });
     expect(r.tone).toBe('warn');
     expect(r.summary).toContain('sodium');
     expect(r.summary).not.toMatch(/sugar/i);
@@ -318,7 +318,7 @@ describe('toneNutrition — intrinsic produce sugar exemption (spec 007)', () =>
     const withFlag = toneNutrition(
       nutrients({ sugarDv: 24, carbs: 16, fiber: 2 }),
       profileWith(['blood_sugar']),
-      { intrinsicSugarOnly: true },
+      { wholeFoodSugarMatrix: true },
     );
     const withoutFlag = toneNutrition(
       nutrients({ sugarDv: 24, carbs: 16, fiber: 2 }),
@@ -326,6 +326,17 @@ describe('toneNutrition — intrinsic produce sugar exemption (spec 007)', () =>
     );
     expect(withFlag.profileNotes).toEqual(withoutFlag.profileNotes);
     expect(withFlag.profileNotes[0]).toMatch(/blood sugar.*24%/);
+  });
+
+  // The loophole this revision closes: exemption is gated on the matrix flag,
+  // NOT on sugar being "natural". A liquid/blended item (juice, smoothie) whose
+  // sugar is natural in origin but matrix-destroyed is NOT flagged, so it warns
+  // exactly like added sugar — which is what the science (and WHO's free-sugar
+  // classification of fruit juice) requires.
+  it('a "natural but matrix-destroyed" item (juice/smoothie) is NOT exempt', () => {
+    const juiceLike = toneNutrition(nutrients({ sugarDv: 24 }), profileWith()); // no flag set
+    expect(juiceLike.tone).toBe('warn');
+    expect(juiceLike.summary).toContain('sugar (24% DV)');
   });
 
   it('without the flag, behavior is unchanged from before spec 007 (regression guard)', () => {
