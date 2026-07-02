@@ -78,6 +78,19 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
       'is closer to the actual recommendation and easier to reason about.',
     source: 'WHO strong recommendation: free sugars < 10% of energy.',
   },
+  intrinsic_fruit_sugar: {
+    id: 'intrinsic_fruit_sugar',
+    title: 'Why we don\'t flag natural fruit sugar',
+    tier: 'A',
+    body:
+      'The WHO guideline on limiting sugar is specifically about added (free) sugars — it explicitly ' +
+      'excludes sugars naturally present in whole fruit and vegetables. Restaurant nutrition labels ' +
+      'don\'t break out added sugar the way packaged food labels do, so rather than penalize whole-fruit ' +
+      'items under a guideline that was never about them, we mark items reviewed as genuinely ' +
+      'whole-produce and leave their sugar content out of the nutrition verdict — the number is still ' +
+      'shown, just not held against it.',
+    source: 'WHO 2015 guideline on sugars intake: free-sugar limits explicitly exclude intrinsic sugars in whole fruit/vegetables.',
+  },
   added_sugar: {
     id: 'added_sugar',
     title: 'Added sugar vs. total sugar',
@@ -129,6 +142,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
 // Ordered [substring emitted by nutrition.ts, explainer id]. First match wins, so
 // more-specific phrases precede general ones.
 const MATCHERS: [RegExp, string][] = [
+  [/naturally occurring in whole fruit/i, 'intrinsic_fruit_sugar'],
   [/moderated by/i, 'fiber_protein_sugar'],
   [/fiber-to-carb/i, 'fiber_carb_ratio'],
   [/balanced by potassium/i, 'sodium_potassium'],

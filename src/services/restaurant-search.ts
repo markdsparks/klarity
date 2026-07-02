@@ -296,5 +296,8 @@ export function menuItemGlance(
     adjustedNutrition(item, removedIds, addedIds).nutrition,
     referenceValues(DEFAULT_PROFILE),
   );
-  return { additiveGlance, nutritionTone: toneNutrition(sn, DEFAULT_PROFILE).tone };
+  return {
+    additiveGlance,
+    nutritionTone: toneNutrition(sn, DEFAULT_PROFILE, { intrinsicSugarOnly: item.intrinsicSugarOnly }).tone,
+  };
 }
