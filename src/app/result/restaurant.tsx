@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,7 +8,12 @@ import { ADDITIVES } from '@/data/additives';
 import { explainerForLine, type NutritionExplainer } from '@/data/nutrition-explainers';
 import { ExplainerSheet } from '@/components/explainer-sheet';
 import { getChain, getMenuItem } from '@/data/restaurants';
-import { useProfile } from '@/hooks/use-profile';
+import { DEFAULT_PROFILE, useProfile } from '@/hooks/use-profile';
+import {
+  restaurantHistoryKey,
+  saveToHistory,
+  updateRestaurantBuild,
+} from '@/services/history';
 import { referenceValues, toneNutrition } from '@/services/nutrition';
 import {
   adjustedNutrition,
@@ -17,11 +22,35 @@ import {
 } from '@/services/restaurant-search';
 import { resolveVerdict } from '@/services/verdict';
 import { verdictSentence } from '@/services/verdict-sentence';
+import type { AdditiveGlanceKey } from '@/types/history';
 import type { AdditiveResult, VerdictKey } from '@/types/index';
+import type { MenuItem } from '@/types/restaurant';
 
-// Restaurant menu item result (spec 004). Same two-axis layout as the barcode
-// result, plus: chain provenance line, modifier chips, and the "computed"
-// label whenever modifier math has adjusted the published nutrition.
+// Restaurant menu item result (specs 004 + 005). Same two-axis layout as the
+// barcode result, plus: chain provenance line, and the build customizer —
+// search modifiers seed a "Your build" card whose toggles recompute both axes
+// live (all modifier math is pure and local, so recompute is synchronous).
+// Nutrition adjusted by removals is always labeled "computed".
+
+// History stores the profile-independent baseline (base verdicts, default-
+// profile tone), same rule as the barcode screen.
+function baseHistoryGlance(item: MenuItem, removedIds: string[]): {
+  additiveGlance: AdditiveGlanceKey;
+  nutritionTone: ReturnType<typeof toneNutrition>['tone'];
+} {
+  const verdicts = matchByIngredientText(effectiveIngredientText(item, removedIds))
+    .map(id => ADDITIVES[id])
+    .filter(Boolean)
+    .map(a => a.baseVerdict);
+  const additiveGlance: AdditiveGlanceKey = verdicts.length === 0 ? 'clean'
+    : verdicts.includes('contested') ? 'contested'
+    : verdicts.includes('sometimes') ? 'sometimes' : 'everyday';
+  const sn = restaurantServingNutrients(
+    adjustedNutrition(item, removedIds).nutrition,
+    referenceValues(DEFAULT_PROFILE),
+  );
+  return { additiveGlance, nutritionTone: toneNutrition(sn, DEFAULT_PROFILE).tone };
+}
 
 const GLANCE: Record<VerdictKey | 'clean', { bg: string; fg: string; label: string }> = {
   everyday:  { bg: 'rgba(127,211,170,0.16)', fg: '#7fd3aa', label: 'Everyday'  },
@@ -50,7 +79,43 @@ export default function RestaurantResultScreen() {
 
   const item = params.item ? getMenuItem(params.item) : undefined;
   const chain = item ? getChain(item.chainId) : undefined;
-  const removedIds = params.remove ? params.remove.split(',').filter(Boolean) : [];
+
+  // The `remove` param is the entry contract (search modifiers, history replay);
+  // after mount the build card's toggles own the state (spec 005 Part C).
+  const [removedIds, setRemovedIds] = useState<string[]>(() => {
+    const seeded = params.remove ? params.remove.split(',').filter(Boolean) : [];
+    const removable = new Set(item?.components.filter(c => c.removable).map(c => c.id));
+    return seeded.filter(id => removable.has(id));
+  });
+
+  // First render records the scan (per-item frequency merge); later build
+  // changes edit the entry in place so toggling never inflates the scan count.
+  const buildKey = removedIds.join(',');
+  const scanRecorded = useRef(false);
+  useEffect(() => {
+    if (!item || !chain) return;
+    const glance = baseHistoryGlance(item, removedIds);
+    if (!scanRecorded.current) {
+      scanRecorded.current = true;
+      void saveToHistory({
+        barcode: restaurantHistoryKey(item.id),
+        productName: item.name,
+        brand: chain.name,
+        ...glance,
+        scannedAt: Date.now(),
+        restaurant: { itemId: item.id, removedIds },
+      });
+    } else {
+      void updateRestaurantBuild(item.id, { removedIds, ...glance });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item?.id, buildKey]);
+
+  function toggleComponent(id: string) {
+    setRemovedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id],
+    );
+  }
 
   if (!item || !chain) {
     return (
@@ -154,6 +219,45 @@ export default function RestaurantResultScreen() {
 
       {/* ── Light content ── */}
       <View style={styles.content}>
+        {/* Your build (spec 005) — fixed components shown for full-recipe
+            transparency; removable ones toggle and recompute both axes live */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Your build</Text>
+            {removed.length > 0 && (
+              <Text style={styles.cardMeta}>{removed.length} removed</Text>
+            )}
+          </View>
+          {item.components.map((c, i) => {
+            const isRemoved = removedIds.includes(c.id);
+            const calDelta = c.nutrition?.calories;
+            return (
+              <View key={c.id} style={[styles.buildRow, i === 0 && { borderTopWidth: 0 }]}>
+                <View style={styles.buildInfo}>
+                  <Text style={[styles.buildName, isRemoved && styles.buildNameRemoved]}>
+                    {c.name}
+                  </Text>
+                  {c.removable && calDelta != null ? (
+                    <Text style={styles.buildDelta}>−{calDelta} cal when removed</Text>
+                  ) : null}
+                </View>
+                {c.removable ? (
+                  <Switch
+                    value={!isRemoved}
+                    onValueChange={() => toggleComponent(c.id)}
+                    trackColor={{ true: '#1f9d6b', false: '#d0d8e4' }}
+                    style={styles.buildSwitch}
+                  />
+                ) : (
+                  <View style={styles.baseTag}>
+                    <Text style={styles.baseTagText}>BASE</Text>
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </View>
+
         {/* Additives */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
@@ -320,6 +424,18 @@ const styles = StyleSheet.create({
 
   computedBadge: { backgroundColor: '#e8f0fe', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   computedBadgeText: { fontSize: 11, fontWeight: '700', color: '#3d6bcc' },
+
+  buildRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 9, borderTopWidth: 1, borderTopColor: '#eef0f3',
+  },
+  buildInfo: { flex: 1, gap: 1 },
+  buildName: { fontSize: 14.5, fontWeight: '600', color: '#1b2330' },
+  buildNameRemoved: { color: '#9aa4b2', textDecorationLine: 'line-through' },
+  buildDelta: { fontSize: 12, color: '#8a94a3' },
+  buildSwitch: { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] },
+  baseTag: { backgroundColor: '#f1f4f8', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  baseTagText: { fontSize: 10, fontWeight: '800', color: '#9fadbf', letterSpacing: 0.5 },
 
   sourceCard: { paddingHorizontal: 6 },
   sourceText: { fontSize: 12, color: '#8a94a3', lineHeight: 17 },
