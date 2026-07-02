@@ -8,6 +8,7 @@
     "expo": "~56.0.12",
     "expo-camera": "~56.0.8",
     "expo-constants": "~56.0.18",
+    "expo-dev-client": "~56.0.21",
     "expo-device": "~56.0.4",
     "expo-font": "~56.0.7",
     "expo-glass-effect": "~56.0.4",
@@ -35,9 +36,12 @@
     "@types/jest": "^29.5.14",
     "@types/react": "~19.2.2",
     "eas-cli": "^20.4.0",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~56.0.4",
     "jest": "^29.7.0",
     "jest-expo": "^56.0.5",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "expo start",
@@ -50,6 +54,7 @@
     "test:watch": "jest",
     "build:preview": "eas build --platform ios --profile preview",
     "build:sim": "eas build --platform ios --profile development",
+    "build:device": "eas build --platform ios --profile development-device",
     "submit:ios": "eas submit --platform ios --profile preview --latest"
   },
   "jest": {

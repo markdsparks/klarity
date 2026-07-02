@@ -176,7 +176,8 @@ npm run web          # Browser (limited camera)
 
 **Phase 2 — Scale the evidence layer**
 - [x] Additive coverage: 53 hand-authored additives (top US additives covered)
-- [ ] Ingest EFSA OpenFoodTox for Tier A automation on the long tail
+- [x] Ingest EFSA OpenFoodTox — regulatory-status tier, 184 net-new additives
+      (spec 002; ADI/NOAEL join deferred as a fast-follow)
 - [x] "Unknown additive" state: show name + E-number even when no verdict yet
 - [x] Scan history (src/app/(tabs)/history.tsx)
 

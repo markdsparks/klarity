@@ -37,6 +37,7 @@ import type {
   Additive,
   AdditiveResult,
   NutritionTone,
+  RegulatoryAdditive,
   UnknownAdditive,
   VerdictKey,
 } from '@/types/index';
@@ -90,6 +91,7 @@ type State =
       status: 'ready';
       product: OFFProduct;
       additiveIds: string[];
+      regulatoryAdditives: RegulatoryAdditive[];
       unknownAdditives: UnknownAdditive[];
       usdaNutrition: USDANutrition | null;
       historyEntry: ScanHistoryEntry | null;
@@ -111,7 +113,7 @@ export default function ResultScreen() {
           if (!cancelled) setState({ status: 'not_found' });
           return;
         }
-        const { matched: tagMatched, unknown: unknownAdditives } =
+        const { matched: tagMatched, regulatory: regulatoryAdditives, unknown: unknownAdditives } =
           matchByETags(product.additives_tags ?? []);
         // OFF's own additives_tags parsing sometimes misses ingredients (nutrition
         // filled in, ingredient parser never ran) — scan the raw text as a fallback.
@@ -123,13 +125,15 @@ export default function ResultScreen() {
         // Paint first — history persistence must never delay the result screen
         if (!cancelled) {
           setState({
-            status: 'ready', product, additiveIds, unknownAdditives, usdaNutrition,
-            historyEntry: null,
+            status: 'ready', product, additiveIds, regulatoryAdditives, unknownAdditives,
+            usdaNutrition, historyEntry: null,
           });
         }
 
         // History stores the profile-independent baseline so entries stay
-        // objective if the profile changes later.
+        // objective if the profile changes later. Regulatory-status additives
+        // count as "not a rated verdict" alongside unknowns — a bare permitted-
+        // status entry carries no dose/frequency judgment to build a glance on.
         const matchedAdditives = additiveIds
           .map(id => ADDITIVES[id])
           .filter((a): a is Additive => !!a);
@@ -140,7 +144,8 @@ export default function ResultScreen() {
           brand: product.brands?.split(',')[0].trim() || '',
           imageUrl: product.image_front_url ?? product.image_url,
           additiveGlance: overallAdditiveGlance(
-            matchedAdditives.map(a => a.baseVerdict), unknownAdditives.length,
+            matchedAdditives.map(a => a.baseVerdict),
+            regulatoryAdditives.length + unknownAdditives.length,
           ),
           nutritionTone: toneNutrition(sn, DEFAULT_PROFILE).tone,
           scannedAt: Date.now(),
@@ -197,7 +202,7 @@ export default function ResultScreen() {
   }
 
   // ── Ready ──
-  const { product, additiveIds, unknownAdditives, usdaNutrition, historyEntry } = state;
+  const { product, additiveIds, regulatoryAdditives, unknownAdditives, usdaNutrition, historyEntry } = state;
   const name     = product.product_name || 'Unknown product';
   const brand    = product.brands?.split(',')[0].trim() || '';
   const imageUrl = product.image_front_url ?? product.image_url;
@@ -215,7 +220,7 @@ export default function ResultScreen() {
     .sort((a, b) => (b.profileNote ? 1 : 0) - (a.profileNote ? 1 : 0));
 
   const glanceKey       = overallAdditiveGlance(
-    additiveResults.map(r => r.verdict), unknownAdditives.length,
+    additiveResults.map(r => r.verdict), regulatoryAdditives.length + unknownAdditives.length,
   );
   const additiveGlance  = GLANCE[glanceKey];
   const nutritionGlance = NUTRITION_GLANCE[nutrition.tone];
@@ -311,14 +316,14 @@ export default function ResultScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Additives</Text>
-            {(additiveResults.length + unknownAdditives.length) > 0 && (
+            {(additiveResults.length + regulatoryAdditives.length + unknownAdditives.length) > 0 && (
               <Text style={styles.cardMeta}>
-                {additiveResults.length + unknownAdditives.length} in product
+                {additiveResults.length + regulatoryAdditives.length + unknownAdditives.length} in product
               </Text>
             )}
           </View>
 
-          {additiveResults.length === 0 && unknownAdditives.length === 0 && (
+          {additiveResults.length === 0 && regulatoryAdditives.length === 0 && unknownAdditives.length === 0 && (
             <Text style={styles.emptyText}>No additives detected.</Text>
           )}
 
@@ -326,7 +331,23 @@ export default function ResultScreen() {
             <AdditiveRow key={result.additive.id} result={result} first={i === 0} />
           ))}
 
-          {unknownAdditives.length > 0 && additiveResults.length > 0 && (
+          {regulatoryAdditives.length > 0 && additiveResults.length > 0 && (
+            <View style={styles.unknownDivider}>
+              <View style={styles.unknownDividerLine} />
+              <Text style={styles.unknownDividerLabel}>Regulatory status only</Text>
+              <View style={styles.unknownDividerLine} />
+            </View>
+          )}
+
+          {regulatoryAdditives.map((r, i) => (
+            <RegulatoryAdditiveRow
+              key={r.eNumber}
+              additive={r}
+              first={i === 0 && additiveResults.length === 0}
+            />
+          ))}
+
+          {unknownAdditives.length > 0 && (additiveResults.length > 0 || regulatoryAdditives.length > 0) && (
             <View style={styles.unknownDivider}>
               <View style={styles.unknownDividerLine} />
               <Text style={styles.unknownDividerLabel}>Not yet rated</Text>
@@ -338,7 +359,7 @@ export default function ResultScreen() {
             <UnknownAdditiveRow
               key={u.eNumber}
               additive={u}
-              first={i === 0 && additiveResults.length === 0}
+              first={i === 0 && additiveResults.length === 0 && regulatoryAdditives.length === 0}
             />
           ))}
         </View>
@@ -454,6 +475,25 @@ function AdditiveRow({ result, first }: { result: AdditiveResult; first: boolean
             <Text style={styles.profileNoteText}>{profileNote}</Text>
           </View>
         )}
+      </View>
+    </Pressable>
+  );
+}
+
+function RegulatoryAdditiveRow({ additive, first }: { additive: RegulatoryAdditive; first: boolean }) {
+  return (
+    <Pressable
+      style={[styles.additiveRow, first && styles.rowNoBorder]}
+      onPress={() => router.push(`/additive/${additive.id}`)}>
+      <View style={styles.additiveMain}>
+        <View style={styles.additiveInfo}>
+          <Text style={styles.additiveName}>{additive.name}</Text>
+          <Text style={styles.additiveRole}>{additive.eNumber} · Permitted (EU)</Text>
+        </View>
+        <View style={styles.regulatoryPill}>
+          <Text style={styles.regulatoryPillText}>Regulatory status</Text>
+        </View>
+        <Text style={styles.rowChevron}>›</Text>
       </View>
     </Pressable>
   );
@@ -606,6 +646,10 @@ const styles = StyleSheet.create({
   unknownAdditiveRole: { fontSize: 11.5, color: '#b0bcc9' },
   unratedPill: { borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: '#f1f4f8' },
   unratedPillText: { fontSize: 11.5, fontWeight: '700', color: '#9fadbf' },
+  // Deliberately distinct from the everyday/sometimes/contested verdict colors —
+  // this is EFSA permitted-status data, not a dose/frequency evidence verdict.
+  regulatoryPill: { borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: '#e8f0fe' },
+  regulatoryPillText: { fontSize: 11.5, fontWeight: '800', color: '#3d6bcc' },
 
   // Profile note banner (shared by additive rows and nutrition card)
   profileNoteBanner: {

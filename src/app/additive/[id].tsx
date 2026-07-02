@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import {
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,9 +10,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ADDITIVES } from '@/data/additives';
+import { REGULATORY_ADDITIVES } from '@/data/regulatory-additives';
 import { useProfile } from '@/hooks/use-profile';
 import { resolveVerdict } from '@/services/verdict';
-import type { EvidenceTier, VerdictKey } from '@/types/index';
+import type { EvidenceTier, RegulatoryAdditive, VerdictKey } from '@/types/index';
 import { TIER_LABEL } from '@/types/index';
 
 const VERDICT_CONFIG: Record<VerdictKey, {
@@ -52,8 +54,9 @@ export default function AdditiveScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useProfile();
   const additive = id ? ADDITIVES[id] : undefined;
+  const regulatory = !additive && id ? REGULATORY_ADDITIVES[id.toUpperCase()] : undefined;
 
-  if (!additive) {
+  if (!additive && !regulatory) {
     return (
       <View style={[styles.fill, { paddingTop: insets.top }]}>
         <Text style={styles.notFoundText}>Additive not found.</Text>
@@ -63,6 +66,11 @@ export default function AdditiveScreen() {
       </View>
     );
   }
+
+  if (regulatory) {
+    return <RegulatoryDetail additive={regulatory} insetsTop={insets.top} insetsBottom={insets.bottom} />;
+  }
+  if (!additive) return null; // unreachable — satisfies the type checker
 
   const result = resolveVerdict(additive, profile);
   // Contested verdicts may resolve to the user's lean — but the disagreement
@@ -190,6 +198,66 @@ export default function AdditiveScreen() {
   );
 }
 
+// ── Regulatory-status detail (EFSA OpenFoodTox, spec 002) ───────────────────────
+// Deliberately a different, sparser layout — no headline, exposure narrative,
+// evidence trail, or open question, because none of that exists for this tier.
+// Rendering it in the full layout with blank sections would look like a bug;
+// rendering fabricated prose to fill it in would be worse.
+
+function RegulatoryDetail({ additive, insetsTop, insetsBottom }: {
+  additive: RegulatoryAdditive;
+  insetsTop: number;
+  insetsBottom: number;
+}) {
+  return (
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={[styles.content, { paddingTop: insetsTop + 6, paddingBottom: insetsBottom + 48 }]}
+      showsVerticalScrollIndicator={false}>
+
+      <Pressable style={styles.backBtn} onPress={() => router.back()}>
+        <Text style={styles.backBtnText}>← Back to product</Text>
+      </Pressable>
+
+      <View style={styles.header}>
+        <View style={styles.headerTitleRow}>
+          <Text style={styles.name}>{additive.name}</Text>
+          <View style={styles.eNumBadge}>
+            <Text style={styles.eNumText}>{additive.eNumber}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={[styles.verdictBanner, styles.regulatoryBanner]}>
+        <View style={styles.verdictPillRow}>
+          <View style={[styles.verdictPill, styles.regulatoryDetailPill]}>
+            <Text style={[styles.verdictPillText, styles.regulatoryDetailPillText]}>Regulatory status</Text>
+          </View>
+        </View>
+        <Text style={[styles.verdictBlurb, styles.regulatoryBlurb]}>
+          Permitted as a food additive in the EU. Klarity has not done full
+          dose/frequency editorial review for this one yet — this is
+          regulatory status only, not an evidence-tiered verdict.
+        </Text>
+      </View>
+
+      {additive.adi && (
+        <View style={styles.card}>
+          <Text style={styles.cardLabel}>Acceptable Daily Intake</Text>
+          <Text style={styles.headline}>{additive.adi.value} {additive.adi.unit}</Text>
+        </View>
+      )}
+
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>Source</Text>
+        <Pressable onPress={() => Linking.openURL(additive.sourceUrl)}>
+          <Text style={styles.sourceLink}>{additive.sourceLabel} →</Text>
+        </Pressable>
+      </View>
+    </ScrollView>
+  );
+}
+
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 function ExposureRow({ label, value }: { label: string; value: string }) {
@@ -248,6 +316,14 @@ const styles = StyleSheet.create({
   forYouLabel: { color: '#1f9d6b' },
   forYouText:  { fontSize: 14, color: '#1a1f29', lineHeight: 21 },
   verdictBlurb:    { fontSize: 14, fontWeight: '500', lineHeight: 20, opacity: 0.9 },
+
+  // Regulatory-status detail (spec 002) — blue, not green/amber/purple, so it
+  // never reads as an evidence-tiered verdict
+  regulatoryBanner:       { backgroundColor: 'rgba(61,107,204,0.1)' },
+  regulatoryDetailPill:   { backgroundColor: '#e8f0fe' },
+  regulatoryDetailPillText: { color: '#3d6bcc' },
+  regulatoryBlurb:        { color: '#3d6bcc' },
+  sourceLink: { fontSize: 14, fontWeight: '600', color: '#3d6bcc' },
 
   card: {
     backgroundColor: '#fff',

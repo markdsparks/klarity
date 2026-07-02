@@ -106,6 +106,22 @@ export interface Product {
   note?: string;
 }
 
+// ── Regulatory-status additive (EFSA OpenFoodTox ingestion, spec 002) ─────────
+// Deliberately NOT the Additive shape above: no headline, exposure narrative,
+// evidence trail, or subgroup notes exist for these — fabricating them to fit
+// the richer type would be worse than not having an entry at all. Presence
+// here means "EFSA classifies this as a permitted food additive," nothing
+// about dose, frequency, or contested status. See docs/specs/002-*.md.
+
+export interface RegulatoryAdditive {
+  id: string;
+  name: string;
+  eNumber: string;
+  adi: { value: number; unit: string } | null;
+  sourceLabel: string;
+  sourceUrl: string;
+}
+
 // ── Additive match result (returned by matchByETags) ──────────────────────────
 
 export interface UnknownAdditive {
@@ -115,8 +131,9 @@ export interface UnknownAdditive {
 }
 
 export interface AdditiveMatchResult {
-  matched: string[];            // additive IDs we have authored evidence for
-  unknown: UnknownAdditive[];   // E-numbers present but not yet in our DB
+  matched: string[];                 // additive IDs we have authored evidence for
+  regulatory: RegulatoryAdditive[];  // EFSA-permitted, regulatory-status only
+  unknown: UnknownAdditive[];        // E-numbers present but not yet in either tier
 }
 
 // ── Scan result (what the app computes at scan time) ───────────────────────────
