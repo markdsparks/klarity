@@ -6,12 +6,16 @@ const KEY = 'KLARITY_HISTORY_V1';
 const MAX_ENTRIES = 100;
 const MAX_TIMESTAMPS = 10;
 
-// Entries written before frequency tracking lack the scan-count fields
+// Entries written before frequency tracking lack the scan-count fields;
+// restaurant entries written before spec 006 M2 lack addedIds.
 function normalize(e: ScanHistoryEntry): ScanHistoryEntry {
   return {
     ...e,
     scanCount: e.scanCount ?? 1,
     scanTimestamps: e.scanTimestamps ?? [e.scannedAt],
+    restaurant: e.restaurant
+      ? { ...e.restaurant, addedIds: e.restaurant.addedIds ?? [] }
+      : undefined,
   };
 }
 
@@ -94,7 +98,12 @@ export function restaurantHistoryKey(itemId: string): string {
 // the build the user settled on.
 export async function updateRestaurantBuild(
   itemId: string,
-  patch: { removedIds: string[]; additiveGlance: AdditiveGlanceKey; nutritionTone: NutritionTone },
+  patch: {
+    removedIds: string[];
+    addedIds?: string[];
+    additiveGlance: AdditiveGlanceKey;
+    nutritionTone: NutritionTone;
+  },
 ): Promise<void> {
   try {
     const key = restaurantHistoryKey(itemId);
@@ -105,7 +114,7 @@ export async function updateRestaurantBuild(
             ...e,
             additiveGlance: patch.additiveGlance,
             nutritionTone: patch.nutritionTone,
-            restaurant: { itemId, removedIds: patch.removedIds },
+            restaurant: { itemId, removedIds: patch.removedIds, addedIds: patch.addedIds ?? [] },
           }
         : e,
     );

@@ -1,5 +1,5 @@
 import type { MandatedNutrition, MenuComponent, MenuItem, RestaurantChain } from '../types/restaurant';
-import { CHAINS, MENU_ITEMS } from '../data/restaurants';
+import { CHAINS, MENU_ITEMS, getCatalogComponent } from '../data/restaurants';
 import { ADDITIVES } from '../data/additives';
 import { matchByIngredientText } from '../data/ingredient-text-index';
 import { DEFAULT_PROFILE } from '../hooks/use-profile';
@@ -181,13 +181,21 @@ export function searchRestaurant(query: string): RestaurantSearch {
 
 // ── Modifier math ───────────────────────────────────────────────────────────────
 
-// Combined ingredient text for additive matching — exact: removed components'
-// ingredients are simply not analyzed.
-export function effectiveIngredientText(item: MenuItem, removedIds: string[]): string {
-  return item.components
+// Combined ingredient text for additive matching — exact in both directions:
+// removed components' ingredients are simply not analyzed, added catalog
+// components' ingredients simply are (spec 006 M2: swap = remove + add).
+export function effectiveIngredientText(
+  item: MenuItem,
+  removedIds: string[],
+  addedIds: string[] = [],
+): string {
+  const base = item.components
     .filter(c => !removedIds.includes(c.id) && c.ingredientText)
-    .map(c => c.ingredientText)
-    .join(' ');
+    .map(c => c.ingredientText);
+  const added = addedIds
+    .map(id => getCatalogComponent(id)?.ingredientText)
+    .filter((t): t is string => !!t);
+  return [...base, ...added].join(' ');
 }
 
 // Bridge mandated-disclosure nutrition into the existing nutrition pipeline
@@ -221,13 +229,22 @@ export interface AdjustedNutrition {
   unadjustedRemovals: MenuComponent[];  // removed, but no nutrition data to subtract
 }
 
-// Whole-item published nutrition minus removed components' nutrition where we
-// have it (per spec Q5: subtraction is labeled "computed", never presented as
-// the chain's own figure). Removals without data are surfaced, not guessed.
-export function adjustedNutrition(item: MenuItem, removedIds: string[]): AdjustedNutrition {
+// Whole-item published nutrition, minus removed components' nutrition where we
+// have it, plus added catalog components' published nutrition (spec 004 Q5 /
+// 006 M2: any adjustment is labeled "computed", never presented as the chain's
+// own figure). Removals without data are surfaced, not guessed; catalog
+// additions always have data (required by the CatalogComponent type).
+export function adjustedNutrition(
+  item: MenuItem,
+  removedIds: string[],
+  addedIds: string[] = [],
+): AdjustedNutrition {
   const removed = item.components.filter(c => removedIds.includes(c.id));
   const withData = removed.filter(c => c.nutrition);
   const without = removed.filter(c => !c.nutrition && c.ingredientText !== null);
+  const added = addedIds
+    .map(id => getCatalogComponent(id))
+    .filter((c): c is NonNullable<typeof c> => !!c);
 
   const n: MandatedNutrition = { ...item.nutrition };
   for (const c of withData) {
@@ -236,13 +253,21 @@ export function adjustedNutrition(item: MenuItem, removedIds: string[]): Adjuste
       if (delta != null) n[key] = Math.max(0, +(n[key] - delta).toFixed(1));
     }
   }
+  for (const c of added) {
+    for (const key of Object.keys(n) as (keyof MandatedNutrition)[]) {
+      n[key] = +(n[key] + c.nutrition[key]).toFixed(1);
+    }
+  }
+
+  const basisParts = [
+    ...withData.map(c => c.nutritionBasis ?? `${c.name} (chain-published component data)`),
+    ...added.map(c => `+ ${c.name} (${c.nutritionBasis})`),
+  ];
 
   return {
     nutrition: n,
-    computed: withData.length > 0,
-    basis: withData.length > 0
-      ? withData.map(c => c.nutritionBasis ?? `${c.name} (chain-published component data)`).join('; ')
-      : null,
+    computed: withData.length > 0 || added.length > 0,
+    basis: basisParts.length > 0 ? basisParts.join('; ') : null,
     unadjustedRemovals: without,
   };
 }
@@ -252,11 +277,15 @@ export function adjustedNutrition(item: MenuItem, removedIds: string[]): Adjuste
 // Profile-independent glance for a build — powers the menu browser's pills and
 // history entries (same objectivity rule as the barcode screen: base verdicts,
 // default-profile tone, so stored/browsed glances don't shift with the profile).
-export function menuItemGlance(item: MenuItem, removedIds: string[] = []): {
+export function menuItemGlance(
+  item: MenuItem,
+  removedIds: string[] = [],
+  addedIds: string[] = [],
+): {
   additiveGlance: AdditiveGlanceKey;
   nutritionTone: NutritionTone;
 } {
-  const verdicts = matchByIngredientText(effectiveIngredientText(item, removedIds))
+  const verdicts = matchByIngredientText(effectiveIngredientText(item, removedIds, addedIds))
     .map(id => ADDITIVES[id])
     .filter(Boolean)
     .map(a => a.baseVerdict);
@@ -264,7 +293,7 @@ export function menuItemGlance(item: MenuItem, removedIds: string[] = []): {
     : verdicts.includes('contested') ? 'contested'
     : verdicts.includes('sometimes') ? 'sometimes' : 'everyday';
   const sn = restaurantServingNutrients(
-    adjustedNutrition(item, removedIds).nutrition,
+    adjustedNutrition(item, removedIds, addedIds).nutrition,
     referenceValues(DEFAULT_PROFILE),
   );
   return { additiveGlance, nutritionTone: toneNutrition(sn, DEFAULT_PROFILE).tone };

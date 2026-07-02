@@ -13,6 +13,7 @@ export type BuySignal = 'regular' | 'just_checking';
 export interface RestaurantBuildRef {
   itemId: string;
   removedIds: string[];
+  addedIds?: string[];   // catalog components (spec 006 M2); absent in old entries
 }
 
 export interface ScanHistoryEntry {

@@ -126,6 +126,7 @@ function HistoryRow({ entry }: { entry: ScanHistoryEntry }) {
               params: {
                 item: entry.restaurant.itemId,
                 remove: entry.restaurant.removedIds.join(','),
+                add: (entry.restaurant.addedIds ?? []).join(','),
               },
             })
           : router.push(`/result/${encodeURIComponent(entry.barcode)}`)
@@ -146,7 +147,10 @@ function HistoryRow({ entry }: { entry: ScanHistoryEntry }) {
         <Text style={styles.meta}>
           {[
             entry.brand,
-            entry.restaurant && entry.restaurant.removedIds.length > 0 ? 'custom build' : null,
+            entry.restaurant &&
+            (entry.restaurant.removedIds.length > 0 || (entry.restaurant.addedIds?.length ?? 0) > 0)
+              ? 'custom build'
+              : null,
             relativeTime(entry.scannedAt),
             recentDays >= 2 ? `${recentDays} days recently` : null,
           ].filter(Boolean).join(' · ')}

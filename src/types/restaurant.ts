@@ -31,6 +31,31 @@ export interface MenuComponent {
   nutritionBasis?: string;       // e.g. 'derived from published item pair: Spicy Deluxe − Spicy'
 }
 
+// A component the chain publishes data for that can fill a slot or be added
+// to a build — cheeses, extras, sauces. Shared across the chain's items
+// (spec 006 M2). Both fields are required by design: we never offer an option
+// we can't analyze on the additive axis, and additions must always adjust
+// nutrition honestly.
+export interface CatalogComponent {
+  id: string;                    // 'cfa_pepper_jack'
+  name: string;
+  ingredientText: string;
+  nutrition: MandatedNutrition;
+  nutritionBasis: string;
+}
+
+// A choice slot on an item ("Cheese"). A swap is remove-the-default +
+// add-the-chosen-option, so build state stays {removedIds, addedIds} and all
+// spec-005 modifier math applies unchanged.
+export interface ItemSlot {
+  id: string;                        // 'cheese'
+  label: string;                     // 'Cheese'
+  defaultComponentId: string | null; // components[] entry of the standard build
+  defaultCatalogId: string | null;   // its catalog twin (for option deltas)
+  optionIds: string[];               // selectable catalog ids
+  allowNone: boolean;
+}
+
 export interface MenuItem {
   id: string;                    // 'cfa_spicy_deluxe'
   chainId: string;
@@ -39,6 +64,8 @@ export interface MenuItem {
   category: string;              // menu-browser section: 'Sandwiches', 'Sides', …
   serving: string;               // display: 'per sandwich'
   components: MenuComponent[];
+  slots?: ItemSlot[];            // choice slots (cheese, …)
+  addOnIds?: string[];           // catalog ids addable to this item (sauces, bacon)
   nutrition: MandatedNutrition;  // whole item, as published
 }
 

@@ -38,6 +38,25 @@ const AMERICAN_CHEESE_TEXT =
 const PEPPER_JACK_TEXT =
   'Pasteurized milk, jalapeño peppers, cheese culture, salt, habanero peppers, enzymes.';
 
+// Catalog references (chick-fil-a-catalog.ts) — sauces addable to savory items,
+// bacon addable to sandwiches (spec 006 M2).
+const SAUCE_IDS = [
+  'cfa_sauce', 'cfa_polynesian', 'cfa_honey_mustard', 'cfa_bbq',
+  'cfa_ranch', 'cfa_zesty_buffalo', 'cfa_honey_roasted_bbq', 'cfa_sweet_spicy_sriracha',
+];
+const SANDWICH_ADD_ONS = ['cfa_bacon', ...SAUCE_IDS];
+
+function cheeseSlot(defaultComponentId: string | null, defaultCatalogId: string | null) {
+  return {
+    id: 'cheese',
+    label: 'Cheese',
+    defaultComponentId,
+    defaultCatalogId,
+    optionIds: ['cfa_american_cheese', 'cfa_pepper_jack'],
+    allowNone: true,
+  };
+}
+
 export const CHICK_FIL_A_ITEMS: MenuItem[] = [
   {
     id: 'cfa_chicken_sandwich',
@@ -46,6 +65,8 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
     name: 'Chick-fil-A Chicken Sandwich',
     aliases: ['chicken sandwich', 'original chicken sandwich', 'regular chicken sandwich'],
     serving: 'per sandwich',
+    slots: [cheeseSlot(null, null)],
+    addOnIds: SANDWICH_ADD_ONS,
     nutrition: { calories: 420, totalFat: 18, satFat: 3.5, transFat: 0, cholesterol: 70, sodium: 1460, carbs: 41, sugars: 6, fiber: 1, protein: 29 },
     components: [
       { id: 'filet', name: 'Fried chicken filet', removable: false, ingredientText: FRIED_FILET_TEXT, nutrition: null },
@@ -60,6 +81,8 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
     name: 'Spicy Chicken Sandwich',
     aliases: ['spicy chicken sandwich', 'spicy sandwich', 'spicy chicken'],
     serving: 'per sandwich',
+    slots: [cheeseSlot(null, null)],
+    addOnIds: SANDWICH_ADD_ONS,
     nutrition: { calories: 450, totalFat: 19, satFat: 4, transFat: 0, cholesterol: 65, sodium: 1730, carbs: 45, sugars: 6, fiber: 1, protein: 28 },
     components: [
       { id: 'filet', name: 'Spicy chicken filet', removable: false, ingredientText: SPICY_FILET_TEXT, nutrition: null },
@@ -74,6 +97,8 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
     name: 'Chick-fil-A Deluxe Sandwich',
     aliases: ['deluxe sandwich', 'deluxe', 'chicken deluxe', 'deluxe chicken sandwich'],
     serving: 'per sandwich',
+    slots: [cheeseSlot('american_cheese', 'cfa_american_cheese')],
+    addOnIds: SANDWICH_ADD_ONS,
     nutrition: { calories: 490, totalFat: 22, satFat: 6, transFat: 0, cholesterol: 85, sodium: 1700, carbs: 43, sugars: 7, fiber: 1, protein: 32 },
     components: [
       { id: 'filet', name: 'Fried chicken filet', removable: false, ingredientText: FRIED_FILET_TEXT, nutrition: null },
@@ -96,6 +121,8 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
     name: 'Spicy Deluxe Sandwich',
     aliases: ['spicy deluxe', 'spicy deluxe sandwich', 'spicy chicken deluxe'],
     serving: 'per sandwich',
+    slots: [cheeseSlot('pepper_jack', 'cfa_pepper_jack')],
+    addOnIds: SANDWICH_ADD_ONS,
     nutrition: { calories: 540, totalFat: 26, satFat: 8, transFat: 0, cholesterol: 85, sodium: 1880, carbs: 47, sugars: 7, fiber: 2, protein: 34 },
     components: [
       { id: 'filet', name: 'Spicy chicken filet', removable: false, ingredientText: SPICY_FILET_TEXT, nutrition: null },
@@ -118,6 +145,8 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
     name: 'Grilled Chicken Sandwich',
     aliases: ['grilled chicken sandwich', 'grilled sandwich', 'grilled chicken'],
     serving: 'per sandwich',
+    slots: [cheeseSlot(null, null)],
+    addOnIds: SANDWICH_ADD_ONS,
     nutrition: { calories: 390, totalFat: 11, satFat: 2.5, transFat: 0, cholesterol: 75, sodium: 765, carbs: 45, sugars: 11, fiber: 3, protein: 28 },
     components: [
       {
@@ -146,6 +175,7 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
     name: 'Chick-fil-A Nuggets (8-count)',
     aliases: ['nuggets', '8 count nuggets', 'chicken nuggets', 'nuggets 8'],
     serving: 'per 8 nuggets',
+    addOnIds: SAUCE_IDS,
     nutrition: { calories: 250, totalFat: 11, satFat: 2.5, transFat: 0, cholesterol: 85, sodium: 1210, carbs: 11, sugars: 1, fiber: 0, protein: 27 },
     components: [
       { id: 'nuggets', name: 'Fried chicken nuggets', removable: false, ingredientText: FRIED_FILET_TEXT, nutrition: null },
@@ -158,6 +188,7 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
     name: 'Grilled Nuggets (8-count)',
     aliases: ['grilled nuggets', '8 count grilled nuggets', 'grilled nuggets 8'],
     serving: 'per 8 nuggets',
+    addOnIds: SAUCE_IDS,
     nutrition: { calories: 130, totalFat: 3, satFat: 0.5, transFat: 0, cholesterol: 85, sodium: 440, carbs: 1, sugars: 1, fiber: 0, protein: 25 },
     components: [
       {
@@ -174,6 +205,7 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
     name: 'Waffle Potato Fries (medium)',
     aliases: ['waffle fries', 'fries', 'waffle potato fries', 'medium fries'],
     serving: 'per medium serving',
+    addOnIds: SAUCE_IDS,
     nutrition: { calories: 420, totalFat: 24, satFat: 4, transFat: 0, cholesterol: 0, sodium: 240, carbs: 45, sugars: 1, fiber: 5, protein: 5 },
     components: [
       {
