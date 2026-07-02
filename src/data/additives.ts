@@ -66,6 +66,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'frequency',
     headline: 'This is the one where the scary version is right: IARC calls processed meat a carcinogen. Frequency is the whole game.',
     exposure: {
       typical: 'Daily charcuterie ≠ a deli sandwich once a week',
@@ -214,6 +215,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'moderate',
     baseVerdict: 'sometimes',
+    limitType: 'unresolved',
     headline: 'Approved and fine at typical use, but the emulsifier–gut-microbiome question is an early, real signal worth naming.',
     exposure: {
       typical: 'Small fractions of a percent in food',
@@ -1565,6 +1567,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'combination',
     headline: 'Safe alone — but converts to benzene (a Group 1 carcinogen) when combined with vitamin C. This combination is common in energy drinks and fruit beverages.',
     exposure: {
       typical: '0.05–0.1% in beverages',
@@ -1607,6 +1610,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'moderate',
     baseVerdict: 'sometimes',
+    limitType: 'frequency',
     headline: "Keeps fried food from going rancid — approved with strict dose limits. Those limits exist for a reason: liver effects and immune concerns appear in the toxicology record.",
     exposure: {
       typical: 'FDA limit: ≤0.02% of total fat content',
@@ -1649,6 +1653,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'frequency',
     headline: "IARC calls it 'possibly carcinogenic' — but the animal evidence involves a stomach structure humans don't have. The signal is real enough to warrant frequency awareness.",
     exposure: {
       typical: 'FDA limit: ≤0.02% of total fat; typically ≤1 mg/day in a normal diet',
@@ -1685,6 +1690,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'frequency',
     headline: "BHA's companion antioxidant, with a murkier evidence picture — some studies suggest anti-cancer effects at low doses; others suggest pro-cancer effects at high doses.",
     exposure: {
       typical: 'FDA limit: ≤0.02% fat; much lower in actual products',
@@ -1720,6 +1726,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'dose',
     headline: "The acid in Coke. At an occasional soda it's not worth worrying about; the bone health concern becomes real at multiple daily servings.",
     exposure: {
       typical: '<100 mg per 12 oz serving',
@@ -1755,6 +1762,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'frequency',
     headline: "Sodium nitrite's partner in cured meats. It converts to nitrite in the body — the processed meat carcinogen verdict applies equally here.",
     exposure: {
       typical: 'Same cured meat pattern as nitrite (E250)',
@@ -1788,6 +1796,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'moderate',
     baseVerdict: 'sometimes',
+    limitType: 'unresolved',
     headline: 'The emulsifier with the strongest human gut signal. A 2022 randomized controlled trial found real microbiome changes at food-relevant doses.',
     exposure: {
       typical: 'Grams per day in heavily processed diets',
@@ -1832,6 +1841,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'moderate',
     baseVerdict: 'sometimes',
+    limitType: 'sensitivity',
     headline: 'Safe for most people at typical intake, but a genuine, well-documented trigger for asthma and allergic-type reactions in a sensitive minority — the FDA requires it on labels for this reason.',
     exposure: {
       typical: '10–350 ppm in dried fruit, wine, and some processed potatoes',
@@ -1870,6 +1880,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'moderate',
     baseVerdict: 'sometimes',
+    limitType: 'unresolved',
     headline: 'Derived from castor oil, used mainly in chocolate to cut costs and improve flow. Regulatory consensus is favorable, but it belongs to the same emulsifier class flagged in early-stage gut-barrier research.',
     exposure: {
       typical: '0.1–0.5% in chocolate and chocolate coatings',
@@ -1907,6 +1918,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'moderate',
     baseVerdict: 'sometimes',
+    limitType: 'dose',
     headline: 'A well-tolerated sugar substitute at normal intake, but with a well-documented laxative effect once you cross roughly 20-50g in a day — common in sugar-free gum and "diet" candy.',
     exposure: {
       typical: '2–10g per serving in sugar-free gum, mints, and diabetic-friendly sweets',
@@ -1935,6 +1947,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'moderate',
     baseVerdict: 'sometimes',
+    limitType: 'dose',
     headline: 'Genuinely beneficial for human teeth (inhibits cavity-causing bacteria) and safe for people at normal intake — but severely toxic to dogs even in small amounts. A real household safety note, not a human dietary one.',
     exposure: {
       typical: '2–10g per serving in sugar-free gum, mints, and some baked goods',
@@ -1968,7 +1981,7 @@ export const ADDITIVES: Record<string, Additive> = {
     role: 'Non-caloric artificial sweetener',
     benefit: 'functional',
     avoidability: 'easy',
-    baseVerdict: 'sometimes',
+    baseVerdict: 'everyday',
     headline: 'The oldest artificial sweetener (1879) and the center of a 1970s cancer scare that didn\'t hold up in humans. Formally cleared, but the reputational shadow still lingers on the label.',
     exposure: {
       typical: 'Milligrams per serving — 200-700× sweeter than sugar by weight',
@@ -2002,6 +2015,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'sensitivity',
     headline: 'Safe for most people at normal food levels, but this is the one where FDA-documented asthma reactions are real enough that federal law requires it on the label.',
     exposure: {
       typical: 'Common in dried fruit, wine, and processed potatoes; must be declared at 10 ppm SO2 or more',
@@ -2048,6 +2062,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'moderate',
     baseVerdict: 'sometimes',
+    limitType: 'dose',
     headline: 'Safe at EFSA’s official limit — but EFSA’s own 2019 review flagged that people who eat a lot of processed food may already be exceeding it.',
     exposure: {
       typical: 'Widespread in processed meat, cheese products, baked goods, and colas',
@@ -2089,6 +2104,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'dose',
     headline: 'A 2023 Cleveland Clinic study linked high blood erythritol levels to clotting risk — EFSA reviewed the same evidence and found no proven cause-and-effect, but wants more research.',
     exposure: {
       typical: 'Common in sugar-free candy, protein bars, and "keto" baked goods',
@@ -2130,6 +2146,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'dose',
     headline: 'The GI effects are well-characterized and dose-dependent — FDA requires a laxative-effect warning label above 50g, and most people notice something well before that.',
     exposure: {
       typical: 'Sugar-free candy, chocolate, and baked goods',
@@ -2171,6 +2188,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'moderate',
     baseVerdict: 'sometimes',
+    limitType: 'unresolved',
     headline: 'Decades of clean safety data, but a 2021 mouse study on gut inflammation was concerning enough that EFSA opened a fresh review in 2024 — genuinely unresolved, not yet a verdict either way.',
     exposure: {
       typical: 'Small amounts in mayonnaise, canned goods, and salad dressings to prevent discoloration',
@@ -2214,6 +2232,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'moderate',
     baseVerdict: 'sometimes',
+    limitType: 'unresolved',
     headline: 'A close chemical sibling of polysorbate 80 (E433) — shares the same open emulsifier-gut-microbiome question, though the direct evidence specifically implicating this compound is thinner.',
     exposure: {
       typical: 'Small fractions of a percent in whipped toppings, coffee creamers, and baked goods',
@@ -2257,6 +2276,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'frequency',
     headline: 'Same active nitrite ion, same processed-meat carcinogen classification as sodium nitrite (E250) — frequency is still the whole game, just with potassium as the counter-ion instead of sodium.',
     exposure: {
       typical: 'Used in some dry-cured and specialty meats, often alongside or instead of sodium nitrite',
@@ -2296,6 +2316,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'cosmetic',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'sensitivity',
     headline: 'A natural red color with a real, FDA-documented allergy risk — one of the few colorants where regulators mandated specific-name labeling because of anaphylaxis reports.',
     exposure: {
       typical: 'Natural red color in yogurt, candy, juice, and some cosmetics',
@@ -2334,6 +2355,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'moderate',
     baseVerdict: 'sometimes',
+    limitType: 'dose',
     headline: 'Same evidence picture as sodium benzoate (E211), already in this list — EFSA’s re-evaluation found children who regularly drink flavored beverages may exceed the group safety limit.',
     exposure: {
       typical: 'Preservative in acidic soft drinks, pickles, and sauces',
@@ -2367,6 +2389,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'sensitivity',
     headline: 'Chemically part of the same sulfite family as E223 — same asthma-sensitivity risk, same mandatory labeling threshold.',
     exposure: {
       typical: 'Used in dried fruit, wine, and some processed foods; must be declared at 10 ppm SO2 or more',
@@ -2407,6 +2430,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'moderate',
     baseVerdict: 'sometimes',
+    limitType: 'unresolved',
     headline: 'Part of the same polysorbate family as E433/E435 already in this list — recent lab research specifically names polysorbate 20 alongside polysorbate 80 in gut-barrier studies.',
     exposure: {
       typical: 'Small fractions of a percent in beverages, ice cream, and sauces',
@@ -2444,6 +2468,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
+    limitType: 'dose',
     headline: 'Narrowly authorized on purpose — EFSA’s 2018 review found frequent consumers of these specific products can exceed the weekly aluminum safety limit several times over.',
     exposure: {
       typical: 'Limited to industrially bottled egg whites and candied cherries in the EU — not a broad-use additive',

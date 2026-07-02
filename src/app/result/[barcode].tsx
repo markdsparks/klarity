@@ -32,6 +32,7 @@ import {
 } from '@/services/nutrition';
 import { fetchUSDANutrition } from '@/services/usda';
 import { resolveVerdict } from '@/services/verdict';
+import { verdictSentence } from '@/services/verdict-sentence';
 import type { BuySignal, ScanHistoryEntry } from '@/types/history';
 import type { OFFProduct } from '@/types/off';
 import type { USDANutrition } from '@/types/usda';
@@ -234,6 +235,17 @@ export default function ResultScreen() {
   const scanDays = historyEntry ? distinctScanDays(historyEntry, 14) : 0;
   const frequencyFocus = additiveResults.find(r => r.verdict === 'sometimes')?.additive;
 
+  // Layer 1 plain-language verdict. Driven by base verdicts (not profile-resolved)
+  // so a contested additive keeps contested framing even when values resolve it.
+  const summarySentence = verdictSentence({
+    contestedDriver: matchedAdditives.find(a => a.baseVerdict === 'contested') ?? null,
+    sometimesDriver: matchedAdditives.find(a => a.baseVerdict === 'sometimes') ?? null,
+    nutritionTone: nutrition.tone,
+    highNutrients: nutrition.highNutrients,
+    profile,
+    proteinDv: sn.proteinDv ?? 0,
+  });
+
   const sugarHot = sugarBasisDv(sn) >= thresholds.sugar;
 
   return (
@@ -266,6 +278,13 @@ export default function ResultScreen() {
             />
           ) : null}
         </View>
+
+        {/* Layer 1 — plain-language verdict */}
+        {summarySentence ? (
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryText}>{summarySentence}</Text>
+          </View>
+        ) : null}
 
         {/* At-a-glance badges */}
         <View style={styles.glanceRow}>
@@ -590,6 +609,15 @@ const styles = StyleSheet.create({
   productName:    { fontSize: 24, fontWeight: '800', color: '#fff', letterSpacing: -0.5, lineHeight: 30 },
   productServing: { fontSize: 12, color: '#9fadbf' },
   productImage:   { width: 72, height: 72, borderRadius: 14, backgroundColor: '#1c2230' },
+
+  // Layer 1 plain-language verdict card
+  summaryCard: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  summaryText: { fontSize: 15, color: '#e8eaed', lineHeight: 22, fontWeight: '500' },
 
   glanceRow: { flexDirection: 'row', gap: 10 },
   glanceBadge: { flex: 1, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14, gap: 3 },

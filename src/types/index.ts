@@ -28,6 +28,16 @@ export interface Verdict {
 export type AdditiveAvoidability = 'easy' | 'moderate' | 'n/a';
 export type AdditiveBenefit = 'functional' | 'cosmetic' | 'n/a';
 
+// How a `sometimes` additive's risk is actually bounded — drives the plain-language
+// Layer 1 verdict sentence (src/services/verdict-sentence.ts). Only meaningful on
+// `sometimes` additives; `everyday`/`contested` don't carry it.
+//   dose        — per-day ceiling; typical servings sit well under it (sugar alcohols)
+//   frequency   — risk accrues with repeated exposure over time (nitrites, TBHQ)
+//   sensitivity — only matters if you're in a reactive subgroup (sulfites, carmine)
+//   unresolved  — early real signal, not yet a dose/frequency rule (emulsifier–gut)
+//   combination — risk only under a co-ingredient condition (benzoate + vitamin C)
+export type LimitType = 'dose' | 'frequency' | 'sensitivity' | 'unresolved' | 'combination';
+
 export interface EvidenceItem {
   tier: EvidenceTier;
   applies: boolean | 'split';   // true = supports claim, false = dismissed, 'split' = contested
@@ -58,6 +68,7 @@ export interface Additive {
   benefit: AdditiveBenefit;
   avoidability: AdditiveAvoidability;
   baseVerdict: VerdictKey;
+  limitType?: LimitType;   // present on `sometimes` additives; see LimitType
   headline: string;
   exposure: ExposureInfo;
   evidence: EvidenceItem[];

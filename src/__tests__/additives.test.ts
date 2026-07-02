@@ -95,6 +95,20 @@ describe('ADDITIVES data integrity', () => {
       }
     }
   });
+
+  const LIMIT_TYPES = new Set(['dose', 'frequency', 'sensitivity', 'unresolved', 'combination']);
+
+  it('every "sometimes" additive carries a valid limitType (drives the Layer 1 sentence)', () => {
+    for (const [id, additive] of entries) {
+      if (additive.baseVerdict === 'sometimes') {
+        expect(additive.limitType).toBeDefined();
+        expect(LIMIT_TYPES.has(additive.limitType as string)).toBe(true);
+      } else {
+        // limitType is meaningful only on `sometimes` — don't set it elsewhere
+        expect(additive.limitType).toBeUndefined();
+      }
+    }
+  });
 });
 
 describe('getAdditive', () => {
