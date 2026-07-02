@@ -122,6 +122,20 @@ describe('searchRestaurant — progressive search (spec 006)', () => {
   });
 });
 
+describe('searchRestaurant — Panera Bread (nutrition-only chain)', () => {
+  it('chain alias resolves to the full Panera menu', () => {
+    const r = menu('panera bread');
+    expect(r.chain.id).toBe('panera');
+    expect(r.filtered).toBe(false);
+    expect(r.hits.length).toBe(MENU_ITEMS.filter(i => i.chainId === 'panera').length);
+  });
+
+  it('a short prefix is a suggestion; a squashed alias plus item alias resolves', () => {
+    expect(searchRestaurant('pane').kind).toBe('suggestion');
+    expect(menu('panerabread broccoli cheddar').hits[0].item.id).toBe('pnr_broccoli_cheddar_soup');
+  });
+});
+
 describe('menuItemGlance — browser pills', () => {
   it('reflects base verdicts on the standard build', () => {
     const g = menuItemGlance(getMenuItem('cfa_spicy_deluxe')!);

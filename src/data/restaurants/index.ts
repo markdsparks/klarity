@@ -1,10 +1,11 @@
 import type { CatalogComponent, MenuItem, RestaurantChain } from '../../types/restaurant';
 import { CHICK_FIL_A, CHICK_FIL_A_ITEMS } from './chick-fil-a';
 import { CHICK_FIL_A_CATALOG } from './chick-fil-a-catalog';
+import { PANERA, PANERA_ITEMS } from './panera';
 
-export const CHAINS: RestaurantChain[] = [CHICK_FIL_A];
+export const CHAINS: RestaurantChain[] = [CHICK_FIL_A, PANERA];
 
-export const MENU_ITEMS: MenuItem[] = [...CHICK_FIL_A_ITEMS];
+export const MENU_ITEMS: MenuItem[] = [...CHICK_FIL_A_ITEMS, ...PANERA_ITEMS];
 
 export const CATALOG: CatalogComponent[] = [...CHICK_FIL_A_CATALOG];
 
