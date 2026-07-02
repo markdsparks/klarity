@@ -119,7 +119,17 @@ function HistoryRow({ entry }: { entry: ScanHistoryEntry }) {
   return (
     <Pressable
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-      onPress={() => router.push(`/result/${encodeURIComponent(entry.barcode)}`)}>
+      onPress={() =>
+        entry.restaurant
+          ? router.push({
+              pathname: '/result/restaurant',
+              params: {
+                item: entry.restaurant.itemId,
+                remove: entry.restaurant.removedIds.join(','),
+              },
+            })
+          : router.push(`/result/${encodeURIComponent(entry.barcode)}`)
+      }>
 
       {/* Thumbnail / avatar */}
       {entry.imageUrl ? (
@@ -136,6 +146,7 @@ function HistoryRow({ entry }: { entry: ScanHistoryEntry }) {
         <Text style={styles.meta}>
           {[
             entry.brand,
+            entry.restaurant && entry.restaurant.removedIds.length > 0 ? 'custom build' : null,
             relativeTime(entry.scannedAt),
             recentDays >= 2 ? `${recentDays} days recently` : null,
           ].filter(Boolean).join(' · ')}

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { BuySignal, ScanHistoryEntry, ScanRecord } from '../types/history';
+import type { AdditiveGlanceKey, BuySignal, ScanHistoryEntry, ScanRecord } from '../types/history';
+import type { NutritionTone } from '../types/index';
 
 const KEY = 'KLARITY_HISTORY_V1';
 const MAX_ENTRIES = 100;
@@ -80,6 +81,37 @@ export async function saveToHistory(record: ScanRecord): Promise<ScanHistoryEntr
   } catch {
     // Never let history writes crash the scan flow
     return mergeEntry(undefined, record);
+  }
+}
+
+export function restaurantHistoryKey(itemId: string): string {
+  return `restaurant:${itemId}`;
+}
+
+// A build change is an edit to the existing entry, not a new scan — routing it
+// through saveToHistory would count every toggle as a scan and corrupt the
+// frequency signal. Glance/tone travel with the build so history pills reflect
+// the build the user settled on.
+export async function updateRestaurantBuild(
+  itemId: string,
+  patch: { removedIds: string[]; additiveGlance: AdditiveGlanceKey; nutritionTone: NutritionTone },
+): Promise<void> {
+  try {
+    const key = restaurantHistoryKey(itemId);
+    const existing = await loadHistory();
+    const updated = existing.map(e =>
+      e.barcode === key
+        ? {
+            ...e,
+            additiveGlance: patch.additiveGlance,
+            nutritionTone: patch.nutritionTone,
+            restaurant: { itemId, removedIds: patch.removedIds },
+          }
+        : e,
+    );
+    await AsyncStorage.setItem(KEY, JSON.stringify(updated));
+  } catch {
+    // ignore
   }
 }
 
