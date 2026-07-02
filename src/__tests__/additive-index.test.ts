@@ -3,8 +3,8 @@ import { matchByETags } from '../data/additive-index';
 describe('matchByETags', () => {
   // ── matched (known additives) ─────────────────────────────────────────────────
 
-  it('returns empty matched and unknown for empty input', () => {
-    expect(matchByETags([])).toEqual({ matched: [], unknown: [] });
+  it('returns empty matched, regulatory, and unknown for empty input', () => {
+    expect(matchByETags([])).toEqual({ matched: [], regulatory: [], unknown: [] });
   });
 
   it('matches a known E-number', () => {
@@ -48,16 +48,55 @@ describe('matchByETags', () => {
     expect(unknown).toHaveLength(0);
   });
 
-  // ── unknown additives ─────────────────────────────────────────────────────────
+  it('a hand-authored E-number never falls through to the regulatory tier', () => {
+    // E407 (carrageenan) exists in BOTH additives.ts and the EFSA regulatory
+    // dataset — hand-authored must always win (spec 002 precedence rule).
+    const { matched, regulatory } = matchByETags(['en:e407']);
+    expect(matched).toEqual(['carrageenan']);
+    expect(regulatory).toHaveLength(0);
+  });
 
-  it('returns unknown entry for an E-number not in our database', () => {
-    // E100 (curcumin) is in the name map but not yet authored in additives.ts
-    const { matched, unknown } = matchByETags(['en:e100']);
+  // ── regulatory-status additives (EFSA OpenFoodTox, spec 002) ──────────────────
+
+  it('returns a regulatory-status entry for an EFSA-classified, unauthored E-number', () => {
+    // E100 (curcumin) is EFSA-classified as a food additive but not hand-authored
+    const { matched, regulatory, unknown } = matchByETags(['en:e100']);
     expect(matched).toHaveLength(0);
+    expect(unknown).toHaveLength(0);
+    expect(regulatory).toHaveLength(1);
+    expect(regulatory[0]).toMatchObject({
+      eNumber: 'E100',
+      name: 'Curcumin',
+      adi: null,
+      sourceLabel: 'EFSA OpenFoodTox v3.0',
+    });
+  });
+
+  it('deduplicates regulatory entries appearing twice', () => {
+    const { regulatory } = matchByETags(['en:e100', 'en:e100']);
+    expect(regulatory).toHaveLength(1);
+  });
+
+  it('correctly handles suffix E-numbers like E553b in the regulatory tier', () => {
+    // E553B (talc) is EFSA-classified as a food additive but not hand-authored
+    const { regulatory } = matchByETags(['en:e553b']);
+    expect(regulatory).toHaveLength(1);
+    expect(regulatory[0].eNumber).toBe('E553B');
+    expect(regulatory[0].name).toBe('Talc');
+  });
+
+  // ── unknown additives (neither hand-authored nor EFSA-classified) ─────────────
+
+  it('returns unknown entry for an E-number in neither tier', () => {
+    // E107 (Yellow 2G) is in the bundled name map but not EFSA-classified as
+    // a food additive (-ADD) in the ingested dataset, and not hand-authored.
+    const { matched, regulatory, unknown } = matchByETags(['en:e107']);
+    expect(matched).toHaveLength(0);
+    expect(regulatory).toHaveLength(0);
     expect(unknown).toHaveLength(1);
-    expect(unknown[0].eNumber).toBe('E100');
-    expect(unknown[0].name).toBe('Curcumin');
-    expect(unknown[0].rawTag).toBe('en:e100');
+    expect(unknown[0].eNumber).toBe('E107');
+    expect(unknown[0].name).toBe('Yellow 2G');
+    expect(unknown[0].rawTag).toBe('en:e107');
   });
 
   it('returns E-number as name fallback for a completely unmapped additive', () => {
@@ -67,17 +106,15 @@ describe('matchByETags', () => {
     expect(unknown[0].name).toBe('E9999');
   });
 
-  it('separates matched from unknown correctly in a mixed tag list', () => {
-    // E100 and E101 are in the name map but not yet authored in additives.ts
-    const { matched, unknown } = matchByETags(['en:e250', 'en:e100', 'en:e101']);
+  it('separates matched, regulatory, and unknown correctly in a mixed tag list', () => {
+    const { matched, regulatory, unknown } = matchByETags(['en:e250', 'en:e100', 'en:e107']);
     expect(matched).toEqual(['nitrite']);
-    expect(unknown).toHaveLength(2);
-    expect(unknown.map(u => u.eNumber)).toContain('E100');
-    expect(unknown.map(u => u.eNumber)).toContain('E101');
+    expect(regulatory.map(r => r.eNumber)).toEqual(['E100']);
+    expect(unknown.map(u => u.eNumber)).toEqual(['E107']);
   });
 
   it('deduplicates unknown E-numbers appearing twice', () => {
-    const { unknown } = matchByETags(['en:e100', 'en:e100']);
+    const { unknown } = matchByETags(['en:e107', 'en:e107']);
     expect(unknown).toHaveLength(1);
   });
 
@@ -85,18 +122,5 @@ describe('matchByETags', () => {
     const { matched, unknown } = matchByETags(['en:natural-flavor', 'en:salt']);
     expect(matched).toHaveLength(0);
     expect(unknown).toHaveLength(0);
-  });
-
-  it('includes named entry from the bundled map for an unauthored additive', () => {
-    // E100 is in e-number-names.ts but not yet authored in additives.ts
-    const { unknown } = matchByETags(['en:e100']);
-    expect(unknown[0].name).toBe('Curcumin');
-  });
-
-  it('correctly handles suffix E-numbers like E553b', () => {
-    // E553B (talc) is in e-number-names.ts but not yet authored in additives.ts
-    const { unknown } = matchByETags(['en:e553b']);
-    expect(unknown[0].eNumber).toBe('E553B');
-    expect(unknown[0].name).toBe('Talc');
   });
 });

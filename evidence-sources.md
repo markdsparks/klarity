@@ -55,6 +55,21 @@ Klarity's GRADE-like tiers:
 
 **Cadence:** Annual major releases (v2.0 → 2023, v3.0 → April 2026). Ingest once, refresh annually.
 
+**Ingestion status (spec 002, 2026-07-02):** Ingested. Real export inspected
+directly (not just docs) — no dedicated E-number column exists; E-numbers are
+pipe-separated synonyms in `REF_SUB.Name`, extracted via regex for rows where
+`EFSA PARAM CODE` ends `-ADD` (EFSA's own food-additive classification). 228
+unique E-numbers resolved (95% automatic, 12 by a small manual override
+table), yielding **184 net-new additives** beyond the 53 hand-authored in
+`src/data/additives.ts`. Shipped as a separate, honestly-labeled
+**regulatory-status tier** (`src/data/regulatory-additives.ts`,
+`RegulatoryAdditive` type) — permitted-status + source link only, no
+headline/exposure/evidence-trail narrative, since none exists in this source.
+The ADI/NOAEL join (`REF_SUB → SUB → DOSSIER → FLEX_SUM.ToxRefValues`, by
+UUID) was deliberately deferred to a fast-follow rather than shipped
+partially-verified. Re-run `scripts/ingest-openfoodtox.js` against a fresh
+export when EFSA ships v4.0.
+
 **Gap:** Doesn't include US-only GRAS substances not evaluated by EFSA. Doesn't tag INS/Codex numbers natively (need a bridge table).
 
 ---
