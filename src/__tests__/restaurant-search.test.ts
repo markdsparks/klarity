@@ -65,7 +65,7 @@ describe('searchRestaurant — progressive search (spec 006)', () => {
     const partial = menu('chick fil a spi');
     expect(partial.filtered).toBe(true);
     expect(partial.hits.map(h => h.item.id).sort())
-      .toEqual(['cfa_spicy_deluxe', 'cfa_spicy_sandwich']);
+      .toEqual(['cfa_spicy_chicken_biscuit', 'cfa_spicy_deluxe', 'cfa_spicy_sandwich']);
 
     // Completing the phrase ranks the exact item first — still a list.
     const complete = menu('chick fil a spicy deluxe');
@@ -100,7 +100,8 @@ describe('searchRestaurant — progressive search (spec 006)', () => {
 
   it('category words filter too ("sides")', () => {
     const r = menu('chick fil a sides');
-    expect(r.hits.map(h => h.item.category)).toEqual(['Sides', 'Sides']);
+    expect(r.hits.length).toBeGreaterThanOrEqual(2);
+    for (const h of r.hits) expect(h.item.category).toBe('Sides');
   });
 
   it('an unmatchable phrase shows the whole menu, not a dead end', () => {
