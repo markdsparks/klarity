@@ -271,6 +271,65 @@ describe("Jimmy John's — chain-specific search sanity (spec 004 M2)", () => {
   });
 });
 
+describe('searchRestaurant — Panda Express (nutrition-only chain, browser-unblocked batch)', () => {
+  it('chain alias resolves to the full menu', () => {
+    const r = menu('panda express');
+    expect(r.chain.id).toBe('panda_express');
+    expect(r.filtered).toBe(false);
+    expect(r.hits.length).toBe(MENU_ITEMS.filter(i => i.chainId === 'panda_express').length);
+  });
+
+  it('the short "panda" alias also resolves the chain', () => {
+    expect(menu('panda orange chicken').hits[0].item.id).toBe('pe_orange_chicken');
+  });
+
+  it('a squashed spelling resolves too', () => {
+    expect(menu('pandaexpress beijing beef').hits[0].item.id).toBe('pe_beijing_beef');
+  });
+
+  it('entrée, side, and beverage aliases each resolve to the right item', () => {
+    expect(menu('panda express chow mein').hits[0].item.id).toBe('pe_chow_mein');
+    expect(menu('panda express kung pao').hits[0].item.id).toBe('pe_kung_pao_chicken');
+    expect(menu('panda express honey walnut shrimp').hits[0].item.id).toBe('pe_honey_walnut_shrimp');
+  });
+
+  it('a bare size-unqualified beverage surfaces every published size as a browsable list', () => {
+    const drPepper = menu('panda express dr pepper');
+    expect(drPepper.hits.map(h => h.item.id).sort()).toEqual(
+      ['pe_dr_pepper_small', 'pe_dr_pepper_medium', 'pe_dr_pepper_large'].sort(),
+    );
+  });
+
+  it('a bare soup name surfaces both cup and bowl sizes as a browsable list', () => {
+    const soup = menu('panda express hot and sour soup');
+    const ids = soup.hits.map(h => h.item.id);
+    expect(ids).toContain('pe_hot_sour_soup_bowl');
+    expect(ids).toContain('pe_hot_sour_soup_cup');
+  });
+
+  it('a representative Bowl combo resolves and sums its published components', () => {
+    const r = menu('panda express orange chicken bowl');
+    expect(r.hits[0].item.id).toBe('pe_orange_chicken_bowl');
+    expect(r.hits[0].item.nutrition.calories).toBe(1030); // 510 (Orange Chicken) + 520 (White Rice)
+  });
+
+  it('a representative Plate combo resolves and sums its published components', () => {
+    const r = menu('panda express beijing beef broccoli beef plate');
+    expect(r.hits[0].item.id).toBe('pe_beijing_beef_broccoli_beef_plate');
+    // Beijing Beef (470) + Broccoli Beef (150) + Chow Mein (600)
+    expect(r.hits[0].item.nutrition.calories).toBe(1220);
+  });
+
+  it('is nutrition-only: no ingredient text anywhere, and no slots/add-ons fabricated from an empty catalog', () => {
+    const items = MENU_ITEMS.filter(i => i.chainId === 'panda_express');
+    for (const item of items) {
+      for (const c of item.components) expect(c.ingredientText).toBeNull();
+      expect(item.slots ?? []).toEqual([]);
+      expect(item.addOnIds ?? []).toEqual([]);
+    }
+  });
+});
+
 describe('menuItemGlance — browser pills', () => {
   it('reflects base verdicts on the standard build', () => {
     const g = menuItemGlance(getMenuItem('cfa_spicy_deluxe')!);

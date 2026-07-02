@@ -9,14 +9,15 @@ import { JIMMY_JOHNS, JIMMY_JOHNS_ITEMS } from './jimmy-johns';
 import { JIMMY_JOHNS_CATALOG } from './jimmy-johns-catalog';
 import { SUBWAY, SUBWAY_ITEMS } from './subway';
 import { SUBWAY_CATALOG } from './subway-catalog';
+import { PANDA_EXPRESS, PANDA_EXPRESS_ITEMS } from './panda-express';
 
 export const CHAINS: RestaurantChain[] = [
-  CHICK_FIL_A, CULVERS, DAIRY_QUEEN, PANERA, JIMMY_JOHNS, SUBWAY,
+  CHICK_FIL_A, CULVERS, DAIRY_QUEEN, PANERA, JIMMY_JOHNS, SUBWAY, PANDA_EXPRESS,
 ];
 
 export const MENU_ITEMS: MenuItem[] = [
   ...CHICK_FIL_A_ITEMS, ...CULVERS_ITEMS, ...DAIRY_QUEEN_ITEMS, ...PANERA_ITEMS,
-  ...JIMMY_JOHNS_ITEMS, ...SUBWAY_ITEMS,
+  ...JIMMY_JOHNS_ITEMS, ...SUBWAY_ITEMS, ...PANDA_EXPRESS_ITEMS,
 ];
 
 export const CATALOG: CatalogComponent[] = [
