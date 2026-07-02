@@ -183,6 +183,29 @@ describe('swap and add math (spec 006 M2)', () => {
   });
 });
 
+describe('Subway cheese slot (no default — add-only)', () => {
+  const veggieDelite = getMenuItem('sub_veggie_delite')!;
+
+  it('adding a cheese option adds its published nutrition and ingredients — exactly', () => {
+    // Veggie Delite ships with no cheese by default; adding Pepper Jack is a
+    // pure addition (no default component to remove first).
+    const adj = adjustedNutrition(veggieDelite, [], ['sub_pepper_jack']);
+    expect(adj.computed).toBe(true);
+    expect(adj.nutrition.calories).toBe(320 + 100);
+    expect(adj.nutrition.sodium).toBe(600 + 480);
+
+    const before = matchByIngredientText(effectiveIngredientText(veggieDelite, [], []));
+    const after = matchByIngredientText(effectiveIngredientText(veggieDelite, [], ['sub_pepper_jack']));
+    expect(after.length).toBeGreaterThanOrEqual(before.length);
+  });
+
+  it('clearing the cheese addition returns exactly to as-published', () => {
+    const adj = adjustedNutrition(veggieDelite, [], []);
+    expect(adj.computed).toBe(false);
+    expect(adj.nutrition).toEqual(veggieDelite.nutrition);
+  });
+});
+
 describe('Dairy Queen Blizzard mix-in slot (spec 004 M2 batch)', () => {
   const oreoBlizzard = getMenuItem('dq_oreo_blizzard_medium')!;
 

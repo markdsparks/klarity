@@ -7,15 +7,20 @@ import { DAIRY_QUEEN_CATALOG } from './dairy-queen-catalog';
 import { PANERA, PANERA_ITEMS } from './panera';
 import { JIMMY_JOHNS, JIMMY_JOHNS_ITEMS } from './jimmy-johns';
 import { JIMMY_JOHNS_CATALOG } from './jimmy-johns-catalog';
+import { SUBWAY, SUBWAY_ITEMS } from './subway';
+import { SUBWAY_CATALOG } from './subway-catalog';
 
-export const CHAINS: RestaurantChain[] = [CHICK_FIL_A, CULVERS, DAIRY_QUEEN, PANERA, JIMMY_JOHNS];
+export const CHAINS: RestaurantChain[] = [
+  CHICK_FIL_A, CULVERS, DAIRY_QUEEN, PANERA, JIMMY_JOHNS, SUBWAY,
+];
 
 export const MENU_ITEMS: MenuItem[] = [
-  ...CHICK_FIL_A_ITEMS, ...CULVERS_ITEMS, ...DAIRY_QUEEN_ITEMS, ...PANERA_ITEMS, ...JIMMY_JOHNS_ITEMS,
+  ...CHICK_FIL_A_ITEMS, ...CULVERS_ITEMS, ...DAIRY_QUEEN_ITEMS, ...PANERA_ITEMS,
+  ...JIMMY_JOHNS_ITEMS, ...SUBWAY_ITEMS,
 ];
 
 export const CATALOG: CatalogComponent[] = [
-  ...CHICK_FIL_A_CATALOG, ...DAIRY_QUEEN_CATALOG, ...JIMMY_JOHNS_CATALOG,
+  ...CHICK_FIL_A_CATALOG, ...DAIRY_QUEEN_CATALOG, ...JIMMY_JOHNS_CATALOG, ...SUBWAY_CATALOG,
 ];
 
 export function getChain(id: string): RestaurantChain | undefined {

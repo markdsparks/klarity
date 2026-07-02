@@ -169,6 +169,26 @@ describe('searchRestaurant — Panera Bread (nutrition-only chain)', () => {
   });
 });
 
+describe('searchRestaurant — Subway (build-your-own, full coverage)', () => {
+  it('chain alias resolves to the full Subway menu', () => {
+    const r = menu('subway');
+    expect(r.chain.id).toBe('subway');
+    expect(r.filtered).toBe(false);
+    expect(r.hits.length).toBe(MENU_ITEMS.filter(i => i.chainId === 'subway').length);
+  });
+
+  it('an item alias resolves and narrows the list', () => {
+    const r = menu('subway veggie delite');
+    expect(r.hits[0].item.id).toBe('sub_veggie_delite');
+  });
+
+  it('a modifier phrase annotates the top hit ("no onions")', () => {
+    const r = menu('subway tuna no onions');
+    expect(r.hits[0].item.id).toBe('sub_tuna');
+    expect(r.hits[0].removedIds).toEqual(['onion']);
+  });
+});
+
 describe("Jimmy John's — chain-specific search sanity (spec 004 M2)", () => {
   it('chain alias resolves to the full menu', () => {
     const r = menu('jimmy johns');
