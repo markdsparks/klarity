@@ -59,21 +59,21 @@ describe('matchByETags', () => {
   // ── regulatory-status additives (EFSA OpenFoodTox, spec 002) ──────────────────
 
   it('returns a regulatory-status entry for an EFSA-classified, unauthored E-number', () => {
-    // E100 (curcumin) is EFSA-classified as a food additive but not hand-authored
-    const { matched, regulatory, unknown } = matchByETags(['en:e100']);
+    // E101 (riboflavin) is EFSA-classified as a food additive but not hand-authored
+    const { matched, regulatory, unknown } = matchByETags(['en:e101']);
     expect(matched).toHaveLength(0);
     expect(unknown).toHaveLength(0);
     expect(regulatory).toHaveLength(1);
     expect(regulatory[0]).toMatchObject({
-      eNumber: 'E100',
-      name: 'Curcumin',
+      eNumber: 'E101',
+      name: 'Riboflavin',
       adi: null,
       sourceLabel: 'EFSA OpenFoodTox v3.0',
     });
   });
 
   it('deduplicates regulatory entries appearing twice', () => {
-    const { regulatory } = matchByETags(['en:e100', 'en:e100']);
+    const { regulatory } = matchByETags(['en:e101', 'en:e101']);
     expect(regulatory).toHaveLength(1);
   });
 
@@ -107,9 +107,9 @@ describe('matchByETags', () => {
   });
 
   it('separates matched, regulatory, and unknown correctly in a mixed tag list', () => {
-    const { matched, regulatory, unknown } = matchByETags(['en:e250', 'en:e100', 'en:e107']);
+    const { matched, regulatory, unknown } = matchByETags(['en:e250', 'en:e101', 'en:e107']);
     expect(matched).toEqual(['nitrite']);
-    expect(regulatory.map(r => r.eNumber)).toEqual(['E100']);
+    expect(regulatory.map(r => r.eNumber)).toEqual(['E101']);
     expect(unknown.map(u => u.eNumber)).toEqual(['E107']);
   });
 
