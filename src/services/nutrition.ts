@@ -239,14 +239,24 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
     nutrientDense && satFatDv >= 10 && satFatDv < SATFAT_BUDGET_CEILING &&
     !transWarn && !sugarHigh && !sodiumHigh;
 
-  const highItems: string[] = [];
-  const highNutrients: string[] = [];   // short labels, for the Layer 1 verdict sentence
-  if (transWarn) { highItems.push(`trans fat (${sn.transFat!.toFixed(1)} g)`); highNutrients.push('trans fat'); }
-  if (sugarHigh)  { highItems.push(`${sugarLabel} (${sugarDvBasis}% DV)`); highNutrients.push(sugarLabel); }
-  if (sodiumHigh) { highItems.push(`sodium (${sodiumDv}% DV)`); highNutrients.push('sodium'); }
-  if (satFatHigh && !satFatBudget) { highItems.push(`sat fat (${satFatDv}% DV)`); highNutrients.push('sat fat'); }
-  if (highItems.length > 0) {
-    return { tone: 'warn', summary: `High in ${highItems.join(' and ')}`, profileNotes, contextLines, highNutrients, satFatBudget: false };
+  // Order high items by how far each exceeds its own threshold, so the biggest
+  // offender leads the headline (a 3× sodium product shouldn't read "sugar and
+  // sodium" just because of list order). Trans fat always leads regardless — it
+  // has no safe level, so severity isn't a %DV comparison.
+  type Hi = { label: string; short: string; over: number };
+  const his: Hi[] = [];
+  if (sugarHigh)  his.push({ label: `${sugarLabel} (${sugarDvBasis}% DV)`, short: sugarLabel, over: sugarDvBasis / t.sugar });
+  if (sodiumHigh) his.push({ label: `sodium (${sodiumDv}% DV)`, short: 'sodium', over: sodiumDv / t.sodium });
+  if (satFatHigh && !satFatBudget) his.push({ label: `sat fat (${satFatDv}% DV)`, short: 'sat fat', over: satFatDv / t.satFat });
+  his.sort((a, b) => b.over - a.over);
+  if (transWarn) his.unshift({ label: `trans fat (${sn.transFat!.toFixed(1)} g)`, short: 'trans fat', over: Infinity });
+
+  if (his.length > 0) {
+    return {
+      tone: 'warn',
+      summary: `High in ${his.map(h => h.label).join(' and ')}`,
+      profileNotes, contextLines, highNutrients: his.map(h => h.short), satFatBudget: false,
+    };
   }
 
   // A nutrient-dense food whose lone concern is budgetable sat fat — good/ok, never warn,
@@ -275,12 +285,14 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
     return { tone: 'ok', summary: summary.charAt(0).toUpperCase() + summary.slice(1), profileNotes, contextLines, highNutrients: [], satFatBudget: false };
   }
 
-  const modItems: string[] = [];
-  if (sugarDvBasis >= 10) modItems.push(sugarLabel);
-  if (sodiumDv >= 10) modItems.push('sodium');
-  if (satFatDv >= 10) modItems.push('sat fat');
-  if (modItems.length > 0) {
-    return { tone: 'ok', summary: `Moderate ${modItems.join(', ')} — frequency matters`, profileNotes, contextLines, highNutrients: [], satFatBudget: false };
+  // Same biggest-first ordering as the warn line (all share the 10% moderate floor).
+  const mods: { label: string; dv: number }[] = [];
+  if (sugarDvBasis >= 10) mods.push({ label: sugarLabel, dv: sugarDvBasis });
+  if (sodiumDv >= 10) mods.push({ label: 'sodium', dv: sodiumDv });
+  if (satFatDv >= 10) mods.push({ label: 'sat fat', dv: satFatDv });
+  mods.sort((a, b) => b.dv - a.dv);
+  if (mods.length > 0) {
+    return { tone: 'ok', summary: `Moderate ${mods.map(m => m.label).join(', ')} — frequency matters`, profileNotes, contextLines, highNutrients: [], satFatBudget: false };
   }
 
   return { tone: 'good', summary: 'Clean nutrition per serving', profileNotes, contextLines, highNutrients: [], satFatBudget: false };

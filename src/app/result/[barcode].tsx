@@ -14,6 +14,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { matchByETags } from '@/data/additive-index';
 import { matchByIngredientText } from '@/data/ingredient-text-index';
 import { ADDITIVES } from '@/data/additives';
+import { explainerForLine, getExplainer, type NutritionExplainer } from '@/data/nutrition-explainers';
+import { ExplainerSheet } from '@/components/explainer-sheet';
 import { DEFAULT_PROFILE, useProfile } from '@/hooks/use-profile';
 import { fetchProduct } from '@/services/off';
 import {
@@ -106,6 +108,7 @@ export default function ResultScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useProfile();
   const [state, setState] = useState<State>({ status: 'loading' });
+  const [explainer, setExplainer] = useState<NutritionExplainer | null>(null);
 
   useEffect(() => {
     if (!barcode) return;
@@ -416,12 +419,20 @@ export default function ResultScreen() {
             </View>
           </View>
           <Text style={styles.nutritionSummary}>{nutrition.summary}</Text>
-          {nutrition.contextLines.map(line => (
-            <View key={line} style={styles.contextRow}>
-              <Text style={styles.contextBullet}>·</Text>
-              <Text style={styles.contextText}>{line}</Text>
-            </View>
-          ))}
+          {nutrition.contextLines.map(line => {
+            const exp = explainerForLine(line);
+            return (
+              <Pressable
+                key={line}
+                style={styles.contextRow}
+                disabled={!exp}
+                onPress={exp ? () => setExplainer(exp) : undefined}>
+                <Text style={styles.contextBullet}>·</Text>
+                <Text style={[styles.contextText, exp && styles.contextTextLink]}>{line}</Text>
+                {exp ? <Text style={styles.contextWhy}>Why?</Text> : null}
+              </Pressable>
+            );
+          })}
           {nutrition.profileNotes.map(note => (
             <View key={note} style={styles.profileNoteBanner}>
               <Text style={styles.profileNoteLabel}>FOR YOU</Text>
@@ -452,12 +463,16 @@ export default function ResultScreen() {
           <NutrientRow label="Sodium"        value={sn.sodium}   unit="g" dvPct={sn.sodiumDv}  highlight={sn.sodiumDv != null && sn.sodiumDv >= thresholds.sodium ? 'warn' : null} />
           <NutrientRow label="Potassium"     value={sn.potassium} unit="g" dvPct={sn.potassiumDv} highlight={sn.potassiumDv != null && sn.potassiumDv >= 10 ? 'good' : null} sub />
           {personalizedRef && (
-            <Text style={styles.refFootnote}>
-              * Fiber &amp; protein %DV use your reference intake (sex/age), not the generic label value.
-            </Text>
+            <Pressable onPress={() => setExplainer(getExplainer('personalized_reference'))}>
+              <Text style={styles.refFootnote}>
+                * Fiber &amp; protein %DV use your reference intake (sex/age), not the generic label value. <Text style={styles.contextTextLink}>Why?</Text>
+              </Text>
+            </Pressable>
           )}
         </View>
       </View>
+
+      <ExplainerSheet explainer={explainer} onClose={() => setExplainer(null)} />
     </ScrollView>
   );
 }
@@ -724,9 +739,11 @@ const styles = StyleSheet.create({
   toneTagText: { fontSize: 11.5, fontWeight: '800' },
   nutritionSummary: { fontSize: 13, color: '#5b6675', lineHeight: 19, marginBottom: 6 },
 
-  contextRow:    { flexDirection: 'row', gap: 6, paddingLeft: 2, marginBottom: 4 },
+  contextRow:    { flexDirection: 'row', gap: 6, paddingLeft: 2, marginBottom: 4, alignItems: 'flex-start' },
   contextBullet: { fontSize: 13, color: '#9fadbf', lineHeight: 18 },
   contextText:   { flex: 1, fontSize: 12.5, color: '#6b7787', lineHeight: 18 },
+  contextTextLink: { color: '#1f9d6b', fontWeight: '600' },
+  contextWhy:    { fontSize: 12, color: '#1f9d6b', fontWeight: '700' },
   refFootnote:   { fontSize: 11, color: '#9fadbf', lineHeight: 16, marginTop: 8 },
 
   nutrientRow: {

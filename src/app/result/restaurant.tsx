@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { matchByIngredientText } from '@/data/ingredient-text-index';
 import { ADDITIVES } from '@/data/additives';
+import { explainerForLine, type NutritionExplainer } from '@/data/nutrition-explainers';
+import { ExplainerSheet } from '@/components/explainer-sheet';
 import { getChain, getMenuItem } from '@/data/restaurants';
 import { useProfile } from '@/hooks/use-profile';
 import { referenceValues, toneNutrition } from '@/services/nutrition';
@@ -43,6 +45,7 @@ const VERDICT_PILL: Record<VerdictKey, { bg: string; fg: string; label: string }
 export default function RestaurantResultScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useProfile();
+  const [explainer, setExplainer] = useState<NutritionExplainer | null>(null);
   const params = useLocalSearchParams<{ item: string; remove?: string }>();
 
   const item = params.item ? getMenuItem(params.item) : undefined;
@@ -204,9 +207,16 @@ export default function RestaurantResultScreen() {
           </View>
 
           <Text style={styles.nutritionSummary}>{nutrition.summary}</Text>
-          {nutrition.contextLines.map(line => (
-            <Text key={line} style={styles.contextLine}>· {line}</Text>
-          ))}
+          {nutrition.contextLines.map(line => {
+            const exp = explainerForLine(line);
+            return (
+              <Pressable key={line} disabled={!exp} onPress={exp ? () => setExplainer(exp) : undefined}>
+                <Text style={styles.contextLine}>
+                  · {line}{exp ? <Text style={styles.contextLink}>  Why?</Text> : null}
+                </Text>
+              </Pressable>
+            );
+          })}
           {nutrition.profileNotes.map(line => (
             <Text key={line} style={styles.profileNote}>{line}</Text>
           ))}
@@ -239,6 +249,8 @@ export default function RestaurantResultScreen() {
           </Text>
         </View>
       </View>
+
+      <ExplainerSheet explainer={explainer} onClose={() => setExplainer(null)} />
     </ScrollView>
   );
 }
@@ -295,6 +307,7 @@ const styles = StyleSheet.create({
 
   nutritionSummary: { fontSize: 15, fontWeight: '600', color: '#1b2330', marginBottom: 4, lineHeight: 21 },
   contextLine: { fontSize: 13, color: '#5a6472', lineHeight: 19 },
+  contextLink: { color: '#1f9d6b', fontWeight: '700' },
   nutritionRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#eef0f3', marginTop: 2,
