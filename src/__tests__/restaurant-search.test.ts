@@ -122,6 +122,24 @@ describe('searchRestaurant — progressive search (spec 006)', () => {
   });
 });
 
+describe('searchRestaurant — Dairy Queen (spec 004 M2 batch)', () => {
+  it('chain alias resolves and opens the full menu', () => {
+    const r = menu('dairy queen');
+    expect(r.chain.id).toBe('dairy_queen');
+    expect(r.filtered).toBe(false);
+    expect(r.hits.length).toBe(MENU_ITEMS.filter(i => i.chainId === 'dairy_queen').length);
+  });
+
+  it('the short "dq" alias also resolves the chain', () => {
+    expect(menu('dq oreo blizzard').hits[0].item.id).toBe('dq_oreo_blizzard_medium');
+  });
+
+  it('an item alias resolves to the right menu item', () => {
+    expect(menu('dairy queen cheeseburger').hits[0].item.id).toBe('dq_cheeseburger');
+    expect(menu('dairy queen classic hot dog').hits[0].item.id).toBe('dq_classic_hot_dog');
+  });
+});
+
 describe('menuItemGlance — browser pills', () => {
   it('reflects base verdicts on the standard build', () => {
     const g = menuItemGlance(getMenuItem('cfa_spicy_deluxe')!);
