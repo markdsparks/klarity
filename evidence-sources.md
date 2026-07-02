@@ -12,7 +12,7 @@ The layered model from data-sources.md stands without change. No source evaluate
 |---|---|---|---|
 | 1. Whole foods | USDA FDC Foundation + SR Legacy | Lab-grade nutrients, gold standard | Public domain |
 | 2. Barcode/packaged | Open Food Facts (primary) | 4.56M products, US breadth | ODbL ⚠️ |
-| 3. Restaurant | MenuStat → Nutritionix | Chain menus | Free / commercial |
+| 3. Restaurant | Direct per-chain ingestion (mandated FDA disclosure) — see [restaurant-data-playbook.md](docs/restaurant-data-playbook.md) | Chain menus | Public domain |
 | 4. Recipes | FDC + FNDDS portions | Ingredient math, gram weights | Public domain |
 
 **One addition worth noting:** FooDB (foodb.ca) covers 28,000+ food chemicals including phytonutrients not in FDC — useful later for positive-signal ingredients (polyphenols, flavonoids) but it's **non-commercial only (CC-BY-NC 4.0)**, so flag before any commercial pivot.
