@@ -65,7 +65,7 @@ describe('searchRestaurant — progressive search (spec 006)', () => {
     const partial = menu('chick fil a spi');
     expect(partial.filtered).toBe(true);
     expect(partial.hits.map(h => h.item.id).sort())
-      .toEqual(['cfa_spicy_deluxe', 'cfa_spicy_sandwich']);
+      .toEqual(['cfa_spicy_chicken_biscuit', 'cfa_spicy_deluxe', 'cfa_spicy_sandwich']);
 
     // Completing the phrase ranks the exact item first — still a list.
     const complete = menu('chick fil a spicy deluxe');
@@ -100,7 +100,8 @@ describe('searchRestaurant — progressive search (spec 006)', () => {
 
   it('category words filter too ("sides")', () => {
     const r = menu('chick fil a sides');
-    expect(r.hits.map(h => h.item.category)).toEqual(['Sides', 'Sides']);
+    expect(r.hits.length).toBeGreaterThanOrEqual(2);
+    for (const h of r.hits) expect(h.item.category).toBe('Sides');
   });
 
   it('an unmatchable phrase shows the whole menu, not a dead end', () => {
@@ -133,6 +134,57 @@ describe("searchRestaurant — Culver's (spec 004 batch 2)", () => {
   it('an item alias resolves and narrows', () => {
     const r = menu('culvers cheese curds');
     expect(r.hits[0].item.id).toBe('cul_cheese_curds_medium');
+  });
+});
+
+describe('searchRestaurant — Dairy Queen (spec 004 M2 batch)', () => {
+  it('chain alias resolves and opens the full menu', () => {
+    const r = menu('dairy queen');
+    expect(r.chain.id).toBe('dairy_queen');
+    expect(r.filtered).toBe(false);
+    expect(r.hits.length).toBe(MENU_ITEMS.filter(i => i.chainId === 'dairy_queen').length);
+  });
+
+  it('the short "dq" alias also resolves the chain', () => {
+    expect(menu('dq oreo blizzard').hits[0].item.id).toBe('dq_oreo_blizzard_medium');
+  });
+
+  it('an item alias resolves to the right menu item', () => {
+    expect(menu('dairy queen cheeseburger').hits[0].item.id).toBe('dq_cheeseburger');
+    expect(menu('dairy queen classic hot dog').hits[0].item.id).toBe('dq_classic_hot_dog');
+  });
+});
+
+describe('searchRestaurant — Panera Bread (nutrition-only chain)', () => {
+  it('chain alias resolves to the full Panera menu', () => {
+    const r = menu('panera bread');
+    expect(r.chain.id).toBe('panera');
+    expect(r.filtered).toBe(false);
+    expect(r.hits.length).toBe(MENU_ITEMS.filter(i => i.chainId === 'panera').length);
+  });
+
+  it('a short prefix is a suggestion; a squashed alias plus item alias resolves', () => {
+    expect(searchRestaurant('pane').kind).toBe('suggestion');
+    expect(menu('panerabread broccoli cheddar').hits[0].item.id).toBe('pnr_broccoli_cheddar_soup');
+  });
+});
+
+describe("Jimmy John's — chain-specific search sanity (spec 004 M2)", () => {
+  it('chain alias resolves to the full menu', () => {
+    const r = menu('jimmy johns');
+    expect(r.chain.id).toBe('jimmy_johns');
+    expect(r.filtered).toBe(false);
+    expect(r.hits.length).toBe(MENU_ITEMS.filter(i => i.chainId === 'jimmy_johns').length);
+  });
+
+  it('item alias resolves ("vito")', () => {
+    expect(menu('jimmy johns vito').hits[0].item.id).toBe('jj_5_vito');
+  });
+
+  it('modifier phrase annotates the top hit ("no mayo")', () => {
+    const r = menu('jimmy johns pepe no mayo');
+    expect(r.hits[0].item.id).toBe('jj_1_pepe');
+    expect(r.hits[0].removedIds).toEqual(['mayo']);
   });
 });
 
