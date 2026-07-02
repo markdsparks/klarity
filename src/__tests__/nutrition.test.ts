@@ -345,3 +345,38 @@ describe('toneNutrition — whole-food sugar matrix exemption (spec 007)', () =>
     expect(flagged.summary).toContain('sugar (24% DV)');
   });
 });
+
+describe('toneNutrition — sugar-basis disclosure (spec 008 M1)', () => {
+  it('added-sugar data present → added-known, with the confirmation line', () => {
+    const r = toneNutrition(nutrients({ sugarDv: 40, addedSugarDv: 40 }), profileWith());
+    expect(r.sugarBasis).toBe('added-known');
+    expect(r.contextLines).toContain('Scored on added sugar from the label');
+  });
+
+  it('no added-sugar data + material total sugar → total-only, with the "scored full to be safe" line', () => {
+    const r = toneNutrition(nutrients({ sugarDv: 22 }), profileWith()); // addedSugarDv undefined
+    expect(r.sugarBasis).toBe('total-only');
+    expect(r.contextLines.some(l => l.includes('scored the full amount to be safe'))).toBe(true);
+  });
+
+  it('whole-food matrix flag → whole-food basis, with the matrix line', () => {
+    const r = toneNutrition(nutrients({ sugarDv: 24 }), profileWith(), { wholeFoodSugarMatrix: true });
+    expect(r.sugarBasis).toBe('whole-food');
+    expect(r.contextLines.some(l => l.includes('packaged in whole fruit'))).toBe(true);
+  });
+
+  it('trivial sugar → negligible, no disclosure line', () => {
+    const r = toneNutrition(nutrients({ sugarDv: 4 }), profileWith());
+    expect(r.sugarBasis).toBe('negligible');
+    expect(r.contextLines.some(l => /added sugar from the label|scored the full amount|packaged in whole fruit/.test(l))).toBe(false);
+  });
+
+  it('the disclosure is provenance only — it never changes the tone', () => {
+    // total-only vs a hypothetical added-known at the same total: tone identical
+    const totalOnly = toneNutrition(nutrients({ sugarDv: 22 }), profileWith());
+    const addedKnown = toneNutrition(nutrients({ sugarDv: 22, addedSugarDv: 22 }), profileWith());
+    expect(totalOnly.tone).toBe(addedKnown.tone); // both warn on 22% — basis differs, verdict doesn't
+    expect(totalOnly.sugarBasis).toBe('total-only');
+    expect(addedKnown.sugarBasis).toBe('added-known');
+  });
+});
