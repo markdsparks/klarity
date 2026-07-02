@@ -282,13 +282,45 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
     ],
   },
   {
-    id: 'cfa_fruit_cup',
+    id: 'cfa_fruit_cup_sm',
     chainId: 'chick_fil_a',
     category: 'Sides',
-    name: 'Fruit Cup',
-    aliases: ['fruit cup', 'side fruit cup'],
-    serving: 'per cup',
+    name: 'Fruit Cup (small)',
+    aliases: ['fruit cup', 'side fruit cup', 'small fruit cup'],
+    serving: 'per small cup',
+    nutrition: { calories: 60, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 14, sugars: 11, fiber: 2, protein: 1 },
+    components: [
+      {
+        id: 'fruit_cup', name: 'Mixed fruit', removable: false,
+        ingredientText: 'Red & green apples (with calcium ascorbate to promote color retention and maintain texture), mandarin oranges (water, sugar, citric acid), blueberries, strawberries.',
+        nutrition: null,
+      },
+    ],
+  },
+  {
+    id: 'cfa_fruit_cup_md',
+    chainId: 'chick_fil_a',
+    category: 'Sides',
+    name: 'Fruit Cup (medium)',
+    aliases: ['fruit cup', 'side fruit cup', 'medium fruit cup'],
+    serving: 'per medium cup',
     nutrition: { calories: 70, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 16, sugars: 12, fiber: 2, protein: 1 },
+    components: [
+      {
+        id: 'fruit_cup', name: 'Mixed fruit', removable: false,
+        ingredientText: 'Red & green apples (with calcium ascorbate to promote color retention and maintain texture), mandarin oranges (water, sugar, citric acid), blueberries, strawberries.',
+        nutrition: null,
+      },
+    ],
+  },
+  {
+    id: 'cfa_fruit_cup_lg',
+    chainId: 'chick_fil_a',
+    category: 'Sides',
+    name: 'Fruit Cup (large)',
+    aliases: ['fruit cup', 'side fruit cup', 'large fruit cup'],
+    serving: 'per large cup',
+    nutrition: { calories: 120, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 28, sugars: 21, fiber: 4, protein: 1 },
     components: [
       {
         id: 'fruit_cup', name: 'Mixed fruit', removable: false,
