@@ -1,168 +1,200 @@
-# Spec 007 — Intrinsic Produce Sugar Exemption
+# Spec 007 — Whole-Food Sugar Matrix Exemption
 
-**Status:** approved (2026-07-02) — Q1 human-reviewed flag; Q2 full exemption;
-Q3 blood_sugar note unaffected; Q4 Fruit Cup only for v1
+**Status:** REVISED draft (2026-07-02) — reframes the shipped v1 from *origin*
+("intrinsic/natural sugar") to *matrix* ("intact whole-food solid form").
+Awaiting approval to implement the migration. v1 (origin-based) is live on
+`main`; this revision corrects its rationale and closes a latent loophole
+without changing the Fruit Cup outcome.
 **Phase:** nutrition axis correction (extends spec 003 / docs/nutrition-evidence.md)
 **Surface:** `src/services/nutrition.ts` (`toneNutrition`), `src/types/restaurant.ts`
-(`MenuItem`), restaurant data files, `src/data/nutrition-explainers.ts`
-**Depends on:** existing sugar-tone machinery (`sugarBasisDv`, the fiber/protein
-sugar offset, `docs/nutrition-evidence.md`)
+(`MenuItem`), restaurant data files, `src/data/nutrition-explainers.ts`,
+`docs/nutrition-evidence.md`
 
 ---
 
-## Why
+## Why this was revised
 
-Device testing surfaced this: Chick-fil-A's Fruit Cup (70 cal, 16g carbs, 12g
-sugar, 2g fiber) gets a **"Watch" nutrition tone — "High in sugar (24% DV)"** —
-while simultaneously showing the context line **"Clears the 1:10 fiber-to-carb
-whole-grain bar"**, a positive carb-quality signal. The two lines read as
-contradictory, and the contradiction points at a real gap, not just confusing
-copy.
+v1 shipped a `MenuItem.intrinsicSugarOnly` flag that exempted whole-fruit items
+(the Chick-fil-A Fruit Cup) from the sugar tone, on the rationale that their
+sugar is *intrinsic/natural* rather than *added*. Mark challenged the premise:
+is "added vs. intrinsic" actually a scientific distinction, or does it just
+*feel* right? Research says he's half right, in the half that matters:
 
-**The mechanism:** `nutrition-evidence.md`'s own evidence citation for the
-sugar rule already says the WHO/AHA guidance this app enforces is about *added*
-sugar and explicitly excludes "intrinsic sugars in fruit/dairy." But restaurant
-menu data (`MandatedNutrition`, the 21 CFR 101.11 shape) has **no added-sugar
-field at all** — chains aren't required to publish that split the way packaged
-nutrition labels are. So `sugarBasisDv()` falls back to total sugar and scores
-it against the same 50g-added-sugar bar, which means a fruit cup's naturally
-occurring sugar gets penalized under a guideline that was never about it.
+**The molecule is identical, and origin is not the real variable.** A
+glucose/fructose molecule from fruit is biochemically indistinguishable from
+one added to food; all carbohydrate follows the same metabolic pathway. The
+review that asks exactly this question ("Are all sugars equal?", Eur J Nutr
+2024) concludes there is "little difference between sugar sources" at the
+molecular level. So exempting sugar because it is *natural* is not defensible —
+that framing is the feel-good bias, not the science.
 
-The existing offset (fiber or protein ≥20% DV softens a high-sugar flag) can't
-catch this: a 70-calorie fruit portion will basically never reach 5.6g of fiber
-(20% DV), even though its fiber-to-carb *ratio* is excellent. That ratio is
-already computed and displayed — it's just wired as informational-only, so it
-can never actually resolve the contradiction it's sitting next to.
+**The real driver is the food matrix and physical form.** Whole fruit delivers
+that identical sugar inside intact cell walls, with fiber, polyphenols, water,
+and in solid form — which slow absorption, blunt glycemic response, and raise
+satiety. The proof that *matrix, not origin* is the variable: WHO classifies
+100%-natural fruit **juice** as "free sugar," right alongside added sugar,
+because juicing destroys the matrix. Mortality data splits the same way — free
+sugars from *liquids* track with all-cause mortality; from *solids*, barely.
+Whole-fruit intake tracks with neutral-to-lower T2D risk; fruit juice with
+higher risk (~23% lower vs. ~21% higher, Harvard cohorts) — same "natural"
+sugar, opposite outcomes.
 
-**Why not just let the 1:10 ratio offset the tone generally** (the tempting
-one-line fix)? Because that would also soften a fiber-fortified sugary cereal
-that "clears the bar" by adding a few grams of isolated fiber to a mostly-added-sugar
-product — trading a false positive (whole fruit flagged) for a false negative
-(processed sugar under-flagged), which is the worse failure mode. The fix needs
-to be about *what kind of sugar this is*, not *how much fiber sits next to it*.
+**Consequence for our code:** v1 lands on the right answer for the Fruit Cup but
+via the wrong rule, and the wrong rule has a live loophole. Keyed on
+"intrinsic/natural," a **smoothie, juice, syrup-packed fruit cup, or a
+date-paste-sweetened "natural" bar** would all wrongly qualify — natural in
+origin, but liquid or matrix-destroyed. That is exactly the false-negative
+failure mode Klarity exists to avoid (a quiet undeserved pass). This revision
+re-keys the exemption on the matrix so the Fruit Cup still passes and those
+items correctly do not.
 
-## The fix: a reviewed, per-item classification — not an ingredient-text heuristic
+## Sources
 
-`nutrition-evidence.md` explicitly rejects NOVA/ultra-processing scores
-("category boundaries are editorial, not analytical"). An automatic
-ingredient-text scanner that guesses "is this whole produce?" would be the same
-mistake on the nutrition axis. Instead, this follows the pattern the codebase
-already uses for `RestaurantChain.coverage` and `MenuComponent.nutritionBasis`:
-**an explicit, human-reviewed, narrowly-scoped field set at data-authoring
-time**, never inferred at runtime.
+- Are all sugars equal? Role of the food source (Eur J Nutr 2024) —
+  https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11329689/
+- WHO free-sugars guidance — https://www.who.int/tools/elena/interventions/free-sugars-adults-ncds
+- Whole fruit vs. juice & T2D, Harvard cohorts — https://pmc.ncbi.nlm.nih.gov/articles/PMC3978819/
+- Whole fruits vs. 100% juice review — https://pmc.ncbi.nlm.nih.gov/articles/PMC12398644/
+- EPIC-NL (fruit/juice & T2D after diet-quality adjustment; the confounding caveat)
+  — https://pmc.ncbi.nlm.nih.gov/articles/PMC7269751/
+
+**Honesty caveat carried into the evidence doc:** part of whole fruit's observed
+benefit is confounded (fruit eaters are healthier overall — EPIC-NL saw the
+association attenuate after adjusting for diet quality). But the *mechanistic*
+matrix evidence (glycemic response, satiety, apple-vs-apple-juice LDL) is from
+intervention studies, not just observation, so the matrix rationale stands on
+more than correlation.
+
+---
+
+## The field: matrix, not origin
 
 ```ts
-// src/types/restaurant.ts — MenuItem gains:
+// src/types/restaurant.ts — MenuItem (renames v1's intrinsicSugarOnly / basis):
 interface MenuItem {
   // ...existing fields...
-  // True only when this item's sugar is intrinsic to whole fruit/vegetable
-  // content, not added — WHO/AHA added-sugar guidance doesn't apply to it.
-  // Requires intrinsicSugarBasis. Human-reviewed at authoring time, never
-  // inferred from ingredient text (see docs/nutrition-evidence.md's rejection
-  // of NOVA-style processing scores — same discipline applies here).
-  intrinsicSugarOnly?: boolean;
-  intrinsicSugarBasis?: string;  // one-line justification, e.g. 'Mixed fresh
-                                  // fruit; canned mandarin oranges are a minor
-                                  // component of the mix, not the sugar driver'
+  // True only when this item's sugar is delivered in an intact whole-food
+  // solid matrix — whole/cut (not juiced, blended, or pureed) fruit or
+  // vegetable, with its fiber and cell structure substantially preserved.
+  // WHO/AHA added-sugar guidance is a proxy for exactly this matrix; the
+  // science shows physical form and matrix — NOT natural-vs-added origin —
+  // drive the health outcome (spec 007 sources). Human-reviewed at authoring
+  // time, never inferred from ingredient text (same discipline as the rejection
+  // of NOVA-style processing scores in docs/nutrition-evidence.md). Requires
+  // wholeFoodSugarBasis.
+  wholeFoodSugarMatrix?: boolean;
+  wholeFoodSugarBasis?: string;
 }
 ```
 
-Both fields present together or neither — same discipline as
-`nutritionBasis` requiring a `/published/i`-matching string. A menu item with
-any component whose primary character is added sugar (a fruit cup drowned in
-heavy syrup, a smoothie, lemonade) does not qualify, and that judgment is made
-once, by a human, at ingestion — not recomputed from ingredient text every scan.
+### Authoring criterion (the bright line the science draws)
 
-**Why this is naturally narrow in scope:** the gap only exists because
-`MandatedNutrition` (restaurant data) has no added-sugar field. USDA-sourced
-barcode products already report added sugar directly (FDA label requirement
-since 2020) — a bagged-apples product would show `addedSugar: 0` explicitly,
-not fall back to a proxy — so this spec's fix applies to restaurant items only.
-No OFF/USDA pipeline changes needed.
+Set `wholeFoodSugarMatrix: true` only when ALL hold:
 
-## Mechanism in `toneNutrition`
+1. **Solid**, eaten as a solid — not a drink, not drinkable-thin.
+2. **Intact or merely cut** — whole, sliced, or diced fruit/veg. Dicing leaves
+   cell walls substantially intact; **juicing, blending, or pureeing does not**
+   and disqualifies (this is the whole-fruit-vs-juice line).
+3. **Fiber-bearing** — the item still carries the fruit/veg's fiber.
+4. **Sugar is genuinely the whole food's own**, not a syrup/sweetener dominating
+   the item. A minor syrup-packed component in an otherwise-fresh mix is fine
+   (the Fruit Cup's canned mandarins); a heavy-syrup fruit cup or a
+   sweetener-sweetened "fruit" product is not.
+
+Explicitly **disqualified**, regardless of "natural" marketing: smoothies,
+juices, fruit-juice blends, purees/applesauce-with-added-sugar, dried fruit
+with added sugar, date-paste- or fruit-concentrate-sweetened bars.
+
+## Mechanism in `toneNutrition` (unchanged from v1 except the flag name)
 
 ```ts
 export function toneNutrition(
   sn: ServingNutrients,
   profile: Profile,
-  ctx?: { intrinsicSugarOnly?: boolean },
+  ctx?: { wholeFoodSugarMatrix?: boolean },
 ): NutritionAssessment
 ```
 
-- A new `sugarToneDvBasis = ctx?.intrinsicSugarOnly ? 0 : sugarDvBasis` replaces
-  `sugarDvBasis` everywhere it currently drives **tone or summary**: the
-  `sugarHigh` warn check, the `mods` moderate-tier check, and the sugar-offset
-  eligibility check. This means an intrinsic-sugar item can never land on
-  "high in sugar" or "moderate sugar" — not softened to 'ok', fully exempted,
-  matching the evidence citation's own claim that the guidance doesn't apply.
-- The **raw** `sugarDvBasis` is still used for:
-  - A new context line (informational, never moves tone) when it would have
-    been notable: *"24% DV sugar here is naturally occurring in whole fruit —
-    Why?"* linking a new explainer (see below). Users still see the number;
-    they're told why it isn't being held against the item.
-  - The **`blood_sugar` condition's profileNote is untouched.** That note is
-    about glycemic/net-carb impact, not the added-sugar policy guidance — fruit
-    sugar still raises blood glucose, so someone managing blood sugar still
-    needs the real number. This exemption is specifically about the
-    *added-sugar guidance*, not carbohydrate load.
-- `highNutrients` (feeds the Layer-1 plain-language sentence in
-  `verdict-sentence.ts`) naturally excludes 'sugar' for an exempted item since
-  it's built from the same `his` list gated by `sugarToneDvBasis`. The
-  top-line sentence and the nutrition card will finally agree.
+- `sugarToneDvBasis = ctx?.wholeFoodSugarMatrix ? 0 : sugarDvBasis`, replacing
+  raw `sugarDvBasis` everywhere it drives **tone or summary** (the `sugarHigh`
+  warn check, the `sugarOffset` eligibility, and the `mods` moderate-tier
+  check). A qualifying item can never land on "high in sugar" or "moderate
+  sugar" — full exemption (spec confirmed Q2), matching that the guidance is a
+  matrix proxy this item satisfies.
+- Raw `sugarDvBasis` is still used for:
+  - The context-only line, reworded to the matrix rationale:
+    *"24% DV sugar here comes packaged in whole fruit's fiber and structure —
+    Why?"* (never moves tone; number always shown).
+  - The **`blood_sugar` profileNote — untouched.** Glycemic load is real
+    regardless of matrix; someone managing blood sugar still gets the number
+    and net-carb framing. The exemption is about the added-sugar *guidance*,
+    not glucose impact.
+- `highNutrients` (Layer-1 sentence) excludes sugar for a qualifying item since
+  it derives from the same `sugarToneDvBasis`-gated list — card and headline
+  stay consistent.
 
-## New explainer
+## Explainer rewrite
 
-`src/data/nutrition-explainers.ts` gains `intrinsic_fruit_sugar`, matched on
-the new context line, citing the same WHO 2015 free-sugars guideline already
-referenced in `nutrition-evidence.md`'s existing sugar-rule row (which already
-asserts this exception — the code just didn't implement it for this case).
+`nutrition-explainers.ts`: retitle the entry from "Why we don't flag natural
+fruit sugar" to **"Why the form of sugar matters more than the source,"** body
+rewritten to the matrix/physical-form argument (not "natural = fine"), citing
+the Eur J Nutr review + WHO's own juice-is-free-sugar classification as the
+proof that origin isn't the variable. Matcher updates to the reworded context
+line ("packaged in whole fruit's fiber and structure").
 
-## Evidence table update
+## Evidence-doc rewrite
 
-`docs/nutrition-evidence.md` gets a new row:
+Replace v1's `intrinsicSugarOnly` row in `docs/nutrition-evidence.md` with a
+matrix-framed row, tier A, carrying the confounding caveat above, and citing
+the sources in this spec.
 
-| Rule | Basis | Tier |
-|---|---|---|
-| Restaurant items marked `intrinsicSugarOnly`: total sugar is exempted from the added-sugar tone/threshold entirely (context-only, never verdict-moving); `blood_sugar` condition note unaffected | WHO 2015 free-sugars guideline explicitly excludes sugars intrinsic to whole fruit/vegetables — same citation already used for the added-sugar rule above, applied to the one case (restaurant data, no added-sugar field) where the code didn't yet honor it | A (regulatory consensus) |
+## Migration (from shipped v1)
 
-## Rollout scope (v1)
+1. Rename type fields `intrinsicSugarOnly`→`wholeFoodSugarMatrix`,
+   `intrinsicSugarBasis`→`wholeFoodSugarBasis`.
+2. Rename the `toneNutrition` ctx key + both call sites
+   (`restaurant.tsx`, `menuItemGlance` in `restaurant-search.ts`).
+3. Re-flag the 3 Fruit Cup sizes under the new name; rewrite their basis string
+   to the matrix rationale ("diced fresh apples/berries + whole mandarin
+   segments; solid, fiber-bearing, cell structure intact — not juiced").
+4. Rewrite explainer entry + matcher, and the evidence-doc row.
+5. Update tests (`nutrition.test.ts` ctx key; `restaurant-search.test.ts`
+   invariant name) — behavior/assertions otherwise identical.
 
-Only Chick-fil-A's three Fruit Cup sizes qualify today. No other current menu
-item is whole-fruit-dominant enough to warrant the flag (sides across chains
-are otherwise fried, starchy, or dressed). Future chain content that includes
-genuine whole-fruit/vegetable sides (apple slices, a plain side salad without
-dressing) should be reviewed for the flag at authoring time, same as any other
-editorial field — not backfilled automatically.
+Pure rename + reframe: **no behavior change for any shipped item** (the Fruit
+Cup outcome is byte-identical), and no new items qualify. The value is a correct
+rule that generalizes safely and a defensible explanation.
 
-## Testing
+## Rollout scope
 
-- Unit: `toneNutrition` with `intrinsicSugarOnly: true` and sugar-basis ≥20%
-  DV never returns `tone: 'warn'` or `'ok'`-via-moderate driven by sugar;
-  `highNutrients` excludes sugar; a context line citing the exemption is
-  present.
-- Unit: `blood_sugar` condition's profileNote still fires correctly at the
-  same threshold regardless of `intrinsicSugarOnly`.
-- Unit: without the flag (default), behavior is byte-identical to today —
-  this is strictly additive, zero risk to every other item already shipped.
-- Data invariant: any `MenuItem` with `intrinsicSugarOnly: true` must have a
-  non-empty `intrinsicSugarBasis` (mirrors the existing `nutritionBasis`
-  invariant test pattern).
-- Device: Chick-fil-A Fruit Cup (any size) shows nutrition tone unaffected by
-  sugar (likely "good" or "moderate" on other nutrients only), with a
-  "naturally occurring in whole fruit" context line and working explainer.
+Still only the 3 Fruit Cup sizes today. The tighter criterion means future
+whole-fruit/veg sides (apple slices, undressed side salad) can qualify, while
+any juice/smoothie/blended item a chain adds is correctly excluded by rule, not
+by a per-item judgment call.
 
-## Decisions (recorded 2026-07-02)
+## Testing (delta from v1)
 
-- **Q1 — Field shape:** approved — `MenuItem.intrinsicSugarOnly: boolean` +
-  `intrinsicSugarBasis: string`, human-set at authoring time. Matches the
-  existing `coverage`/`nutritionBasis` pattern; no ingredient-text guessing.
-- **Q2 — Exemption strength:** approved — full exemption. Sugar is completely
-  removed from tone-driving math for flagged items; the context line still
-  surfaces the raw number so it's never hidden, just not held against the
-  verdict.
-- **Q3 — `blood_sugar` interaction:** confirmed unaffected — that profileNote
-  is about glycemic/net-carb impact, not the added-sugar policy guidance, and
-  fires on the raw number regardless of the flag.
-- **Q4 — Rollout scope:** just the Fruit Cup (3 sizes) for v1. Future
-  candidates reviewed case-by-case as content is added.
+- Rename-only for existing v1 tests; assertions unchanged (full exemption, sat
+  fat/sodium unaffected, blood_sugar note unaffected, unflagged regression
+  guard, data invariant requiring `wholeFoodSugarBasis`).
+- New guard test documenting the loophole this closes: a hypothetical
+  liquid/blended "natural sugar" item is NOT exempt — encoded as a comment +
+  assertion that the flag is what gates exemption, so the criterion lives in
+  the test suite, not just prose.
+- Device: Fruit Cup still reads "Good" with the reworded matrix context line
+  and updated explainer.
+
+## Decisions carried from v1 (unchanged)
+
+- Q1 human-reviewed flag (now matrix-named), never ingredient-text-inferred.
+- Q2 full exemption from sugar tone.
+- Q3 `blood_sugar` note unaffected.
+- Q4 Fruit Cup only for v1 rollout.
+
+## New decision for this revision
+
+- **Q5 — Naming:** `wholeFoodSugarMatrix` (recommended) as the flag name, vs.
+  keeping `intrinsicSugarOnly` for minimal churn. Recommended to rename: the
+  name is the rule's self-documentation, and the whole point of this revision
+  is that "intrinsic" was the wrong mental model. A rename is low-risk (one
+  feature, one chain, five call sites, fully test-covered).
