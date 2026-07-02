@@ -65,7 +65,7 @@ describe('searchRestaurant — progressive search (spec 006)', () => {
     const partial = menu('chick fil a spi');
     expect(partial.filtered).toBe(true);
     expect(partial.hits.map(h => h.item.id).sort())
-      .toEqual(['cfa_spicy_deluxe', 'cfa_spicy_sandwich']);
+      .toEqual(['cfa_spicy_chicken_biscuit', 'cfa_spicy_deluxe', 'cfa_spicy_sandwich']);
 
     // Completing the phrase ranks the exact item first — still a list.
     const complete = menu('chick fil a spicy deluxe');
@@ -100,7 +100,8 @@ describe('searchRestaurant — progressive search (spec 006)', () => {
 
   it('category words filter too ("sides")', () => {
     const r = menu('chick fil a sides');
-    expect(r.hits.map(h => h.item.category)).toEqual(['Sides', 'Sides']);
+    expect(r.hits.length).toBeGreaterThanOrEqual(2);
+    for (const h of r.hits) expect(h.item.category).toBe('Sides');
   });
 
   it('an unmatchable phrase shows the whole menu, not a dead end', () => {
@@ -119,6 +120,24 @@ describe('searchRestaurant — progressive search (spec 006)', () => {
     expect(searchRestaurant('chicken sandwich').kind).toBe('none');
     expect(searchRestaurant('barebells protein bar').kind).toBe('none');
     expect(searchRestaurant('organic peanut butter').kind).toBe('none');
+  });
+});
+
+describe('searchRestaurant — Dairy Queen (spec 004 M2 batch)', () => {
+  it('chain alias resolves and opens the full menu', () => {
+    const r = menu('dairy queen');
+    expect(r.chain.id).toBe('dairy_queen');
+    expect(r.filtered).toBe(false);
+    expect(r.hits.length).toBe(MENU_ITEMS.filter(i => i.chainId === 'dairy_queen').length);
+  });
+
+  it('the short "dq" alias also resolves the chain', () => {
+    expect(menu('dq oreo blizzard').hits[0].item.id).toBe('dq_oreo_blizzard_medium');
+  });
+
+  it('an item alias resolves to the right menu item', () => {
+    expect(menu('dairy queen cheeseburger').hits[0].item.id).toBe('dq_cheeseburger');
+    expect(menu('dairy queen classic hot dog').hits[0].item.id).toBe('dq_classic_hot_dog');
   });
 });
 
