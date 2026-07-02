@@ -36,6 +36,7 @@ export interface MenuItem {
   chainId: string;
   name: string;                  // 'Spicy Deluxe Sandwich'
   aliases: string[];             // lowercase match phrases: 'spicy deluxe', …
+  category: string;              // menu-browser section: 'Sandwiches', 'Sides', …
   serving: string;               // display: 'per sandwich'
   components: MenuComponent[];
   nutrition: MandatedNutrition;  // whole item, as published

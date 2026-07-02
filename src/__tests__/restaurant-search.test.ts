@@ -1,11 +1,19 @@
 import {
   adjustedNutrition,
-  chainOnlyMatch,
   effectiveIngredientText,
-  resolveRestaurantQuery,
+  menuItemGlance,
+  searchRestaurant,
 } from '../services/restaurant-search';
 import { CHAINS, MENU_ITEMS, getMenuItem } from '../data/restaurants';
 import { matchByIngredientText } from '../data/ingredient-text-index';
+
+// Narrow a search result to menu kind or fail loudly.
+function menu(query: string) {
+  const r = searchRestaurant(query);
+  expect(r.kind).toBe('menu');
+  if (r.kind !== 'menu') throw new Error('unreachable');
+  return r;
+}
 
 describe('restaurant dataset integrity (spec 004)', () => {
   it('every chain has provenance with a retrieved date', () => {
@@ -44,46 +52,85 @@ describe('restaurant dataset integrity (spec 004)', () => {
   });
 });
 
-describe('resolveRestaurantQuery — the heuristic parser', () => {
-  it("resolves Mark's exact query: chain + item + modifier", () => {
-    const r = resolveRestaurantQuery('Chick fil a spicy deluxe no pepper jack cheese')!;
-    expect(r).not.toBeNull();
+describe('searchRestaurant — progressive search (spec 006)', () => {
+  it('chain alone opens the full menu, unfiltered', () => {
+    const r = menu('chick fil a');
     expect(r.chain.id).toBe('chick_fil_a');
-    expect(r.item.id).toBe('cfa_spicy_deluxe');
-    expect(r.removedComponentIds).toEqual(['pepper_jack']);
+    expect(r.filtered).toBe(false);
+    expect(r.hits.length).toBe(MENU_ITEMS.filter(i => i.chainId === 'chick_fil_a').length);
   });
 
-  it('handles hyphenated and squashed chain spellings', () => {
-    expect(resolveRestaurantQuery('chick-fil-a nuggets')?.item.id).toBe('cfa_nuggets_8');
-    expect(resolveRestaurantQuery('chickfila waffle fries')?.item.id).toBe('cfa_waffle_fries_md');
-    expect(resolveRestaurantQuery('cfa grilled chicken sandwich')?.item.id).toBe('cfa_grilled_sandwich');
+  it('typing narrows the list — never a wholesale snap to one hidden hit', () => {
+    // Mid-word: "spi" is not an alias, but the list must already narrow.
+    const partial = menu('chick fil a spi');
+    expect(partial.filtered).toBe(true);
+    expect(partial.hits.map(h => h.item.id).sort())
+      .toEqual(['cfa_spicy_deluxe', 'cfa_spicy_sandwich']);
+
+    // Completing the phrase ranks the exact item first — still a list.
+    const complete = menu('chick fil a spicy deluxe');
+    expect(complete.hits[0].item.id).toBe('cfa_spicy_deluxe');
   });
 
-  it('prefers the most specific item alias (spicy deluxe ≠ spicy sandwich ≠ deluxe)', () => {
-    expect(resolveRestaurantQuery('chick fil a spicy deluxe')?.item.id).toBe('cfa_spicy_deluxe');
-    expect(resolveRestaurantQuery('chick fil a spicy chicken sandwich')?.item.id).toBe('cfa_spicy_sandwich');
-    expect(resolveRestaurantQuery('chick fil a deluxe')?.item.id).toBe('cfa_deluxe');
+  it('is forgiving: partial chain, squashed spellings, joined words', () => {
+    expect(menu('chick fil spicy deluxe').hits[0].item.id).toBe('cfa_spicy_deluxe');
+    expect(menu('chickfila waffle fries').hits[0].item.id).toBe('cfa_waffle_fries_md');
+    expect(menu('chick-fil-a nuggets').hits[0].item.id).toBe('cfa_nuggets_8');
+    expect(menu('cfa grilled chicken sandwich').hits[0].item.id).toBe('cfa_grilled_sandwich');
   });
 
-  it('generic "no cheese" removes the cheese component', () => {
-    const r = resolveRestaurantQuery('chick fil a deluxe no cheese')!;
-    expect(r.removedComponentIds).toEqual(['american_cheese']);
+  it("resolves Mark's exact failing query: partial chain + joined-word modifier", () => {
+    const r = menu('chick fil spicy deluxe no pepperjack');
+    expect(r.hits[0].item.id).toBe('cfa_spicy_deluxe');
+    expect(r.hits[0].removedIds).toEqual(['pepper_jack']);
+  });
+
+  it('modifier phrases annotate the top hit, never change the list shape', () => {
+    const r = menu('chick fil a deluxe no cheese');
+    expect(r.hits[0].item.id).toBe('cfa_deluxe');
+    expect(r.hits[0].removedIds).toEqual(['american_cheese']);
+    // only the top hit carries the annotation
+    for (const h of r.hits.slice(1)) expect(h.removedIds).toEqual([]);
   });
 
   it('supports multiple modifiers and "without"', () => {
-    const r = resolveRestaurantQuery('chick fil a spicy deluxe without pickles no tomato')!;
-    expect(r.removedComponentIds.sort()).toEqual(['pickles', 'tomato']);
+    const r = menu('chick fil a spicy deluxe without pickles no tomato');
+    expect(r.hits[0].removedIds.sort()).toEqual(['pickles', 'tomato']);
   });
 
-  it('returns null for non-restaurant queries (falls through to OFF)', () => {
-    expect(resolveRestaurantQuery('barebells protein bar')).toBeNull();
-    expect(resolveRestaurantQuery('organic peanut butter')).toBeNull();
+  it('category words filter too ("sides")', () => {
+    const r = menu('chick fil a sides');
+    expect(r.hits.map(h => h.item.category)).toEqual(['Sides', 'Sides']);
   });
 
-  it('chain-only query surfaces the browsable menu', () => {
-    const m = chainOnlyMatch('chick fil a')!;
-    expect(m.chainId).toBe('chick_fil_a');
-    expect(m.items.length).toBeGreaterThanOrEqual(8);
+  it('an unmatchable phrase shows the whole menu, not a dead end', () => {
+    const r = menu('chick fil a zzzz');
+    expect(r.filtered).toBe(false);
+    expect(r.hits.length).toBeGreaterThanOrEqual(8);
+  });
+
+  it('a lone short prefix is a suggestion, not a hijack', () => {
+    expect(searchRestaurant('chick').kind).toBe('suggestion');
+    expect(searchRestaurant('chic').kind).toBe('suggestion');
+  });
+
+  it('token granularity protects packaged-goods queries', () => {
+    // "chicken" shares 5 chars with "chickfila" but diverges mid-token.
+    expect(searchRestaurant('chicken sandwich').kind).toBe('none');
+    expect(searchRestaurant('barebells protein bar').kind).toBe('none');
+    expect(searchRestaurant('organic peanut butter').kind).toBe('none');
+  });
+});
+
+describe('menuItemGlance — browser pills', () => {
+  it('reflects base verdicts on the standard build', () => {
+    const g = menuItemGlance(getMenuItem('cfa_spicy_deluxe')!);
+    expect(['everyday', 'sometimes', 'contested', 'clean']).toContain(g.additiveGlance);
+    expect(['good', 'ok', 'warn']).toContain(g.nutritionTone);
+  });
+
+  it('every item has a category for the menu browser', () => {
+    for (const item of MENU_ITEMS) expect(item.category.length).toBeGreaterThan(0);
   });
 });
 

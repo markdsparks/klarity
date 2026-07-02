@@ -8,7 +8,7 @@ import { ADDITIVES } from '@/data/additives';
 import { explainerForLine, type NutritionExplainer } from '@/data/nutrition-explainers';
 import { ExplainerSheet } from '@/components/explainer-sheet';
 import { getChain, getMenuItem } from '@/data/restaurants';
-import { DEFAULT_PROFILE, useProfile } from '@/hooks/use-profile';
+import { useProfile } from '@/hooks/use-profile';
 import {
   restaurantHistoryKey,
   saveToHistory,
@@ -18,39 +18,18 @@ import { referenceValues, toneNutrition } from '@/services/nutrition';
 import {
   adjustedNutrition,
   effectiveIngredientText,
+  menuItemGlance,
   restaurantServingNutrients,
 } from '@/services/restaurant-search';
 import { resolveVerdict } from '@/services/verdict';
 import { verdictSentence } from '@/services/verdict-sentence';
-import type { AdditiveGlanceKey } from '@/types/history';
 import type { AdditiveResult, VerdictKey } from '@/types/index';
-import type { MenuItem } from '@/types/restaurant';
 
 // Restaurant menu item result (specs 004 + 005). Same two-axis layout as the
 // barcode result, plus: chain provenance line, and the build customizer —
 // search modifiers seed a "Your build" card whose toggles recompute both axes
 // live (all modifier math is pure and local, so recompute is synchronous).
 // Nutrition adjusted by removals is always labeled "computed".
-
-// History stores the profile-independent baseline (base verdicts, default-
-// profile tone), same rule as the barcode screen.
-function baseHistoryGlance(item: MenuItem, removedIds: string[]): {
-  additiveGlance: AdditiveGlanceKey;
-  nutritionTone: ReturnType<typeof toneNutrition>['tone'];
-} {
-  const verdicts = matchByIngredientText(effectiveIngredientText(item, removedIds))
-    .map(id => ADDITIVES[id])
-    .filter(Boolean)
-    .map(a => a.baseVerdict);
-  const additiveGlance: AdditiveGlanceKey = verdicts.length === 0 ? 'clean'
-    : verdicts.includes('contested') ? 'contested'
-    : verdicts.includes('sometimes') ? 'sometimes' : 'everyday';
-  const sn = restaurantServingNutrients(
-    adjustedNutrition(item, removedIds).nutrition,
-    referenceValues(DEFAULT_PROFILE),
-  );
-  return { additiveGlance, nutritionTone: toneNutrition(sn, DEFAULT_PROFILE).tone };
-}
 
 const GLANCE: Record<VerdictKey | 'clean', { bg: string; fg: string; label: string }> = {
   everyday:  { bg: 'rgba(127,211,170,0.16)', fg: '#7fd3aa', label: 'Everyday'  },
@@ -94,7 +73,7 @@ export default function RestaurantResultScreen() {
   const scanRecorded = useRef(false);
   useEffect(() => {
     if (!item || !chain) return;
-    const glance = baseHistoryGlance(item, removedIds);
+    const glance = menuItemGlance(item, removedIds);
     if (!scanRecorded.current) {
       scanRecorded.current = true;
       void saveToHistory({

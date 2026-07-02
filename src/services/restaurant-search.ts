@@ -1,27 +1,84 @@
-import type { MandatedNutrition, MenuComponent, MenuItem, RestaurantResolution } from '../types/restaurant';
+import type { MandatedNutrition, MenuComponent, MenuItem, RestaurantChain } from '../types/restaurant';
 import { CHAINS, MENU_ITEMS } from '../data/restaurants';
-import type { DailyValues, ServingNutrients } from './nutrition';
+import { ADDITIVES } from '../data/additives';
+import { matchByIngredientText } from '../data/ingredient-text-index';
+import { DEFAULT_PROFILE } from '../hooks/use-profile';
+import { referenceValues, toneNutrition, type DailyValues, type ServingNutrients } from './nutrition';
+import type { AdditiveGlanceKey } from '../types/history';
+import type { NutritionTone } from '../types/index';
 
-// Heuristic restaurant-query resolution (spec 004, Q3: deterministic-first).
-// Resolves queries like "chick fil a spicy deluxe no pepper jack cheese" into
-// {chain, item, removedComponents} with zero network calls. An LLM parse layer
-// is deliberately deferred until this proves brittle in family use.
+// Progressive restaurant search (spec 006, supersedes spec 004's parser).
+// The old parser was binary — full alias match or nothing — which made typing
+// feel random: the menu appeared unfiltered, then snapped to a single hidden
+// hit the instant an alias completed. This version is one list that narrows:
+// recognize the chain forgivingly, filter the menu live by prefix per word,
+// and treat "no X" phrases as annotations that never change the result shape.
+// Still deterministic, local, offline (spec 004 Q3 holds).
 
 function normalize(s: string): string {
   return s.toLowerCase().replace(/[''’]/g, '').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-// Match a chain by alias; returns the chain and the query with the alias removed.
-function matchChain(q: string): { chainId: string; rest: string } | null {
+const squash = (s: string) => normalize(s).replace(/ /g, '');
+
+export interface MenuHit {
+  item: MenuItem;
+  removedIds: string[];   // modifier annotation — populated on the top hit only
+}
+
+export type RestaurantSearch =
+  | { kind: 'none' }
+  // A few typed characters look like a chain — surface a tappable suggestion
+  // above packaged-goods results; never hijack the screen on a guess.
+  | { kind: 'suggestion'; chain: RestaurantChain }
+  // Chain recognized — the menu browser owns the screen (spec 006 Q2),
+  // live-filtered by whatever follows the chain in the query.
+  | { kind: 'menu'; chain: RestaurantChain; hits: MenuHit[]; filtered: boolean };
+
+// Greedy token-granular alias consumption: starting at tokens[start], consume
+// whole tokens while their concatenation stays a prefix of the squashed alias.
+// Token granularity is the guard against hijacks — "chicken" shares 5 chars
+// with "chickfila" but diverges mid-token, so it consumes nothing.
+function consumeAlias(tokens: string[], start: number, alias: string): { consumed: number; matchedLen: number } {
+  let concat = '';
+  let consumed = 0;
+  for (let i = start; i < tokens.length; i++) {
+    const next = concat + tokens[i];
+    if (!alias.startsWith(next)) break;
+    concat = next;
+    consumed++;
+    if (concat === alias) break;
+  }
+  return { consumed, matchedLen: concat.length };
+}
+
+interface ChainMatch {
+  chain: RestaurantChain;
+  rest: string[];       // query tokens with the chain removed
+  full: boolean;        // a complete alias was typed
+  matchedLen: number;
+}
+
+function matchChain(tokens: string[]): ChainMatch | null {
+  let best: (ChainMatch & { start: number; consumed: number }) | null = null;
   for (const chain of CHAINS) {
-    for (const alias of [...chain.aliases, normalize(chain.name)]) {
-      const a = normalize(alias);
-      if (q.startsWith(a + ' ') || q === a || q.includes(' ' + a + ' ') || q.endsWith(' ' + a)) {
-        return { chainId: chain.id, rest: q.replace(a, ' ').replace(/\s+/g, ' ').trim() };
+    const aliases = [...chain.aliases, chain.name].map(squash);
+    for (const alias of aliases) {
+      for (let start = 0; start < tokens.length; start++) {
+        const { consumed, matchedLen } = consumeAlias(tokens, start, alias);
+        if (consumed === 0) continue;
+        const full = tokens.slice(start, start + consumed).join('') === alias;
+        if (!best || matchedLen > best.matchedLen || (matchedLen === best.matchedLen && full && !best.full)) {
+          best = {
+            chain, full, matchedLen, start, consumed,
+            rest: [...tokens.slice(0, start), ...tokens.slice(start + consumed)],
+          };
+        }
       }
     }
   }
-  return null;
+  if (!best) return null;
+  return { chain: best.chain, rest: best.rest, full: best.full, matchedLen: best.matchedLen };
 }
 
 // Split "spicy deluxe no pepper jack cheese" into item phrase + removal phrases.
@@ -33,29 +90,30 @@ function splitModifiers(rest: string): { itemPhrase: string; removals: string[] 
   return { itemPhrase, removals };
 }
 
-// Score an item against the query phrase: fraction of alias words present,
-// preferring the longest (most specific) alias that fully matches.
-function matchItem(chainId: string, phrase: string): MenuItem | null {
-  const words = new Set(phrase.split(' ').filter(Boolean));
-  if (words.size === 0) return null;
+// A token matches an item if it prefix-matches any word of the item's name,
+// aliases, or category — or, for joined words ("pepperjack"), appears inside
+// a squashed form. All tokens must match (narrowing), no all-words gate.
+function itemScore(item: MenuItem, tokens: string[], phrase: string): number | null {
+  const sources = [item.name, item.category, ...item.aliases];
+  const words = new Set(sources.flatMap(s => normalize(s).split(' ')));
+  const squashed = sources.map(squash);
 
-  let best: { item: MenuItem; specificity: number } | null = null;
-  for (const item of MENU_ITEMS) {
-    if (item.chainId !== chainId) continue;
-    for (const alias of [...item.aliases, normalize(item.name)]) {
-      const aliasWords = normalize(alias).split(' ');
-      const allPresent = aliasWords.every(w => words.has(w));
-      if (allPresent && (!best || aliasWords.length > best.specificity)) {
-        best = { item, specificity: aliasWords.length };
-      }
-    }
+  let score = 0;
+  for (const t of tokens) {
+    const wordHit = [...words].some(w => w.startsWith(t));
+    const joinedHit = t.length >= 4 && squashed.some(s => s.includes(t));
+    if (!wordHit && !joinedHit) return null;
+    score += wordHit ? 2 : 1;
   }
-  return best?.item ?? null;
+  // Exact alias/name equality outranks prefix hits ("spicy deluxe" beats
+  // "spicy chicken sandwich" for the phrase "spicy deluxe").
+  if (sources.some(s => normalize(s) === phrase)) score += 5;
+  return score;
 }
 
-// Match removal phrases to removable components ("pepper jack cheese" → pepper_jack).
-// Highest word-overlap wins, so "no cheese" hits the cheese component and
-// "no pepper jack cheese" prefers Pepper Jack over anything with one shared word.
+// Match removal phrases to removable components ("pepper jack cheese" →
+// pepper_jack). Word overlap wins; joined words ("pepperjack") count via
+// squashed containment so typing style doesn't break the match.
 function matchRemovals(item: MenuItem, removals: string[]): string[] {
   const ids: string[] = [];
   for (const phrase of removals) {
@@ -64,7 +122,11 @@ function matchRemovals(item: MenuItem, removals: string[]): string[] {
     for (const c of item.components) {
       if (!c.removable || ids.includes(c.id)) continue;
       const cWords = normalize(c.name).split(' ');
-      const overlap = cWords.filter(w => pWords.includes(w)).length;
+      let overlap = cWords.filter(w => pWords.includes(w)).length;
+      const squashedC = squash(c.name);
+      for (const pw of pWords) {
+        if (pw.length >= 6 && squashedC.includes(pw)) overlap = Math.max(overlap, 2);
+      }
       if (overlap > 0 && (!best || overlap > best.overlap)) best = { id: c.id, overlap };
     }
     if (best) ids.push(best.id);
@@ -72,28 +134,49 @@ function matchRemovals(item: MenuItem, removals: string[]): string[] {
   return ids;
 }
 
-export function resolveRestaurantQuery(query: string): RestaurantResolution | null {
-  const q = normalize(query);
-  const chainHit = matchChain(q);
-  if (!chainHit) return null;
+export function searchRestaurant(query: string): RestaurantSearch {
+  const tokens = normalize(query).split(' ').filter(Boolean);
+  if (tokens.length === 0) return { kind: 'none' };
 
-  const chain = CHAINS.find(c => c.id === chainHit.chainId)!;
-  const { itemPhrase, removals } = splitModifiers(chainHit.rest);
-  const item = matchItem(chain.id, itemPhrase);
-  if (!item) return null;
+  const chainHit = matchChain(tokens);
+  if (!chainHit) return { kind: 'none' };
 
-  return { chain, item, removedComponentIds: matchRemovals(item, removals) };
-}
+  // Menu mode needs conviction: a complete alias, or two-plus tokens clearly
+  // spelling one out ("chick fil"). A lone short prefix ("chick", "chic") is
+  // only a suggestion — packaged-goods searches must not get hijacked.
+  const tokensConsumed = tokens.length - chainHit.rest.length;
+  const menuMode = chainHit.full || (tokensConsumed >= 2 && chainHit.matchedLen >= 6);
+  if (!menuMode) {
+    return chainHit.matchedLen >= 3 ? { kind: 'suggestion', chain: chainHit.chain } : { kind: 'none' };
+  }
 
-// All menu items for a chain phrase with no item match — lets the UI show a
-// browsable list when someone just types "chick fil a".
-export function chainOnlyMatch(query: string): { chainId: string; items: MenuItem[] } | null {
-  const q = normalize(query);
-  const chainHit = matchChain(q);
-  if (!chainHit) return null;
-  const { itemPhrase } = splitModifiers(chainHit.rest);
-  if (matchItem(chainHit.chainId, itemPhrase)) return null;   // full match exists; not chain-only
-  return { chainId: chainHit.chainId, items: MENU_ITEMS.filter(i => i.chainId === chainHit.chainId) };
+  const { itemPhrase, removals } = splitModifiers(chainHit.rest.join(' '));
+  const phraseTokens = itemPhrase.split(' ').filter(Boolean);
+  const chainItems = MENU_ITEMS.filter(i => i.chainId === chainHit.chain.id);
+
+  let hits: MenuHit[];
+  let filtered = false;
+  if (phraseTokens.length === 0) {
+    hits = chainItems.map(item => ({ item, removedIds: [] }));
+  } else {
+    const scored = chainItems
+      .map((item, order) => ({ item, order, score: itemScore(item, phraseTokens, itemPhrase) }))
+      .filter((s): s is { item: MenuItem; order: number; score: number } => s.score !== null)
+      .sort((a, b) => b.score - a.score || a.order - b.order);
+    // Nothing matches the phrase → show the whole menu rather than a dead end;
+    // the user sees what IS available instead of an empty screen.
+    filtered = scored.length > 0;
+    hits = filtered
+      ? scored.map(s => ({ item: s.item, removedIds: [] }))
+      : chainItems.map(item => ({ item, removedIds: [] }));
+  }
+
+  // Removal phrases annotate the top hit — they never change the list shape.
+  if (removals.length > 0 && hits.length > 0) {
+    hits[0] = { ...hits[0], removedIds: matchRemovals(hits[0].item, removals) };
+  }
+
+  return { kind: 'menu', chain: chainHit.chain, hits, filtered };
 }
 
 // ── Modifier math ───────────────────────────────────────────────────────────────
@@ -162,4 +245,27 @@ export function adjustedNutrition(item: MenuItem, removedIds: string[]): Adjuste
       : null,
     unadjustedRemovals: without,
   };
+}
+
+// ── Menu glance ─────────────────────────────────────────────────────────────────
+
+// Profile-independent glance for a build — powers the menu browser's pills and
+// history entries (same objectivity rule as the barcode screen: base verdicts,
+// default-profile tone, so stored/browsed glances don't shift with the profile).
+export function menuItemGlance(item: MenuItem, removedIds: string[] = []): {
+  additiveGlance: AdditiveGlanceKey;
+  nutritionTone: NutritionTone;
+} {
+  const verdicts = matchByIngredientText(effectiveIngredientText(item, removedIds))
+    .map(id => ADDITIVES[id])
+    .filter(Boolean)
+    .map(a => a.baseVerdict);
+  const additiveGlance: AdditiveGlanceKey = verdicts.length === 0 ? 'clean'
+    : verdicts.includes('contested') ? 'contested'
+    : verdicts.includes('sometimes') ? 'sometimes' : 'everyday';
+  const sn = restaurantServingNutrients(
+    adjustedNutrition(item, removedIds).nutrition,
+    referenceValues(DEFAULT_PROFILE),
+  );
+  return { additiveGlance, nutritionTone: toneNutrition(sn, DEFAULT_PROFILE).tone };
 }
