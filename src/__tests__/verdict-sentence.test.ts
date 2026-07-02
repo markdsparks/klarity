@@ -16,13 +16,14 @@ function make(overrides: Partial<SentenceInput>): SentenceInput {
     sometimesAdditives: [],
     nutritionTone: 'good',
     highNutrients: [],
+    satFatBudget: false,
     profile: baseProfile,
     proteinDv: 0,
     ...overrides,
   };
 }
 
-const maltitol = ADDITIVES['maltitol'];           // limitType: dose
+const phosphoricAcid = ADDITIVES['phosphoric_acid']; // limitType: dose
 const nitrite = ADDITIVES['nitrite'];             // limitType: frequency
 const polysorbate80 = ADDITIVES['polysorbate80']; // limitType: unresolved
 const sodiumBenzoate = ADDITIVES['sodium_benzoate']; // limitType: combination
@@ -33,16 +34,16 @@ describe('verdictSentence', () => {
     expect(verdictSentence(make({}))).toMatch(/easy everyday pick/i);
   });
 
-  describe('dose-type additive (maltitol)', () => {
+  describe('dose-type additive (phosphoric acid)', () => {
     it('default framing points to the per-day limit, not frequency', () => {
-      const s = verdictSentence(make({ sometimesAdditives: [maltitol] }))!;
+      const s = verdictSentence(make({ sometimesAdditives: [phosphoricAcid] }))!;
       expect(s).toMatch(/per-day limit/i);
       expect(s).not.toMatch(/staple/i);
     });
 
-    it('the Barebells case — build goal + strong protein upgrades to daily-staple language', () => {
+    it('build goal + strong protein upgrades a dose additive to daily-staple language', () => {
       const s = verdictSentence(make({
-        sometimesAdditives: [maltitol],
+        sometimesAdditives: [phosphoricAcid],
         nutritionTone: 'ok',
         profile: { ...baseProfile, goal: 'build' },
         proteinDv: 36,
@@ -53,12 +54,33 @@ describe('verdictSentence', () => {
 
     it('build goal without enough protein stays on the plain dose line', () => {
       const s = verdictSentence(make({
-        sometimesAdditives: [maltitol],
+        sometimesAdditives: [phosphoricAcid],
         profile: { ...baseProfile, goal: 'build' },
         proteinDv: 5,
       }))!;
       expect(s).not.toMatch(/staple/i);
       expect(s).toMatch(/per-day limit/i);
+    });
+  });
+
+  describe('the Barebells case after maltitol → everyday: clean additives + sat-fat budget', () => {
+    it('build goal → great everyday supplement, keeps the sat-fat trade-off in the headline', () => {
+      const s = verdictSentence(make({
+        sometimesAdditives: [],          // maltitol + sucralose are both everyday now
+        nutritionTone: 'good',
+        satFatBudget: true,
+        profile: { ...baseProfile, goal: 'build' },
+        proteinDv: 40,
+      }))!;
+      expect(s).toMatch(/everyday supplement for your goal/i);
+      expect(s).toMatch(/saturated fat adds up/i);
+      expect(s).not.toMatch(/nothing here needs a second thought/i);
+    });
+
+    it('no goal → solid everyday choice, still names the sat-fat budget', () => {
+      const s = verdictSentence(make({ satFatBudget: true, nutritionTone: 'good' }))!;
+      expect(s).toMatch(/budget the saturated fat/i);
+      expect(s).not.toMatch(/nothing here needs a second thought/i);
     });
   });
 
@@ -101,7 +123,7 @@ describe('verdictSentence', () => {
       // plus warn nutrition. Must not say "paired with vitamin C in the same drink".
       const s = verdictSentence(make({
         contestedDriver: null,
-        sometimesAdditives: [sodiumBenzoate, carmine, maltitol, nitrite, polysorbate80],
+        sometimesAdditives: [sodiumBenzoate, carmine, phosphoricAcid, nitrite, polysorbate80],
         nutritionTone: 'warn',
         highNutrients: ['trans fat', 'sodium', 'sat fat'],
       }))!;
@@ -114,7 +136,7 @@ describe('verdictSentence', () => {
 
     it('a stack of sometimes additives with fine nutrition → occasional, none alarming alone', () => {
       const s = verdictSentence(make({
-        sometimesAdditives: [sodiumBenzoate, carmine, maltitol, polysorbate80],
+        sometimesAdditives: [sodiumBenzoate, carmine, phosphoricAcid, polysorbate80],
         nutritionTone: 'ok',
       }))!;
       expect(s).toMatch(/several additives/i);
@@ -129,18 +151,18 @@ describe('verdictSentence', () => {
     });
 
     it('an unconditional additive outranks a conditional one when picking the driver', () => {
-      // maltitol (dose) should win over carmine (sensitivity) when both present, ≤2 total
-      const s = verdictSentence(make({ sometimesAdditives: [carmine, maltitol] }))!;
+      // phosphoric acid (dose) should win over carmine (sensitivity) when both present, ≤2 total
+      const s = verdictSentence(make({ sometimesAdditives: [carmine, phosphoricAcid] }))!;
       expect(s).toMatch(/per-day limit/i);
       expect(s).not.toMatch(/sensitive group/i);
     });
   });
 
   describe('contested additive leads regardless of co-present sometimes additives', () => {
-    const contested: Additive = { ...maltitol, id: 'x', name: 'Test Dye', baseVerdict: 'contested', limitType: undefined };
+    const contested: Additive = { ...phosphoricAcid, id: 'x', name: 'Test Dye', baseVerdict: 'contested', limitType: undefined };
 
     it('balanced → hands the decision over', () => {
-      const s = verdictSentence(make({ contestedDriver: contested, sometimesAdditives: [maltitol] }))!;
+      const s = verdictSentence(make({ contestedDriver: contested, sometimesAdditives: [phosphoricAcid] }))!;
       expect(s).toMatch(/experts genuinely disagree/i);
     });
 

@@ -25,6 +25,7 @@ export interface SentenceInput {
   sometimesAdditives: Additive[];     // ALL additives with baseVerdict 'sometimes' in the product
   nutritionTone: NutritionTone;
   highNutrients: string[];            // short labels driving a nutrition warn ('sat fat', 'sodium')
+  satFatBudget: boolean;             // nutrition is good/ok only via the sat-fat budget reframe — keep the trade-off in the headline
   profile: Profile;
   proteinDv: number;                  // serving protein as %DV — gates the goal-staple framing
 }
@@ -66,7 +67,7 @@ function nutritionCaveat(tone: NutritionTone, high: string[], staple: boolean): 
 }
 
 export function verdictSentence(input: SentenceInput): string | null {
-  const { contestedDriver, sometimesAdditives, nutritionTone, highNutrients, profile, proteinDv } = input;
+  const { contestedDriver, sometimesAdditives, nutritionTone, highNutrients, satFatBudget, profile, proteinDv } = input;
   const goalBuild = profile.goal === 'build' && proteinDv >= 20;
 
   // ── 1. Contested additive leads — resolved by the user's stated posture ──
@@ -136,6 +137,12 @@ export function verdictSentence(input: SentenceInput): string | null {
   }
 
   // ── 5. Additives clean, nutrition not a concern ──
+  // Sat-fat budget reframe: keep the "don't live on these" trade-off in the headline
+  // rather than letting a nutrient-dense bar read as a consequence-free everyday pick.
+  if (satFatBudget) {
+    if (goalBuild) return `A great everyday supplement for your goal — clean additives; just don't live on them, since the saturated fat adds up.`;
+    return `A solid everyday choice — clean additives; just budget the saturated fat if you're having several a day.`;
+  }
   if (nutritionTone === 'ok') {
     if (goalBuild) return `Works as a daily staple for your goal — clean additives, and the nutrition holds up.`;
     return `A solid regular choice — clean additives, and nutrition that's middling but nothing to avoid.`;

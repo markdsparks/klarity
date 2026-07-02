@@ -1917,8 +1917,7 @@ export const ADDITIVES: Record<string, Additive> = {
     role: 'Sugar alcohol sweetener / humectant',
     benefit: 'functional',
     avoidability: 'moderate',
-    baseVerdict: 'sometimes',
-    limitType: 'dose',
+    baseVerdict: 'everyday',
     headline: 'A well-tolerated sugar substitute at normal intake, but with a well-documented laxative effect once you cross roughly 20-50g in a day — common in sugar-free gum and "diet" candy.',
     exposure: {
       typical: '2–10g per serving in sugar-free gum, mints, and diabetic-friendly sweets',
@@ -1946,8 +1945,7 @@ export const ADDITIVES: Record<string, Additive> = {
     role: 'Sugar alcohol sweetener (also used for dental benefits)',
     benefit: 'functional',
     avoidability: 'moderate',
-    baseVerdict: 'sometimes',
-    limitType: 'dose',
+    baseVerdict: 'everyday',
     headline: 'Genuinely beneficial for human teeth (inhibits cavity-causing bacteria) and safe for people at normal intake — but severely toxic to dogs even in small amounts. A real household safety note, not a human dietary one.',
     exposure: {
       typical: '2–10g per serving in sugar-free gum, mints, and some baked goods',
@@ -2104,7 +2102,7 @@ export const ADDITIVES: Record<string, Additive> = {
     benefit: 'functional',
     avoidability: 'easy',
     baseVerdict: 'sometimes',
-    limitType: 'dose',
+    limitType: 'unresolved',
     headline: 'A 2023 Cleveland Clinic study linked high blood erythritol levels to clotting risk — EFSA reviewed the same evidence and found no proven cause-and-effect, but wants more research.',
     exposure: {
       typical: 'Common in sugar-free candy, protein bars, and "keto" baked goods',
@@ -2145,8 +2143,7 @@ export const ADDITIVES: Record<string, Additive> = {
     role: 'Sugar alcohol sweetener (common in sugar-free candy and chocolate)',
     benefit: 'functional',
     avoidability: 'easy',
-    baseVerdict: 'sometimes',
-    limitType: 'dose',
+    baseVerdict: 'everyday',
     headline: 'The GI effects are well-characterized and dose-dependent — FDA requires a laxative-effect warning label above 50g, and most people notice something well before that.',
     exposure: {
       typical: 'Sugar-free candy, chocolate, and baked goods',

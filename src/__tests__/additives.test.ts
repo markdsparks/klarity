@@ -98,6 +98,19 @@ describe('ADDITIVES data integrity', () => {
 
   const LIMIT_TYPES = new Set(['dose', 'frequency', 'sensitivity', 'unresolved', 'combination']);
 
+  it('GI-tolerance-only sugar alcohols are everyday; erythritol stays sometimes for its CV question', () => {
+    // Pure digestive-comfort sugar alcohols were downgraded from sometimes → everyday
+    // (the concern is GI dose, not health); erythritol keeps a real unresolved CV signal.
+    expect(ADDITIVES['maltitol'].baseVerdict).toBe('everyday');
+    expect(ADDITIVES['sorbitol'].baseVerdict).toBe('everyday');
+    expect(ADDITIVES['xylitol'].baseVerdict).toBe('everyday');
+    expect(ADDITIVES['erythritol'].baseVerdict).toBe('sometimes');
+    expect(ADDITIVES['erythritol'].limitType).toBe('unresolved');
+    // The dose caveat / subgroup notes must survive the downgrade
+    expect(ADDITIVES['maltitol'].subgroupNotes.ibs).toBeDefined();
+    expect(ADDITIVES['xylitol'].subgroupNotes.pet_owner).toBeDefined();
+  });
+
   it('every "sometimes" additive carries a valid limitType (drives the Layer 1 sentence)', () => {
     for (const [id, additive] of entries) {
       if (additive.baseVerdict === 'sometimes') {

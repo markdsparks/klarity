@@ -140,6 +140,7 @@ export interface NutritionAssessment {
   profileNotes: string[];  // condition-driven context lines, rendered under the summary
   contextLines: string[];  // science-based "so what" context; never moves the tone
   highNutrients: string[]; // short labels of what drove a warn ('sat fat', 'sodium') — for the Layer 1 sentence
+  satFatBudget: boolean;   // tone was good/ok only because sat fat is budget-reframed — Layer 1 keeps the trade-off in the headline
 }
 
 // Science-based context that reframes the numbers without changing the verdict.
@@ -245,7 +246,7 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
   if (sodiumHigh) { highItems.push(`sodium (${sodiumDv}% DV)`); highNutrients.push('sodium'); }
   if (satFatHigh && !satFatBudget) { highItems.push(`sat fat (${satFatDv}% DV)`); highNutrients.push('sat fat'); }
   if (highItems.length > 0) {
-    return { tone: 'warn', summary: `High in ${highItems.join(' and ')}`, profileNotes, contextLines, highNutrients };
+    return { tone: 'warn', summary: `High in ${highItems.join(' and ')}`, profileNotes, contextLines, highNutrients, satFatBudget: false };
   }
 
   // A nutrient-dense food whose lone concern is budgetable sat fat — good/ok, never warn,
@@ -257,7 +258,7 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
     return {
       tone: satFatHigh ? 'ok' : 'good',
       summary: `Strong ${positive}${forGoal} — saturated fat is the one thing to budget across the day`,
-      profileNotes, contextLines, highNutrients: [],
+      profileNotes, contextLines, highNutrients: [], satFatBudget: true,
     };
   }
 
@@ -271,7 +272,7 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
   if (sodiumOffset) offsets.push(`high sodium (${sodiumDv}% DV) balanced by potassium`);
   if (offsets.length > 0) {
     const summary = offsets.join(' · ');
-    return { tone: 'ok', summary: summary.charAt(0).toUpperCase() + summary.slice(1), profileNotes, contextLines, highNutrients: [] };
+    return { tone: 'ok', summary: summary.charAt(0).toUpperCase() + summary.slice(1), profileNotes, contextLines, highNutrients: [], satFatBudget: false };
   }
 
   const modItems: string[] = [];
@@ -279,8 +280,8 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
   if (sodiumDv >= 10) modItems.push('sodium');
   if (satFatDv >= 10) modItems.push('sat fat');
   if (modItems.length > 0) {
-    return { tone: 'ok', summary: `Moderate ${modItems.join(', ')} — frequency matters`, profileNotes, contextLines, highNutrients: [] };
+    return { tone: 'ok', summary: `Moderate ${modItems.join(', ')} — frequency matters`, profileNotes, contextLines, highNutrients: [], satFatBudget: false };
   }
 
-  return { tone: 'good', summary: 'Clean nutrition per serving', profileNotes, contextLines, highNutrients: [] };
+  return { tone: 'good', summary: 'Clean nutrition per serving', profileNotes, contextLines, highNutrients: [], satFatBudget: false };
 }
