@@ -126,3 +126,80 @@ describe('fetchProduct', () => {
     await expect(fetchProduct('000000000000')).rejects.toThrow('HTTP_404');
   });
 });
+
+// ── Resilience: retry + UPC-A/EAN-13 twin-record normalization ────────────────
+
+function okResponse(body: object) {
+  return { ok: true, status: 200, json: () => Promise.resolve(body) };
+}
+function errResponse(status: number) {
+  return { ok: false, status, json: () => Promise.resolve({}) };
+}
+
+describe('fetchProduct — retry on transient failure', () => {
+  it('retries once after a network failure and succeeds', async () => {
+    const product = { product_name: 'Coke', additives_tags: ['en:e150d'], ingredients_text: 'water' };
+    (globalThis as any).fetch = jest.fn()
+      .mockRejectedValueOnce(new TypeError('Network request failed'))
+      .mockResolvedValueOnce(okResponse({ status: 1, product })) as jest.Mock;
+    const result = await fetchProduct('4049000050202');   // 13-digit, no leading 0 → no twin
+    expect(result?.product_name).toBe('Coke');
+    expect((globalThis as any).fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries once after a 5xx and succeeds', async () => {
+    const product = { product_name: 'Coke', additives_tags: ['en:e150d'], ingredients_text: 'water' };
+    (globalThis as any).fetch = jest.fn()
+      .mockResolvedValueOnce(errResponse(503))
+      .mockResolvedValueOnce(okResponse({ status: 1, product })) as jest.Mock;
+    const result = await fetchProduct('4049000050202');
+    expect(result?.product_name).toBe('Coke');
+  });
+
+  it('does not retry a 404 — that is a real answer', async () => {
+    (globalThis as any).fetch = jest.fn().mockResolvedValue(errResponse(404)) as jest.Mock;
+    await expect(fetchProduct('4049000050202')).rejects.toThrow('HTTP_404');
+    expect((globalThis as any).fetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('fetchProduct — UPC-A / EAN-13 twin records', () => {
+  const rich = {
+    product_name: 'Barebells Salty Peanut',
+    additives_tags: ['en:e955', 'en:e965'],
+    ingredients_text: 'milk protein, maltitol, sucralose',
+  };
+  const sparse = { product_name: 'protein bar?' };
+
+  it('falls back to the zero-padded EAN-13 twin when the UPC-A form is not found', async () => {
+    (globalThis as any).fetch = jest.fn()
+      .mockResolvedValueOnce(okResponse({ status: 0 }))                 // 850000429604 → not found
+      .mockResolvedValueOnce(okResponse({ status: 1, product: rich })); // 0850000429604 → found
+    const result = await fetchProduct('850000429604');
+    expect(result?.product_name).toBe('Barebells Salty Peanut');
+  });
+
+  it('prefers the richer twin when the scanned form hits a sparse duplicate', async () => {
+    (globalThis as any).fetch = jest.fn()
+      .mockResolvedValueOnce(okResponse({ status: 1, product: sparse }))
+      .mockResolvedValueOnce(okResponse({ status: 1, product: rich }));
+    const result = await fetchProduct('0850000429604');
+    expect(result?.additives_tags).toEqual(['en:e955', 'en:e965']);
+  });
+
+  it('does not consult the twin when the scanned form already has ingredient data', async () => {
+    (globalThis as any).fetch = jest.fn()
+      .mockResolvedValueOnce(okResponse({ status: 1, product: rich })) as jest.Mock;
+    const result = await fetchProduct('0850000429604');
+    expect(result?.product_name).toBe('Barebells Salty Peanut');
+    expect((globalThis as any).fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the sparse primary when the twin lookup fails', async () => {
+    (globalThis as any).fetch = jest.fn()
+      .mockResolvedValueOnce(okResponse({ status: 1, product: sparse }))
+      .mockResolvedValue(errResponse(404));   // twin: 404
+    const result = await fetchProduct('0850000429604');
+    expect(result?.product_name).toBe('protein bar?');
+  });
+});
