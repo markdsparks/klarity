@@ -239,7 +239,7 @@ export default function ResultScreen() {
   // so a contested additive keeps contested framing even when values resolve it.
   const summarySentence = verdictSentence({
     contestedDriver: matchedAdditives.find(a => a.baseVerdict === 'contested') ?? null,
-    sometimesDriver: matchedAdditives.find(a => a.baseVerdict === 'sometimes') ?? null,
+    sometimesAdditives: matchedAdditives.filter(a => a.baseVerdict === 'sometimes'),
     nutritionTone: nutrition.tone,
     highNutrients: nutrition.highNutrients,
     profile,

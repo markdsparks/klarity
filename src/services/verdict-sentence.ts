@@ -1,4 +1,4 @@
-import type { Additive, NutritionTone, Profile } from '../types';
+import type { Additive, LimitType, NutritionTone, Profile } from '../types';
 
 // ── Layer 1: the plain-language verdict sentence ────────────────────────────────
 //
@@ -12,20 +12,40 @@ import type { Additive, NutritionTone, Profile } from '../types';
 // it stays in frequency-and-portion language, the only register the evidence
 // actually supports.
 //
-// Priority of the leading clause:
+// Priority of the leading clause (the heavier / more decision-shaping axis wins):
 //   1. a contested additive  → hand the decision over, resolved by profile.values
-//   2. a `sometimes` additive → framing keyed on its limitType
-//   3. additives fine         → nutrition leads
-// A nutrition caveat is appended when nutrition warns; the goal lens upgrades
-// functional (protein-forward) foods to "staple" language.
+//   2. nutrition warns       → an occasional pick; balance the rest of the day
+//   3. a stack of `sometimes` additives → occasional, none alarming alone
+//   4. one or two `sometimes` → framing keyed on the driver's limitType
+//   5. everything fine        → easy everyday pick
+// The goal lens upgrades functional (protein-forward) foods to "staple" language.
 
 export interface SentenceInput {
   contestedDriver: Additive | null;   // an additive with baseVerdict 'contested', if any
-  sometimesDriver: Additive | null;   // an additive with baseVerdict 'sometimes', if any
+  sometimesAdditives: Additive[];     // ALL additives with baseVerdict 'sometimes' in the product
   nutritionTone: NutritionTone;
   highNutrients: string[];            // short labels driving a nutrition warn ('sat fat', 'sodium')
   profile: Profile;
   proteinDv: number;                  // serving protein as %DV — gates the goal-staple framing
+}
+
+// A stack of this many `sometimes` additives reads as "occasional," regardless of
+// which specific ones — the pile is the story, not any single ingredient.
+const STACK_THRESHOLD = 3;
+
+// Which `sometimes` additive speaks for the product when only one or two are present.
+// Broadly-relevant, unconditional concerns lead; `sensitivity` and `combination` are
+// conditional (only matter if you're reactive / if a specific pairing exists), so they
+// only lead when nothing more general is present — never on a burger because of one
+// niche preservative.
+const DRIVER_PRIORITY: LimitType[] = ['frequency', 'dose', 'unresolved', 'sensitivity', 'combination'];
+
+function pickDriver(additives: Additive[]): Additive | null {
+  for (const type of DRIVER_PRIORITY) {
+    const hit = additives.find(a => a.limitType === type);
+    if (hit) return hit;
+  }
+  return additives[0] ?? null;
 }
 
 // "sat fat and sugar" / "sat fat, sodium, and sugar"
@@ -46,7 +66,7 @@ function nutritionCaveat(tone: NutritionTone, high: string[], staple: boolean): 
 }
 
 export function verdictSentence(input: SentenceInput): string | null {
-  const { contestedDriver, sometimesDriver, nutritionTone, highNutrients, profile, proteinDv } = input;
+  const { contestedDriver, sometimesAdditives, nutritionTone, highNutrients, profile, proteinDv } = input;
   const goalBuild = profile.goal === 'build' && proteinDv >= 20;
 
   // ── 1. Contested additive leads — resolved by the user's stated posture ──
@@ -61,12 +81,31 @@ export function verdictSentence(input: SentenceInput): string | null {
     return `Experts genuinely disagree on this one — worth the 30-second read below before you decide.${caveat}`;
   }
 
-  // ── 2. A `sometimes` additive leads — framing keyed on how its risk is bounded ──
-  if (sometimesDriver) {
-    const d = sometimesDriver.name;
+  // ── 2. Nutrition warns — the heavier axis. An occasional pick; balance the day ──
+  // Leads over additive framing: when a product is nutritionally heavy, that's the
+  // dominant "how should I use this?" signal — micro-advice about one additive would
+  // bury it. Additive detail still lives in the list below.
+  if (nutritionTone === 'warn') {
+    const noun = joinNouns(highNutrients);
+    const tail = noun ? ` — high in ${noun}` : '';
+    if (goalBuild) {
+      return `The protein's a real plus, but this is an occasional pick${tail}, so go lighter across the rest of the day.`;
+    }
+    return `An occasional pick, not an everyday one${tail} — worth going lighter across the rest of the day.`;
+  }
+
+  // ── 3. A stack of `sometimes` additives — occasional, none alarming alone ──
+  if (sometimesAdditives.length >= STACK_THRESHOLD) {
+    return `Several additives here land in "sometimes" — none alarming on its own, but enough of a pile that it's an occasional choice. The list below breaks down each.`;
+  }
+
+  // ── 4. One or two `sometimes` additives — framing keyed on how the risk is bounded ──
+  const driver = pickDriver(sometimesAdditives);
+  if (driver) {
+    const d = driver.name;
     const caveat = nutritionCaveat(nutritionTone, highNutrients, goalBuild);
 
-    switch (sometimesDriver.limitType) {
+    switch (driver.limitType) {
       case 'dose':
         if (goalBuild) {
           return `Works as a daily staple for your goal — ${d} has a per-day limit you're nowhere near at a serving or two.${caveat}`;
@@ -80,7 +119,7 @@ export function verdictSentence(input: SentenceInput): string | null {
         return `A real trigger if you're in the sensitive group — it's on the label for that reason — but no concern for most people.${caveat}`;
 
       case 'combination':
-        return `Fine on its own — the only catch is when it's paired with vitamin C in the same drink.${caveat}`;
+        return `Fine on its own — the only catch is when it's paired with vitamin C in the same product.${caveat}`;
 
       case 'unresolved':
         if (profile.values === 'precaution') {
@@ -92,17 +131,11 @@ export function verdictSentence(input: SentenceInput): string | null {
         return `${d} is approved and fine at normal use — one early signal is still being studied, so limit it if you like staying ahead of open questions, or don't if that's not your worry.${caveat}`;
 
       default:
-        // No limitType classified — fall back rather than fabricate a specific frame.
         return `Fine in normal amounts — worth a glance at the details below.${caveat}`;
     }
   }
 
-  // ── 3. Additives are a non-issue — nutrition leads ──
-  if (nutritionTone === 'warn') {
-    const noun = joinNouns(highNutrients);
-    const tail = noun ? ` — high in ${noun}` : '';
-    return `The additives are clean; it's the nutrition to watch${tail}.`;
-  }
+  // ── 5. Additives clean, nutrition not a concern ──
   if (nutritionTone === 'ok') {
     if (goalBuild) return `Works as a daily staple for your goal — clean additives, and the nutrition holds up.`;
     return `A solid regular choice — clean additives, and nutrition that's middling but nothing to avoid.`;
