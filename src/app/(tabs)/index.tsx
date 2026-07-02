@@ -7,6 +7,7 @@ import {
   FlatList,
   Keyboard,
   Pressable,
+  SectionList,
   StyleSheet,
   Text,
   TextInput,
@@ -16,9 +17,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useProfile } from '@/hooks/use-profile';
 import { searchProducts } from '@/services/off';
-import { chainOnlyMatch, resolveRestaurantQuery } from '@/services/restaurant-search';
-import { getChain } from '@/data/restaurants';
-import type { MenuItem, RestaurantResolution } from '@/types/restaurant';
+import { menuItemGlance, searchRestaurant, type MenuHit } from '@/services/restaurant-search';
+import { CHAINS } from '@/data/restaurants';
+import type { MenuItem, RestaurantChain } from '@/types/restaurant';
+import type { AdditiveGlanceKey } from '@/types/history';
+import type { NutritionTone } from '@/types/index';
 import type { OFFSearchProduct } from '@/types/off';
 
 const PROFILE_HINT_KEY = 'KLARITY_PROFILE_HINT_DISMISSED_V1';
@@ -178,11 +181,10 @@ function ScanOverlay({
 
 type SearchState =
   | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'error' }
-  | { status: 'done'; results: OFFSearchProduct[] }
-  | { status: 'restaurant'; resolution: RestaurantResolution }
-  | { status: 'restaurant-menu'; chainName: string; items: MenuItem[] };
+  | { status: 'loading'; suggestion?: RestaurantChain }
+  | { status: 'error'; suggestion?: RestaurantChain }
+  | { status: 'done'; results: OFFSearchProduct[]; suggestion?: RestaurantChain }
+  | { status: 'menu'; chain: RestaurantChain; hits: MenuHit[]; filtered: boolean };
 
 function SearchOverlay({
   onClose,
@@ -195,37 +197,57 @@ function SearchOverlay({
 }) {
   const [query, setQuery] = useState('');
   const [state, setState] = useState<SearchState>({ status: 'idle' });
+  // Escape hatch (spec 006 Q2): chain-owned results until the user explicitly
+  // asks for packaged goods; reset when the box is cleared.
+  const [forceOFF, setForceOFF] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function onChangeText(text: string) {
     setQuery(text);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!text.trim()) { setState({ status: 'idle' }); return; }
-    debounceRef.current = setTimeout(() => runSearch(text.trim()), 500);
+    runQuery(text, forceOFF);
   }
 
-  async function runSearch(q: string) {
-    // Smart search box (spec 004): restaurant queries resolve locally first,
-    // everything else falls through to OFF exactly as before.
-    const restaurant = resolveRestaurantQuery(q);
-    if (restaurant) {
-      setState({ status: 'restaurant', resolution: restaurant });
-      return;
-    }
-    const chainMenu = chainOnlyMatch(q);
-    if (chainMenu) {
-      const chain = getChain(chainMenu.chainId);
-      setState({ status: 'restaurant-menu', chainName: chain?.name ?? '', items: chainMenu.items });
+  // Restaurant interpretation is local and synchronous — the menu narrows on
+  // every keystroke with no debounce (spec 006: one list that narrows, never
+  // snaps). Only the OFF network search debounces.
+  function runQuery(text: string, off: boolean) {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const q = text.trim();
+    if (!q) {
+      setState({ status: 'idle' });
+      setForceOFF(false);
       return;
     }
 
-    setState({ status: 'loading' });
+    const restaurant = off ? ({ kind: 'none' } as const) : searchRestaurant(q);
+    if (restaurant.kind === 'menu') {
+      setState({
+        status: 'menu',
+        chain: restaurant.chain,
+        hits: restaurant.hits,
+        filtered: restaurant.filtered,
+      });
+      return;
+    }
+    const suggestion = restaurant.kind === 'suggestion' ? restaurant.chain : undefined;
+    setState({ status: 'loading', suggestion });
+    debounceRef.current = setTimeout(() => runOFFSearch(q, suggestion), 500);
+  }
+
+  async function runOFFSearch(q: string, suggestion?: RestaurantChain) {
     try {
       const results = await searchProducts(q);
-      setState({ status: 'done', results });
+      setState({ status: 'done', results, suggestion });
     } catch {
-      setState({ status: 'error' });
+      // A dead network must not eat the local suggestion — restaurant data is offline.
+      setState({ status: 'error', suggestion });
     }
+  }
+
+  function browseChain(chain: RestaurantChain) {
+    setForceOFF(false);
+    setQuery(chain.name);
+    runQuery(chain.name, false);
   }
 
   return (
@@ -251,7 +273,7 @@ function SearchOverlay({
           onChangeText={onChangeText}
           autoFocus
           returnKeyType="search"
-          onSubmitEditing={() => query.trim() && runSearch(query.trim())}
+          onSubmitEditing={() => query.trim() && runQuery(query, forceOFF)}
           clearButtonMode="while-editing"
         />
       </View>
@@ -260,8 +282,25 @@ function SearchOverlay({
       {state.status === 'idle' && (
         <View style={styles.searchEmpty}>
           <Text style={styles.searchEmptyText}>Type a product name to search</Text>
+          <Text style={styles.browseLabel}>or browse a menu</Text>
+          <View style={styles.chainChips}>
+            {CHAINS.map(chain => (
+              <Pressable
+                key={chain.id}
+                style={styles.chainChip}
+                onPress={() => browseChain(chain)}>
+                <Text style={styles.chainChipText}>{chain.name}</Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
       )}
+
+      {/* Chain suggestion — rides above OFF results (or their absence), never replaced */}
+      {(state.status === 'loading' || state.status === 'done' || state.status === 'error') &&
+        state.suggestion && (
+          <ChainSuggestionRow chain={state.suggestion} onBrowse={browseChain} />
+        )}
 
       {state.status === 'loading' && (
         <View style={styles.searchEmpty}>
@@ -281,23 +320,17 @@ function SearchOverlay({
         </View>
       )}
 
-      {state.status === 'restaurant' && (
-        <View style={{ paddingTop: 8 }}>
-          <RestaurantHitRow resolution={state.resolution} />
-        </View>
-      )}
-
-      {state.status === 'restaurant-menu' && (
-        <FlatList
-          data={state.items}
-          keyExtractor={i => i.id}
-          contentContainerStyle={{ paddingBottom: safeBottom + 20 }}
-          keyboardShouldPersistTaps="handled"
-          ListHeaderComponent={
-            <Text style={styles.menuHeader}>{state.chainName} menu</Text>
-          }
-          renderItem={({ item }) => <MenuItemRow item={item} />}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
+      {state.status === 'menu' && (
+        <MenuBrowser
+          chain={state.chain}
+          hits={state.hits}
+          filtered={state.filtered}
+          query={query}
+          onEscape={() => {
+            setForceOFF(true);
+            runQuery(query, true);
+          }}
+          safeBottom={safeBottom}
         />
       )}
 
@@ -325,40 +358,138 @@ const AVATAR_PALETTE = [
   { bg: '#fce8e8', fg: '#c04a4a' },
 ];
 
-// Resolved restaurant hit — one prominent row routing to the restaurant result.
-function RestaurantHitRow({ resolution }: { resolution: RestaurantResolution }) {
-  const { chain, item, removedComponentIds } = resolution;
-  const removed = item.components.filter(c => removedComponentIds.includes(c.id));
+// ── Menu browser (spec 006) ───────────────────────────────────────────────────
 
+const MENU_ADDITIVE_STYLE: Record<AdditiveGlanceKey, { bg: string; fg: string; label: string }> = {
+  everyday:  { bg: '#e8f7ef', fg: '#1f9d6b', label: 'Everyday'     },
+  sometimes: { bg: '#fdf3e3', fg: '#c8821a', label: 'Sometimes'    },
+  contested: { bg: '#efecfb', fg: '#6b5bd2', label: 'Contested'    },
+  clean:     { bg: '#e8f7ef', fg: '#1f9d6b', label: 'No additives' },
+  unrated:   { bg: '#f1f4f8', fg: '#9fadbf', label: 'Not rated'    },
+};
+
+const MENU_NUTRITION_STYLE: Record<NutritionTone, { bg: string; fg: string; label: string }> = {
+  good: { bg: '#e8f7ef', fg: '#1f9d6b', label: 'Good'     },
+  ok:   { bg: '#fdf3e3', fg: '#c8821a', label: 'Moderate' },
+  warn: { bg: '#fdf3e3', fg: '#c8821a', label: 'Watch'    },
+};
+
+// Menu data is static, so standard-build glances are computed once per item.
+const glanceCache = new Map<string, ReturnType<typeof menuItemGlance>>();
+function glanceFor(item: MenuItem) {
+  let g = glanceCache.get(item.id);
+  if (!g) {
+    g = menuItemGlance(item);
+    glanceCache.set(item.id, g);
+  }
+  return g;
+}
+
+// Partial chain typed ("chick") — tappable, above OFF results, never a hijack.
+function ChainSuggestionRow({
+  chain,
+  onBrowse,
+}: {
+  chain: RestaurantChain;
+  onBrowse: (chain: RestaurantChain) => void;
+}) {
   return (
     <Pressable
-      style={({ pressed }) => [styles.resultRow, pressed && styles.resultRowPressed]}
-      onPress={() => router.push({
-        pathname: '/result/restaurant',
-        params: { item: item.id, ...(removedComponentIds.length ? { remove: removedComponentIds.join(',') } : {}) },
-      })}>
+      style={({ pressed }) => [styles.resultRow, styles.suggestionRow, pressed && styles.resultRowPressed]}
+      onPress={() => onBrowse(chain)}>
       <View style={[styles.resultAvatar, { backgroundColor: '#e8f7ef' }]}>
         <Text style={[styles.resultAvatarText, { color: '#1f9d6b' }]}>
           {chain.name[0].toUpperCase()}
         </Text>
       </View>
       <View style={styles.resultInfo}>
-        <Text style={styles.resultName} numberOfLines={2}>{item.name}</Text>
-        <Text style={styles.resultBrand}>
-          {chain.name}
-          {removed.length > 0 ? ` · no ${removed.map(c => c.name.toLowerCase()).join(', no ')}` : ''}
-        </Text>
+        <Text style={styles.resultName}>{chain.name}</Text>
+        <Text style={styles.resultBrand}>Restaurant · browse the menu</Text>
       </View>
       <Text style={styles.chevron}>›</Text>
     </Pressable>
   );
 }
 
-function MenuItemRow({ item }: { item: MenuItem }) {
+function MenuBrowser({
+  chain,
+  hits,
+  filtered,
+  query,
+  onEscape,
+  safeBottom,
+}: {
+  chain: RestaurantChain;
+  hits: MenuHit[];
+  filtered: boolean;
+  query: string;
+  onEscape: () => void;
+  safeBottom: number;
+}) {
+  const escapeHatch = (
+    <Pressable style={styles.escapeHatch} onPress={onEscape}>
+      <Text style={styles.escapeHatchText}>
+        Search packaged products for “{query.trim()}” instead →
+      </Text>
+    </Pressable>
+  );
+
+  // Filtered results are ranked — a flat list keeps the best match on top.
+  // The full menu browses better grouped by category.
+  if (filtered) {
+    return (
+      <FlatList
+        data={hits}
+        keyExtractor={h => h.item.id}
+        contentContainerStyle={{ paddingBottom: safeBottom + 20 }}
+        keyboardShouldPersistTaps="handled"
+        ListHeaderComponent={<Text style={styles.menuHeader}>{chain.name}</Text>}
+        ListFooterComponent={escapeHatch}
+        renderItem={({ item }) => <MenuItemRow hit={item} />}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+      />
+    );
+  }
+
+  const sections: { title: string; data: MenuHit[] }[] = [];
+  for (const hit of hits) {
+    const last = sections[sections.length - 1];
+    if (last && last.title === hit.item.category) last.data.push(hit);
+    else sections.push({ title: hit.item.category, data: [hit] });
+  }
+
+  return (
+    <SectionList
+      sections={sections}
+      keyExtractor={h => h.item.id}
+      contentContainerStyle={{ paddingBottom: safeBottom + 20 }}
+      keyboardShouldPersistTaps="handled"
+      ListHeaderComponent={<Text style={styles.menuHeader}>{chain.name} menu</Text>}
+      ListFooterComponent={escapeHatch}
+      renderSectionHeader={({ section }) => (
+        <Text style={styles.menuSectionHeader}>{section.title}</Text>
+      )}
+      renderItem={({ item }) => <MenuItemRow hit={item} />}
+      ItemSeparatorComponent={() => <View style={styles.separator} />}
+      stickySectionHeadersEnabled={false}
+    />
+  );
+}
+
+function MenuItemRow({ hit }: { hit: MenuHit }) {
+  const { item, removedIds } = hit;
+  const glance = glanceFor(item);
+  const removed = item.components.filter(c => removedIds.includes(c.id));
+  const as = MENU_ADDITIVE_STYLE[glance.additiveGlance];
+  const ns = MENU_NUTRITION_STYLE[glance.nutritionTone];
+
   return (
     <Pressable
       style={({ pressed }) => [styles.resultRow, pressed && styles.resultRowPressed]}
-      onPress={() => router.push({ pathname: '/result/restaurant', params: { item: item.id } })}>
+      onPress={() => router.push({
+        pathname: '/result/restaurant',
+        params: { item: item.id, ...(removedIds.length ? { remove: removedIds.join(',') } : {}) },
+      })}>
       <View style={[styles.resultAvatar, { backgroundColor: '#e8f7ef' }]}>
         <Text style={[styles.resultAvatarText, { color: '#1f9d6b' }]}>
           {item.name[0].toUpperCase()}
@@ -367,6 +498,19 @@ function MenuItemRow({ item }: { item: MenuItem }) {
       <View style={styles.resultInfo}>
         <Text style={styles.resultName} numberOfLines={2}>{item.name}</Text>
         <Text style={styles.resultBrand}>{item.nutrition.calories} cal · {item.serving}</Text>
+        {removed.length > 0 && (
+          <Text style={styles.menuRemoval}>
+            – {removed.map(c => c.name).join('  – ')}
+          </Text>
+        )}
+        <View style={styles.menuPills}>
+          <View style={[styles.menuPill, { backgroundColor: as.bg }]}>
+            <Text style={[styles.menuPillText, { color: as.fg }]}>{as.label}</Text>
+          </View>
+          <View style={[styles.menuPill, { backgroundColor: ns.bg }]}>
+            <Text style={[styles.menuPillText, { color: ns.fg }]}>{ns.label}</Text>
+          </View>
+        </View>
       </View>
       <Text style={styles.chevron}>›</Text>
     </Pressable>
@@ -587,4 +731,47 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 8,
   },
+  menuSectionHeader: {
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+    color: '#b0bcc9',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 6,
+    backgroundColor: '#f6f8fa',
+  },
+  menuPills: { flexDirection: 'row', gap: 6, marginTop: 3 },
+  menuPill: { borderRadius: 99, paddingHorizontal: 8, paddingVertical: 3 },
+  menuPillText: { fontSize: 10.5, fontWeight: '800' },
+  menuRemoval: { fontSize: 12, fontWeight: '600', color: '#c8821a' },
+
+  suggestionRow: {
+    marginTop: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#dde4ee',
+  },
+  escapeHatch: { paddingHorizontal: 20, paddingVertical: 18 },
+  escapeHatchText: { fontSize: 13, fontWeight: '600', color: '#1f9d6b' },
+
+  browseLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: '#b0bcc9',
+    marginTop: 22,
+    marginBottom: 10,
+  },
+  chainChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', paddingHorizontal: 32 },
+  chainChip: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#dde4ee',
+    borderRadius: 99,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+  },
+  chainChipText: { fontSize: 13, fontWeight: '700', color: '#1a1f29' },
 });

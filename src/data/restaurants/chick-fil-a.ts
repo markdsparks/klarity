@@ -42,6 +42,7 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
   {
     id: 'cfa_chicken_sandwich',
     chainId: 'chick_fil_a',
+    category: 'Sandwiches',
     name: 'Chick-fil-A Chicken Sandwich',
     aliases: ['chicken sandwich', 'original chicken sandwich', 'regular chicken sandwich'],
     serving: 'per sandwich',
@@ -55,6 +56,7 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
   {
     id: 'cfa_spicy_sandwich',
     chainId: 'chick_fil_a',
+    category: 'Sandwiches',
     name: 'Spicy Chicken Sandwich',
     aliases: ['spicy chicken sandwich', 'spicy sandwich', 'spicy chicken'],
     serving: 'per sandwich',
@@ -68,6 +70,7 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
   {
     id: 'cfa_deluxe',
     chainId: 'chick_fil_a',
+    category: 'Sandwiches',
     name: 'Chick-fil-A Deluxe Sandwich',
     aliases: ['deluxe sandwich', 'deluxe', 'chicken deluxe', 'deluxe chicken sandwich'],
     serving: 'per sandwich',
@@ -89,6 +92,7 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
   {
     id: 'cfa_spicy_deluxe',
     chainId: 'chick_fil_a',
+    category: 'Sandwiches',
     name: 'Spicy Deluxe Sandwich',
     aliases: ['spicy deluxe', 'spicy deluxe sandwich', 'spicy chicken deluxe'],
     serving: 'per sandwich',
@@ -110,6 +114,7 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
   {
     id: 'cfa_grilled_sandwich',
     chainId: 'chick_fil_a',
+    category: 'Sandwiches',
     name: 'Grilled Chicken Sandwich',
     aliases: ['grilled chicken sandwich', 'grilled sandwich', 'grilled chicken'],
     serving: 'per sandwich',
@@ -137,6 +142,7 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
   {
     id: 'cfa_nuggets_8',
     chainId: 'chick_fil_a',
+    category: 'Nuggets',
     name: 'Chick-fil-A Nuggets (8-count)',
     aliases: ['nuggets', '8 count nuggets', 'chicken nuggets', 'nuggets 8'],
     serving: 'per 8 nuggets',
@@ -148,6 +154,7 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
   {
     id: 'cfa_grilled_nuggets_8',
     chainId: 'chick_fil_a',
+    category: 'Nuggets',
     name: 'Grilled Nuggets (8-count)',
     aliases: ['grilled nuggets', '8 count grilled nuggets', 'grilled nuggets 8'],
     serving: 'per 8 nuggets',
@@ -163,6 +170,7 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
   {
     id: 'cfa_waffle_fries_md',
     chainId: 'chick_fil_a',
+    category: 'Sides',
     name: 'Waffle Potato Fries (medium)',
     aliases: ['waffle fries', 'fries', 'waffle potato fries', 'medium fries'],
     serving: 'per medium serving',
@@ -178,6 +186,7 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
   {
     id: 'cfa_mac_cheese_md',
     chainId: 'chick_fil_a',
+    category: 'Sides',
     name: 'Mac & Cheese (medium)',
     aliases: ['mac and cheese', 'mac & cheese', 'macaroni and cheese', 'mac n cheese'],
     serving: 'per medium serving',
