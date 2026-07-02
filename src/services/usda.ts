@@ -22,7 +22,9 @@ const NIDS = {
   sugar:        2000,
   addedSugar:   1235,
   saturatedFat: 1258,
+  transFat:     1257,
   sodium:       1093,   // mg — divide by 1000 to get grams
+  potassium:    1092,   // mg — divide by 1000 to get grams
 } as const;
 
 // USDA stores GTINs zero-padded to 14 digits; barcodes from OFF may be 8–13 digits
@@ -73,6 +75,7 @@ function scalePer100g(match: USDAFood): USDANutrition | null {
     return v != null ? v * factor : undefined;
   };
   const sodiumMg = scale(NIDS.sodium);
+  const potassiumMg = scale(NIDS.potassium);
 
   return {
     calories:     scale(NIDS.calories),
@@ -83,7 +86,9 @@ function scalePer100g(match: USDAFood): USDANutrition | null {
     sugar:        scale(NIDS.sugar),
     addedSugar:   scale(NIDS.addedSugar),
     saturatedFat: scale(NIDS.saturatedFat),
+    transFat:     scale(NIDS.transFat),
     sodium:       sodiumMg != null ? sodiumMg / 1000 : undefined,
+    potassium:    potassiumMg != null ? potassiumMg / 1000 : undefined,
     servingSize:      match.servingSize,
     servingSizeUnit:  match.servingSizeUnit,
     householdServing: match.householdServingFullText,
@@ -108,7 +113,9 @@ export async function fetchUSDANutrition(barcode: string): Promise<USDANutrition
       sugar:        label.sugars?.value,
       addedSugar:   label.addedSugar?.value,
       saturatedFat: label.saturatedFat?.value,
+      transFat:     label.transFat?.value,
       sodium:       label.sodium?.value != null ? label.sodium.value / 1000 : undefined,
+      potassium:    label.potassium?.value != null ? label.potassium.value / 1000 : undefined,
       servingSize:      match.servingSize,
       servingSizeUnit:  match.servingSizeUnit,
       householdServing: match.householdServingFullText,

@@ -20,7 +20,9 @@ const SEARCH_MATCH = {
     { nutrientId: 2000, nutrientName: 'Total Sugars', unitName: 'G', value: 31.2 },
     { nutrientId: 1079, nutrientName: 'Fiber, total dietary', unitName: 'G', value: 10.4 },
     { nutrientId: 1093, nutrientName: 'Sodium, Na', unitName: 'MG', value: 219 },
+    { nutrientId: 1092, nutrientName: 'Potassium, K', unitName: 'MG', value: 400 },
     { nutrientId: 1258, nutrientName: 'Fatty acids, total saturated', unitName: 'G', value: 9.38 },
+    { nutrientId: 1257, nutrientName: 'Fatty acids, total trans', unitName: 'G', value: 0 },
   ],
 };
 
@@ -35,6 +37,8 @@ const LABEL_DETAIL = {
     sugars: { value: 15.0 },
     protein: { value: 4.0 },
     calories: { value: 190 },
+    transFat: { value: 0 },
+    potassium: { value: 200 },
   },
 };
 
@@ -73,6 +77,8 @@ describe('fetchUSDANutrition', () => {
     expect(result?.totalFat).toBe(12.0);
     expect(result?.carbs).toBe(25.0);
     expect(result?.sodium).toBeCloseTo(0.105);
+    expect(result?.potassium).toBeCloseTo(0.2);   // 200 mg → g
+    expect(result?.transFat).toBe(0);
     expect(result?.servingSize).toBe(48.0);
   });
 
@@ -83,6 +89,7 @@ describe('fetchUSDANutrition', () => {
     expect(result?.calories).toBeCloseTo(190.08, 1);
     expect(result?.totalFat).toBeCloseTo(12.0, 1);
     expect(result?.carbs).toBeCloseTo(25.0, 1);
+    expect(result?.potassium).toBeCloseTo(0.192, 2);  // 400 mg/100g × 0.48 → g
   });
 
   it('scales per-100g values when the detail call fails outright', async () => {

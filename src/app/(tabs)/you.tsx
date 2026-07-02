@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CONDITIONS } from '@/data/conditions';
 import { useProfile } from '@/hooks/use-profile';
-import type { ProfileValues } from '@/types/index';
+import type { ProfileAgeBand, ProfileGoal, ProfileSex, ProfileValues } from '@/types/index';
 
 const VALUES_OPTIONS: { value: ProfileValues; label: string; hint: string }[] = [
   {
@@ -23,6 +23,24 @@ const VALUES_OPTIONS: { value: ProfileValues; label: string; hint: string }[] = 
   },
 ];
 
+const GOAL_OPTIONS: { value: ProfileGoal; label: string; hint: string }[] = [
+  { value: 'unset',    label: 'Not set',          hint: 'Balanced nutrition view (default).' },
+  { value: 'build',    label: 'Building muscle',  hint: 'Protein reads as a positive signal.' },
+  { value: 'lose',     label: 'Losing weight',    hint: 'Tightens added sugar; highlights protein + fiber for fullness.' },
+  { value: 'maintain', label: 'Maintaining',      hint: 'Balanced view, same as default.' },
+];
+
+const SEX_OPTIONS: { value: ProfileSex; label: string }[] = [
+  { value: 'unspecified', label: 'Prefer not to say' },
+  { value: 'female',      label: 'Female' },
+  { value: 'male',        label: 'Male' },
+];
+
+const AGE_OPTIONS: { value: ProfileAgeBand; label: string }[] = [
+  { value: 'adult',       label: '19–50' },
+  { value: 'older_adult', label: '51+' },
+];
+
 export default function YouScreen() {
   const insets = useSafeAreaInsets();
   const { profile, setProfile } = useProfile();
@@ -37,6 +55,10 @@ export default function YouScreen() {
       : [...profile.conditions, id];
     setProfile({ ...profile, conditions });
   }
+
+  const goal = profile.goal ?? 'unset';
+  const sex = profile.sex ?? 'unspecified';
+  const ageBand = profile.ageBand ?? 'adult';
 
   return (
     <ScrollView
@@ -101,9 +123,81 @@ export default function YouScreen() {
         })}
       </View>
 
+      {/* Goal */}
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>Your nutrition goal</Text>
+        {GOAL_OPTIONS.map((opt, i) => {
+          const selected = goal === opt.value;
+          return (
+            <Pressable
+              key={opt.value}
+              style={[styles.optionRow, i > 0 && styles.optionBorder]}
+              onPress={() => setProfile({ ...profile, goal: opt.value })}>
+              <View style={[styles.radio, selected && styles.radioSelected]}>
+                {selected && <View style={styles.radioDot} />}
+              </View>
+              <View style={styles.optionInfo}>
+                <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
+                  {opt.label}
+                </Text>
+                <Text style={styles.optionHint}>{opt.hint}</Text>
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {/* Reference (sex/age) */}
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>Personalize %DV (optional)</Text>
+        <Text style={styles.cardIntro}>
+          Fiber and protein targets differ by sex and age. Set these to see “your
+          reference” instead of the generic label value.
+        </Text>
+
+        <Text style={styles.segLabel}>Sex</Text>
+        <View style={styles.segRow}>
+          {SEX_OPTIONS.map(opt => {
+            const selected = sex === opt.value;
+            return (
+              <Pressable
+                key={opt.value}
+                style={[styles.segBtn, selected && styles.segBtnSelected]}
+                onPress={() => setProfile({ ...profile, sex: opt.value })}>
+                <Text style={[styles.segBtnText, selected && styles.segBtnTextSelected]}>
+                  {opt.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {sex !== 'unspecified' && (
+          <>
+            <Text style={styles.segLabel}>Age</Text>
+            <View style={styles.segRow}>
+              {AGE_OPTIONS.map(opt => {
+                const selected = ageBand === opt.value;
+                return (
+                  <Pressable
+                    key={opt.value}
+                    style={[styles.segBtn, selected && styles.segBtnSelected]}
+                    onPress={() => setProfile({ ...profile, ageBand: opt.value })}>
+                    <Text style={[styles.segBtnText, selected && styles.segBtnTextSelected]}>
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
+        )}
+      </View>
+
       <Text style={styles.footer}>
         Klarity never changes an “everyday” or “sometimes” verdict to match your
-        values — evidence sets those. Everything here stays on this device.
+        values — evidence sets those. Goals re-weight nutrition emphasis; they never
+        become a calorie budget. Everything here stays on this device.
       </Text>
     </ScrollView>
   );
@@ -127,6 +221,21 @@ const styles = StyleSheet.create({
     fontSize: 10.5, fontWeight: '800', letterSpacing: 0.7,
     textTransform: 'uppercase', color: '#9fadbf', marginBottom: 6,
   },
+  cardIntro: { fontSize: 12.5, color: '#8896a7', lineHeight: 18, marginBottom: 8 },
+
+  segLabel: {
+    fontSize: 12, fontWeight: '700', color: '#5b6675',
+    marginTop: 10, marginBottom: 6,
+  },
+  segRow: { flexDirection: 'row', gap: 8 },
+  segBtn: {
+    flex: 1, paddingVertical: 10, borderRadius: 12,
+    borderWidth: 1, borderColor: '#e7ebf0', backgroundColor: '#f6f8fa',
+    alignItems: 'center',
+  },
+  segBtnSelected: { borderColor: '#1f9d6b', backgroundColor: '#e8f7ef' },
+  segBtnText: { fontSize: 13, fontWeight: '600', color: '#5b6675' },
+  segBtnTextSelected: { color: '#1f9d6b', fontWeight: '700' },
 
   optionRow: {
     flexDirection: 'row',
