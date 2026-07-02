@@ -51,10 +51,10 @@ describe('restaurant dataset integrity (spec 004)', () => {
     }
   });
 
-  it('intrinsicSugarOnly always carries a justification (spec 007)', () => {
+  it('wholeFoodSugarMatrix always carries a justification (spec 007)', () => {
     for (const item of MENU_ITEMS) {
-      if (item.intrinsicSugarOnly) {
-        expect(item.intrinsicSugarBasis?.length ?? 0).toBeGreaterThan(0);
+      if (item.wholeFoodSugarMatrix) {
+        expect(item.wholeFoodSugarBasis?.length ?? 0).toBeGreaterThan(0);
       }
     }
   });

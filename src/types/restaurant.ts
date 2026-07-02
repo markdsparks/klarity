@@ -67,14 +67,17 @@ export interface MenuItem {
   slots?: ItemSlot[];            // choice slots (cheese, …)
   addOnIds?: string[];           // catalog ids addable to this item (sauces, bacon)
   nutrition: MandatedNutrition;  // whole item, as published
-  // True only when this item's sugar is intrinsic to whole fruit/vegetable
-  // content, not added — WHO/AHA added-sugar guidance doesn't apply to it
-  // (spec 007). Human-reviewed at authoring time, never inferred from
-  // ingredient text (see docs/nutrition-evidence.md's rejection of
-  // NOVA-style processing scores — same discipline applies here). Requires
-  // intrinsicSugarBasis.
-  intrinsicSugarOnly?: boolean;
-  intrinsicSugarBasis?: string;
+  // True only when this item's sugar is delivered in an intact whole-food
+  // solid matrix — whole/cut (not juiced, blended, or pureed) fruit or
+  // vegetable with its fiber and cell structure substantially preserved
+  // (spec 007). The science shows physical form and matrix — NOT
+  // natural-vs-added origin — drive the health outcome (WHO classifies natural
+  // fruit JUICE as free sugar precisely because juicing destroys the matrix).
+  // Human-reviewed at authoring time, never inferred from ingredient text (same
+  // discipline as docs/nutrition-evidence.md's rejection of NOVA-style
+  // processing scores). Requires wholeFoodSugarBasis.
+  wholeFoodSugarMatrix?: boolean;
+  wholeFoodSugarBasis?: string;
 }
 
 export interface RestaurantChain {

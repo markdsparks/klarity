@@ -190,7 +190,7 @@ function buildContextLines(sn: ServingNutrients, sugarLabel: string, goal: strin
 export function toneNutrition(
   sn: ServingNutrients,
   profile: Profile,
-  ctx?: { intrinsicSugarOnly?: boolean },
+  ctx?: { wholeFoodSugarMatrix?: boolean },
 ): NutritionAssessment {
   const t = warnThresholds(profile);
   const sugarDvBasis = sugarBasisDv(sn);
@@ -198,15 +198,16 @@ export function toneNutrition(
   const { sodiumDv = 0, satFatDv = 0, fiberDv = 0, proteinDv = 0 } = sn;
   const goal = profile.goal ?? 'unset';
 
-  // Spec 007: WHO/AHA added-sugar guidance explicitly excludes sugars intrinsic
-  // to whole fruit/vegetables. Restaurant data has no added-sugar field to score
-  // on directly, so items reviewed and flagged as intrinsic-sugar-only (never
-  // inferred from ingredient text — see docs/nutrition-evidence.md's rejection
-  // of NOVA-style scores) are scored on 0 for tone purposes. The raw sugarDvBasis
-  // still drives the blood_sugar profileNote (glycemic load, not added-sugar
-  // policy) and a context-only line below — never hidden, just not held against
-  // the verdict.
-  const sugarToneDvBasis = ctx?.intrinsicSugarOnly ? 0 : sugarDvBasis;
+  // Spec 007: the health signal in WHO/AHA sugar guidance is the food matrix and
+  // physical form, not natural-vs-added origin (WHO classifies natural fruit
+  // JUICE as free sugar because juicing destroys the matrix). Restaurant data has
+  // no added-sugar field to score on, so items reviewed and flagged as an intact
+  // whole-food solid matrix (never inferred from ingredient text — see
+  // docs/nutrition-evidence.md's rejection of NOVA-style scores) are scored on 0
+  // for tone purposes. The raw sugarDvBasis still drives the blood_sugar
+  // profileNote (glycemic load is real regardless of matrix) and a context-only
+  // line below — never hidden, just not held against the verdict.
+  const sugarToneDvBasis = ctx?.wholeFoodSugarMatrix ? 0 : sugarDvBasis;
 
   const profileNotes: string[] = [];
   if (profile.conditions.includes('bp') && sodiumDv >= 15) {
@@ -224,8 +225,8 @@ export function toneNutrition(
   }
 
   const contextLines = buildContextLines(sn, sugarLabel, goal);
-  if (ctx?.intrinsicSugarOnly && sugarDvBasis >= 10) {
-    contextLines.push(`${sugarDvBasis}% DV sugar here is naturally occurring in whole fruit`);
+  if (ctx?.wholeFoodSugarMatrix && sugarDvBasis >= 10) {
+    contextLines.push(`${sugarDvBasis}% DV sugar here comes packaged in whole fruit's fiber and structure`);
   }
 
   // ── Verdict-moving offsets (extend the fiber↔sugar precedent) ──

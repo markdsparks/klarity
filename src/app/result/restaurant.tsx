@@ -200,7 +200,7 @@ export default function RestaurantResultScreen() {
   // Nutrition — published values, minus removals with data, plus additions
   const adj = adjustedNutrition(item, removedIds, addedIds);
   const sn = restaurantServingNutrients(adj.nutrition, referenceValues(profile));
-  const nutrition = toneNutrition(sn, profile, { intrinsicSugarOnly: item.intrinsicSugarOnly });
+  const nutrition = toneNutrition(sn, profile, { wholeFoodSugarMatrix: item.wholeFoodSugarMatrix });
   const nutritionGlance = NUTRITION_GLANCE[nutrition.tone];
 
   const matched = additiveIds.map(id => ADDITIVES[id]).filter(Boolean);
