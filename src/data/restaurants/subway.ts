@@ -92,6 +92,15 @@ const VEG_BASIS = 'chain-published per-serving vegetable nutrition (US Nutrition
 
 // Standard removable veggie toppings — same set, same published nutrition,
 // on every 6" sandwich (Subway's build-your-own model, per spec 006 M2).
+//
+// Also reused unchanged on Footlong items: the chain's own nutrition PDF
+// gives an explicit "double for footlong" instruction for the Breads,
+// Sandwich Condiments/Sauces, and Individual Proteins sections — but the
+// Vegetables section header carries no such instruction (just "Amount on
+// 6" sandwich or wrap"). Per the no-fabrication rule, we don't invent a
+// doubling the chain didn't publish; the per-topping values here are used
+// as-is on both sizes, same as every other un-decomposable standard-build
+// element.
 function standardToppings() {
   return [
     { id: 'lettuce', name: 'Lettuce', removable: true, ingredientText: LETTUCE_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 0, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },
@@ -99,6 +108,23 @@ function standardToppings() {
     { id: 'onion', name: 'Onions', removable: true, ingredientText: ONION_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 1, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },
     { id: 'pickles', name: 'Pickles, Crinkle (3 chips)', removable: true, ingredientText: PICKLES_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 160, carbs: 0, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },
   ];
+}
+
+// Footlong bread/protein components double the 6" chain-published values,
+// per the PDF's own explicit instruction — "Double values for footlong
+// nutrition information (one footlong=two 6" servings)" — stated for the
+// Breads and Individual Proteins/Sandwich Condiments sections. This is the
+// chain's own stated methodology, transcribed here, not a doubling we
+// invented during ingestion (distinct from, and not in tension with, the
+// separate finding above that *component* rows don't sum to a *whole-item*
+// row — that's about component-vs-whole-item reconciliation, not
+// 6"-vs-footlong sizing).
+function doubleNutrition(n: { calories: number; totalFat: number; satFat: number; transFat: number; cholesterol: number; sodium: number; carbs: number; sugars: number; fiber: number; protein: number }) {
+  return {
+    calories: n.calories * 2, totalFat: n.totalFat * 2, satFat: n.satFat * 2, transFat: n.transFat * 2,
+    cholesterol: n.cholesterol * 2, sodium: n.sodium * 2, carbs: n.carbs * 2, sugars: n.sugars * 2,
+    fiber: n.fiber * 2, protein: n.protein * 2,
+  };
 }
 
 export const SUBWAY_ITEMS: MenuItem[] = [
@@ -159,7 +185,7 @@ export const SUBWAY_ITEMS: MenuItem[] = [
     chainId: 'subway',
     category: 'Sandwiches',
     name: 'Oven-Roasted Turkey',
-    aliases: ['oven roasted turkey', 'turkey breast', 'turkey sub', 'turkey sandwich'],
+    aliases: ['oven roasted turkey', 'turkey breast', 'turkey sub', 'turkey sandwich', 'turkey'],
     serving: 'per 6-inch sandwich',
     slots: [cheeseSlot()],
     addOnIds: SAUCE_IDS,
@@ -240,6 +266,156 @@ export const SUBWAY_ITEMS: MenuItem[] = [
     nutrition: { calories: 510, totalFat: 25, satFat: 9, transFat: 1, cholesterol: 85, sodium: 1320, carbs: 43, sugars: 5, fiber: 2, protein: 28 },
     components: [
       { id: 'bread', name: 'Artisan Italian bread', removable: false, ingredientText: ITALIAN_BREAD_TEXT, nutrition: null },
+      { id: 'steak', name: 'Shaved steak', removable: false, ingredientText: STEAK_TEXT, nutrition: null },
+      { id: 'green_peppers', name: 'Green peppers', removable: true, ingredientText: GREEN_PEPPERS_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 0, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },
+      { id: 'onion', name: 'Onions', removable: true, ingredientText: ONION_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 1, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },
+    ],
+  },
+
+  // ── Footlong versions (spec 004 fast-follow) ──────────────────────────
+  // Whole-item nutrition is Subway's own published Footlong figure,
+  // transcribed via the chain's own stated methodology: the US Nutrition
+  // Information PDF (Jan 2026, same source as the 6" data above) instructs
+  // "Double values for footlong nutrition information (one footlong=two 6"
+  // servings)" for every item in the Sandwiches section. This is the
+  // chain's own published guidance, not a derivation invented during
+  // ingestion. Bread and protein/meat components double too, per the same
+  // PDF's explicit per-section doubling instructions (Breads; Individual
+  // Proteins). Veggie toppings and cheese/sauce catalog options are reused
+  // unchanged (`standardToppings()`, `cheeseSlot()`, `SAUCE_IDS`) — see the
+  // note above `standardToppings()` for why veggies don't double.
+  {
+    id: 'sub_bmt_footlong',
+    chainId: 'subway',
+    category: 'Sandwiches',
+    name: 'Footlong B.M.T.®',
+    aliases: ['footlong bmt', 'footlong b.m.t.', 'footlong italian bmt', 'bmt', 'b.m.t.', 'italian bmt', 'italian b.m.t.'],
+    serving: 'per footlong sandwich',
+    slots: [cheeseSlot()],
+    addOnIds: SAUCE_IDS,
+    nutrition: doubleNutrition({ calories: 610, totalFat: 36, satFat: 12, transFat: 1, cholesterol: 80, sodium: 1500, carbs: 44, sugars: 5, fiber: 2, protein: 27 }),
+    components: [
+      { id: 'bread', name: 'Artisan Italian bread (footlong)', removable: false, ingredientText: ITALIAN_BREAD_TEXT, nutrition: null },
+      { id: 'genoa_salami', name: 'Genoa salami', removable: false, ingredientText: GENOA_SALAMI_TEXT, nutrition: null },
+      { id: 'pepperoni', name: 'Pepperoni', removable: false, ingredientText: PEPPERONI_TEXT, nutrition: null },
+      { id: 'ham', name: 'Black Forest ham', removable: false, ingredientText: HAM_TEXT, nutrition: null },
+      ...standardToppings(),
+    ],
+  },
+  {
+    id: 'sub_spicy_italian_footlong',
+    chainId: 'subway',
+    category: 'Sandwiches',
+    name: 'Footlong Spicy Italian',
+    aliases: ['footlong spicy italian', 'spicy italian'],
+    serving: 'per footlong sandwich',
+    slots: [cheeseSlot()],
+    addOnIds: SAUCE_IDS,
+    nutrition: doubleNutrition({ calories: 680, totalFat: 44, satFat: 15, transFat: 1, cholesterol: 95, sodium: 1690, carbs: 44, sugars: 5, fiber: 3, protein: 27 }),
+    components: [
+      { id: 'bread', name: 'Artisan Italian bread (footlong)', removable: false, ingredientText: ITALIAN_BREAD_TEXT, nutrition: null },
+      { id: 'genoa_salami', name: 'Genoa salami', removable: false, ingredientText: GENOA_SALAMI_TEXT, nutrition: null },
+      { id: 'pepperoni', name: 'Pepperoni', removable: false, ingredientText: PEPPERONI_TEXT, nutrition: null },
+      ...standardToppings(),
+    ],
+  },
+  {
+    id: 'sub_meatball_marinara_footlong',
+    chainId: 'subway',
+    category: 'Sandwiches',
+    name: 'Footlong Meatball Marinara',
+    aliases: ['footlong meatball marinara', 'footlong meatball sub', 'footlong meatballs', 'meatball marinara', 'meatball sub', 'meatballs'],
+    serving: 'per footlong sandwich',
+    slots: [cheeseSlot()],
+    addOnIds: SAUCE_IDS,
+    nutrition: doubleNutrition({ calories: 570, totalFat: 28, satFat: 12, transFat: 0, cholesterol: 60, sodium: 1370, carbs: 53, sugars: 7, fiber: 4, protein: 27 }),
+    components: [
+      { id: 'bread', name: 'Artisan Italian bread (footlong)', removable: false, ingredientText: ITALIAN_BREAD_TEXT, nutrition: null },
+      { id: 'meatballs', name: 'Meatballs & marinara', removable: false, ingredientText: MEATBALLS_MARINARA_TEXT, nutrition: null },
+      { id: 'onion', name: 'Onions', removable: true, ingredientText: ONION_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 1, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },
+      { id: 'green_peppers', name: 'Green peppers', removable: true, ingredientText: GREEN_PEPPERS_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 0, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },
+    ],
+  },
+  {
+    id: 'sub_oven_roasted_turkey_footlong',
+    chainId: 'subway',
+    category: 'Sandwiches',
+    name: 'Footlong Oven-Roasted Turkey',
+    aliases: ['footlong oven roasted turkey', 'footlong turkey breast', 'footlong turkey sub', 'footlong turkey sandwich', 'footlong turkey', 'oven roasted turkey', 'turkey breast', 'turkey sub', 'turkey sandwich', 'turkey'],
+    serving: 'per footlong sandwich',
+    slots: [cheeseSlot()],
+    addOnIds: SAUCE_IDS,
+    nutrition: doubleNutrition({ calories: 480, totalFat: 23, satFat: 7, transFat: 1, cholesterol: 55, sodium: 1150, carbs: 42, sugars: 5, fiber: 3, protein: 26 }),
+    components: [
+      { id: 'bread', name: 'Artisan Italian bread (footlong)', removable: false, ingredientText: ITALIAN_BREAD_TEXT, nutrition: null },
+      { id: 'turkey', name: 'Oven-roasted turkey breast', removable: false, ingredientText: TURKEY_TEXT, nutrition: null },
+      ...standardToppings(),
+    ],
+  },
+  {
+    id: 'sub_cold_cut_combo_footlong',
+    chainId: 'subway',
+    category: 'Sandwiches',
+    name: 'Footlong Cold Cut Combo®',
+    aliases: ['footlong cold cut combo', 'footlong ccc', 'cold cut combo', 'ccc'],
+    serving: 'per footlong sandwich',
+    slots: [cheeseSlot()],
+    addOnIds: SAUCE_IDS,
+    nutrition: doubleNutrition({ calories: 530, totalFat: 29, satFat: 9, transFat: 1, cholesterol: 75, sodium: 1320, carbs: 43, sugars: 5, fiber: 2, protein: 25 }),
+    components: [
+      { id: 'bread', name: 'Artisan Italian bread (footlong)', removable: false, ingredientText: ITALIAN_BREAD_TEXT, nutrition: null },
+      { id: 'ccc_meats', name: 'Cold Cut Combo® meats (turkey bologna, turkey salami, turkey ham)', removable: false, ingredientText: COLD_CUT_COMBO_MEATS_TEXT, nutrition: null },
+      ...standardToppings(),
+    ],
+  },
+  {
+    id: 'sub_tuna_footlong',
+    chainId: 'subway',
+    category: 'Sandwiches',
+    name: 'Footlong Tuna',
+    aliases: ['footlong tuna', 'footlong tuna sub', 'footlong tuna sandwich', 'tuna', 'tuna sub', 'tuna sandwich'],
+    serving: 'per footlong sandwich',
+    slots: [cheeseSlot()],
+    addOnIds: SAUCE_IDS,
+    nutrition: doubleNutrition({ calories: 570, totalFat: 33, satFat: 9, transFat: 1, cholesterol: 60, sodium: 950, carbs: 42, sugars: 4, fiber: 2, protein: 27 }),
+    components: [
+      { id: 'bread', name: 'Artisan Italian bread (footlong)', removable: false, ingredientText: ITALIAN_BREAD_TEXT, nutrition: null },
+      { id: 'tuna_salad', name: 'Tuna salad', removable: false, ingredientText: TUNA_SALAD_TEXT, nutrition: null },
+      ...standardToppings(),
+    ],
+  },
+  {
+    id: 'sub_veggie_delite_footlong',
+    chainId: 'subway',
+    category: 'Sandwiches',
+    name: 'Footlong Veggie Delite®',
+    aliases: ['footlong veggie delite', 'footlong veggie sub', 'footlong veggie sandwich', 'veggie delite', 'veggie sub', 'veggie sandwich'],
+    serving: 'per footlong sandwich',
+    slots: [cheeseSlot()],
+    addOnIds: SAUCE_IDS,
+    nutrition: doubleNutrition({ calories: 320, totalFat: 10, satFat: 5, transFat: 0, cholesterol: 20, sodium: 600, carbs: 41, sugars: 6, fiber: 4, protein: 17 }),
+    components: [
+      { id: 'bread', name: 'Artisan Italian bread (footlong)', removable: false, ingredientText: ITALIAN_BREAD_TEXT, nutrition: null },
+      ...standardToppings(),
+      { id: 'green_peppers', name: 'Green peppers', removable: true, ingredientText: GREEN_PEPPERS_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 0, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },
+      { id: 'black_olives', name: 'Black olives (3 rings)', removable: true, ingredientText: BLACK_OLIVES_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 25, carbs: 0, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },
+      { id: 'spinach', name: 'Spinach, baby', removable: true, ingredientText: SPINACH_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 5, carbs: 0, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },
+      { id: 'cucumbers', name: 'Cucumbers (3 slices)', removable: true, ingredientText: CUCUMBERS_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 1, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },
+    ],
+  },
+  {
+    id: 'sub_steak_philly_footlong',
+    chainId: 'subway',
+    category: 'Sandwiches',
+    name: 'Footlong Steak Philly',
+    aliases: ['footlong steak philly', 'footlong steak and cheese', 'footlong steak & cheese', 'footlong philly cheesesteak', 'footlong philly steak', 'steak philly', 'steak and cheese', 'steak & cheese', 'philly cheesesteak', 'philly steak'],
+    serving: 'per footlong sandwich',
+    // Same no-cheese-slot rationale as the 6" version: the chain doesn't
+    // publish which cheese or what portion for this item, on either size.
+    addOnIds: SAUCE_IDS,
+    nutrition: doubleNutrition({ calories: 510, totalFat: 25, satFat: 9, transFat: 1, cholesterol: 85, sodium: 1320, carbs: 43, sugars: 5, fiber: 2, protein: 28 }),
+    components: [
+      { id: 'bread', name: 'Artisan Italian bread (footlong)', removable: false, ingredientText: ITALIAN_BREAD_TEXT, nutrition: null },
       { id: 'steak', name: 'Shaved steak', removable: false, ingredientText: STEAK_TEXT, nutrition: null },
       { id: 'green_peppers', name: 'Green peppers', removable: true, ingredientText: GREEN_PEPPERS_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 0, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },
       { id: 'onion', name: 'Onions', removable: true, ingredientText: ONION_TEXT, nutrition: { calories: 0, totalFat: 0, satFat: 0, transFat: 0, cholesterol: 0, sodium: 0, carbs: 1, sugars: 0, fiber: 0, protein: 0 }, nutritionBasis: VEG_BASIS },

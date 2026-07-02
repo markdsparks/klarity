@@ -206,6 +206,35 @@ describe('Subway cheese slot (no default — add-only)', () => {
   });
 });
 
+describe('Subway Footlong (spec 004 fast-follow — size variant reuses the same slot/add-on catalog)', () => {
+  const bmtFootlong = getMenuItem('sub_bmt_footlong')!;
+
+  it('whole-item nutrition is the chain-published footlong figure (double the 6" values)', () => {
+    expect(bmtFootlong.nutrition.calories).toBe(1220);
+    expect(bmtFootlong.nutrition.sodium).toBe(3000);
+    expect(bmtFootlong.nutrition.protein).toBe(54);
+  });
+
+  it('the cheese slot and sauce add-ons apply unchanged on a footlong item, exactly as on the 6" base', () => {
+    const adj = adjustedNutrition(bmtFootlong, [], ['sub_pepper_jack', 'sub_baja_chipotle']);
+    expect(adj.computed).toBe(true);
+    expect(adj.nutrition.calories).toBe(1220 + 100 + 70);
+    expect(adj.nutrition.sodium).toBe(3000 + 480 + 125);
+
+    const before = matchByIngredientText(effectiveIngredientText(bmtFootlong, [], []));
+    const after = matchByIngredientText(
+      effectiveIngredientText(bmtFootlong, [], ['sub_pepper_jack', 'sub_baja_chipotle']),
+    );
+    expect(after.length).toBeGreaterThan(before.length);
+  });
+
+  it('clearing every customization returns exactly to the published footlong figure', () => {
+    const adj = adjustedNutrition(bmtFootlong, [], []);
+    expect(adj.computed).toBe(false);
+    expect(adj.nutrition).toEqual(bmtFootlong.nutrition);
+  });
+});
+
 describe('Dairy Queen Blizzard mix-in slot (spec 004 M2 batch)', () => {
   const oreoBlizzard = getMenuItem('dq_oreo_blizzard_medium')!;
 
