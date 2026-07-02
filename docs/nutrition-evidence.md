@@ -12,6 +12,7 @@
 | Added sugar replaces total sugar in scoring when the data source provides it | WHO strong recommendation: free sugars <10% of energy; AHA added-sugar limits. Intrinsic sugars in fruit/dairy are not the subject of these recommendations | A (regulatory / consensus guidance) |
 | Fiber **or protein** ≥20% DV offsets a high-sugar flag down to "moderate" | Human RCTs: viscous/soluble fiber slows glucose absorption; dietary protein slows gastric emptying, blunts post-meal glycemia, and increases satiety | A/B (human trial) |
 | Na:K ratio ≤ 1 (by mass) offsets a high-sodium flag down to "moderate" | DASH and large-cohort/INTERSALT-family evidence: the sodium-to-potassium ratio predicts BP and CVD outcomes better than sodium alone | A/B (human trial + cohort) |
+| Saturated fat is a **budget** nutrient: in a nutrient-dense food (protein *or* fiber ≥20% DV) where sat fat is the lone elevated nutrient, it does not warn — <20% DV reads "good", 20–24% DV reads "moderate", both with the trade-off named ("budget across the day"). ≥25% DV still warns | Sat fat's health basis is the *daily total* (DGA/AHA ~10% of energy, ~20 g), not any single serving; the FDA 20% "high" line is per serving. A use-pattern reframe, **not** a claim that protein offsets sat fat physiologically — so the trade-off stays visible rather than being silently passed. Ceiling at 25% DV keeps ~2 servings within a day's budget | A (consensus guidance) |
 | Trans fat ≥ 0.5 g (label-detectable) is a hard "high" flag; a positive trace below that is context-only | Near-universal consensus of no safe intake of industrial trans fat (WHO REPLACE; FDA PHO ban). 0.5 g is the label rounding floor; we can't distinguish industrial from ruminant trans, so we flag only the detectable amount to avoid false alarms | A (regulatory consensus) |
 | Context (no verdict change): sugar as % of calories when ≥25% | WHO free-sugar guidance is framed as <10% of *energy*; %DV only proxies it | A (consensus guidance) |
 | Context (no verdict change): "mostly unsaturated" when total fat is high but ≥70% is unsaturated | Total-fat %DV is not the health signal; saturated + trans is. DGA/AHA emphasize fat quality over quantity | A (consensus guidance) |
@@ -52,6 +53,7 @@
   so there is nothing legitimate to lean on.
 - `goal` and `sex`/`ageBand` change **nutrition emphasis and reference values only** —
   they never touch the additive axis, and never merge the two axes into one score.
-- **Verdict-moving vs. context-only:** only the tagged verdict rules (offsets, trans
-  flag, condition/goal thresholds) can shift good/ok/warn. The %-of-calories,
-  mostly-unsaturated, trans-trace, and 10:1 lines are context that never move the tone.
+- **Verdict-moving vs. context-only:** only the tagged verdict rules (offsets, the
+  sat-fat budget reframe, trans flag, condition/goal thresholds) can shift good/ok/warn.
+  The %-of-calories, mostly-unsaturated, trans-trace, and 10:1 lines are context that
+  never move the tone.
