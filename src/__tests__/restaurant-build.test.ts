@@ -116,3 +116,102 @@ describe('history: final build recording', () => {
     expect(await loadHistory()).toEqual([]);
   });
 });
+
+// ── Spec 006 M2: slots, add-ons, swap math ──────────────────────────────────────
+
+import { CATALOG, MENU_ITEMS, getCatalogComponent } from '../data/restaurants';
+import { matchByIngredientText } from '../data/ingredient-text-index';
+
+describe('catalog integrity (spec 006 M2)', () => {
+  it('every catalog component has an ingredient statement, full nutrition, and a basis', () => {
+    for (const c of CATALOG) {
+      expect(c.ingredientText.length).toBeGreaterThan(0);
+      for (const k of ['calories','totalFat','satFat','transFat','cholesterol','sodium','carbs','sugars','fiber','protein'] as const) {
+        expect(typeof c.nutrition[k]).toBe('number');
+      }
+      expect(c.nutritionBasis).toMatch(/published/i);
+    }
+  });
+
+  it('every slot option and add-on resolves to a catalog component', () => {
+    for (const item of MENU_ITEMS) {
+      for (const slot of item.slots ?? []) {
+        for (const id of slot.optionIds) expect(getCatalogComponent(id)).toBeTruthy();
+        if (slot.defaultCatalogId) {
+          expect(slot.optionIds).toContain(slot.defaultCatalogId);
+          expect(item.components.some(c => c.id === slot.defaultComponentId)).toBe(true);
+        }
+      }
+      for (const id of item.addOnIds ?? []) expect(getCatalogComponent(id)).toBeTruthy();
+    }
+  });
+});
+
+describe('swap and add math (spec 006 M2)', () => {
+  const deluxe = getMenuItem('cfa_deluxe')!;
+  const nuggets = getMenuItem('cfa_nuggets_8')!;
+
+  it('cheese swap = remove default + add option, exact on both axes', () => {
+    // Deluxe: American (70 cal) → Pepper Jack (90 cal)
+    const adj = adjustedNutrition(deluxe, ['american_cheese'], ['cfa_pepper_jack']);
+    expect(adj.computed).toBe(true);
+    expect(adj.nutrition.calories).toBe(490 - 70 + 90);
+    expect(adj.nutrition.satFat).toBe(+(6 - 2.5 + 4).toFixed(1));
+
+    const text = effectiveIngredientText(deluxe, ['american_cheese'], ['cfa_pepper_jack']);
+    expect(text).not.toContain('annatto');    // American cheese's colorant is gone
+    expect(text).toContain('habanero');       // Pepper Jack's ingredients are in
+  });
+
+  it('adding a sauce adds its published nutrition and its additives — exactly', () => {
+    const adj = adjustedNutrition(nuggets, [], ['cfa_zesty_buffalo']);
+    expect(adj.computed).toBe(true);
+    expect(adj.basis).toMatch(/Zesty Buffalo/);
+    expect(adj.nutrition.calories).toBe(250 + 25);
+    expect(adj.nutrition.sodium).toBe(1210 + 480);
+
+    const before = matchByIngredientText(effectiveIngredientText(nuggets, [], []));
+    const after = matchByIngredientText(effectiveIngredientText(nuggets, [], ['cfa_zesty_buffalo']));
+    expect(before).not.toContain('potassium_sorbate');
+    expect(after).toContain('potassium_sorbate');
+  });
+
+  it('clearing every customization returns exactly to as-published', () => {
+    const adj = adjustedNutrition(deluxe, [], []);
+    expect(adj.computed).toBe(false);
+    expect(adj.nutrition).toEqual(deluxe.nutrition);
+  });
+});
+
+describe('history: additions in the build ref', () => {
+  beforeEach(async () => {
+    await clearHistory();
+  });
+
+  it('build edits persist addedIds without counting a scan', async () => {
+    await saveToHistory({
+      barcode: restaurantHistoryKey('cfa_nuggets_8'),
+      productName: 'Nuggets', brand: 'Chick-fil-A',
+      additiveGlance: 'clean', nutritionTone: 'ok', scannedAt: NOW,
+      restaurant: { itemId: 'cfa_nuggets_8', removedIds: [] },
+    });
+    await updateRestaurantBuild('cfa_nuggets_8', {
+      removedIds: [], addedIds: ['cfa_polynesian'],
+      additiveGlance: 'everyday', nutritionTone: 'warn',
+    });
+    const [entry] = await loadHistory();
+    expect(entry.scanCount).toBe(1);
+    expect(entry.restaurant?.addedIds).toEqual(['cfa_polynesian']);
+  });
+
+  it('pre-M2 entries normalize to an empty addedIds', async () => {
+    await saveToHistory({
+      barcode: restaurantHistoryKey('cfa_deluxe'),
+      productName: 'Deluxe', brand: 'Chick-fil-A',
+      additiveGlance: 'everyday', nutritionTone: 'warn', scannedAt: NOW,
+      restaurant: { itemId: 'cfa_deluxe', removedIds: ['pickles'] },  // no addedIds
+    });
+    const [entry] = await loadHistory();
+    expect(entry.restaurant?.addedIds).toEqual([]);
+  });
+});
