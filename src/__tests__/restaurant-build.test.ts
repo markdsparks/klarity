@@ -206,6 +206,37 @@ describe('Subway cheese slot (no default — add-only)', () => {
   });
 });
 
+describe('Dairy Queen Blizzard mix-in slot (spec 004 M2 batch)', () => {
+  const oreoBlizzard = getMenuItem('dq_oreo_blizzard_medium')!;
+
+  it('mix-in swap = remove default + add option, exact on both axes', () => {
+    // OREO pieces (180 cal) → Reese's Peanut Butter Cup pieces (180 cal, more fat)
+    const adj = adjustedNutrition(oreoBlizzard, ['oreo_pieces'], ['dq_reeses_mixin']);
+    expect(adj.computed).toBe(true);
+    expect(adj.nutrition.calories).toBe(790 - 180 + 180);
+    expect(adj.nutrition.totalFat).toBe(+(31 - 8 + 10).toFixed(1));
+
+    const text = effectiveIngredientText(oreoBlizzard, ['oreo_pieces'], ['dq_reeses_mixin']);
+    expect(text).not.toContain('Cocoa (Processed With Alkali)'); // OREO cookie ingredient gone
+    expect(text).toContain('Peanuts');                            // Reese's ingredients now in
+  });
+
+  it('swapping to M&M\'S mix-in brings in its own additive set', () => {
+    const before = matchByIngredientText(effectiveIngredientText(oreoBlizzard, []));
+    const after = matchByIngredientText(
+      effectiveIngredientText(oreoBlizzard, ['oreo_pieces'], ['dq_mm_mixin']),
+    );
+    expect(before).not.toContain('red_40');
+    expect(after).toContain('red_40');
+  });
+
+  it('clearing the swap returns exactly to as-published', () => {
+    const adj = adjustedNutrition(oreoBlizzard, [], []);
+    expect(adj.computed).toBe(false);
+    expect(adj.nutrition).toEqual(oreoBlizzard.nutrition);
+  });
+});
+
 describe('history: additions in the build ref', () => {
   beforeEach(async () => {
     await clearHistory();
