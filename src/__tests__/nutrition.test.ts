@@ -162,6 +162,56 @@ describe('toneNutrition — trans fat', () => {
   });
 });
 
+describe('toneNutrition — saturated fat as a budget nutrient (nutrient-dense reframe)', () => {
+  it('Barebells (18% sat fat, 40% protein) reads good, not moderate, with the trade-off named', () => {
+    const r = toneNutrition(nutrients({ satFatDv: 18, proteinDv: 40 }), profileWith());
+    expect(r.tone).toBe('good');
+    expect(r.summary).toMatch(/budget across the day/i);
+    expect(r.summary).toMatch(/protein/i);
+  });
+
+  it('Aloha PB (15% sat fat, 28% protein, 36% fiber, 10% sugar) reads good', () => {
+    const r = toneNutrition(
+      nutrients({ satFatDv: 15, proteinDv: 28, fiberDv: 36, sugarDv: 10 }),
+      profileWith(),
+    );
+    expect(r.tone).toBe('good');
+    expect(r.summary).toMatch(/protein and fiber/i);
+  });
+
+  it('Aloha Cookie Dough (22% sat fat) lands moderate — not "watch" — because the food is otherwise strong', () => {
+    const r = toneNutrition(nutrients({ satFatDv: 22, proteinDv: 28, fiberDv: 36 }), profileWith());
+    expect(r.tone).toBe('ok');
+    expect(r.summary).toMatch(/budget across the day/i);
+    expect(r.highNutrients).toEqual([]);   // not surfaced as a Layer-1 warn culprit
+  });
+
+  it('sat fat ≥25% DV still warns even in a nutrient-dense food — the safety ceiling', () => {
+    const r = toneNutrition(nutrients({ satFatDv: 30, proteinDv: 30 }), profileWith());
+    expect(r.tone).toBe('warn');
+    expect(r.summary).toMatch(/sat fat/i);
+  });
+
+  it('the reframe does not apply to a non-dense food — plain moderate sat fat', () => {
+    const r = toneNutrition(nutrients({ satFatDv: 15, proteinDv: 5, fiberDv: 5 }), profileWith());
+    expect(r.tone).toBe('ok');
+    expect(r.summary).toMatch(/moderate/i);
+    expect(r.summary).not.toMatch(/budget across the day/i);
+  });
+
+  it('the reframe does not apply when another nutrient is also high (sat fat is not the lone concern)', () => {
+    // High sodium with no potassium to offset it — sat fat is no longer the lone concern.
+    const r = toneNutrition(nutrients({ satFatDv: 18, fiberDv: 25, sodiumDv: 40 }), profileWith());
+    expect(r.tone).toBe('warn');
+    expect(r.summary).toMatch(/sodium/i);
+  });
+
+  it('build goal personalizes the reframe wording', () => {
+    const r = toneNutrition(nutrients({ satFatDv: 18, proteinDv: 40 }), profileWith([], { goal: 'build' }));
+    expect(r.summary).toMatch(/for your goal/i);
+  });
+});
+
 describe('toneNutrition — context lines (never move the tone)', () => {
   it('surfaces sugar as % of calories when it is a big share', () => {
     const r = toneNutrition(nutrients({ calories: 100, addedSugar: 10, addedSugarDv: 20 }), profileWith());

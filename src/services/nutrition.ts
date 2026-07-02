@@ -128,11 +128,19 @@ export function sugarBasisDv(sn: ServingNutrients): number {
 // 0.5 g (verdict-moving); a positive trace below that surfaces as context only.
 const TRANS_WARN_G = 0.5;
 
+// Saturated fat is a budget nutrient: a moderate amount per serving isn't a quality
+// defect, it's only a concern in aggregate. In a nutrient-dense food where sat fat is
+// the lone elevated nutrient we reframe it as a daily-budget caveat up to this ceiling
+// (≈2 servings still fits a day's ~20 g budget); above it, sat fat is genuinely high.
+const SATFAT_BUDGET_CEILING = 25;
+
 export interface NutritionAssessment {
   tone: NutritionTone;
   summary: string;
   profileNotes: string[];  // condition-driven context lines, rendered under the summary
   contextLines: string[];  // science-based "so what" context; never moves the tone
+  highNutrients: string[]; // short labels of what drove a warn ('sat fat', 'sodium') — for the Layer 1 sentence
+  satFatBudget: boolean;   // tone was good/ok only because sat fat is budget-reframed — Layer 1 keeps the trade-off in the headline
 }
 
 // Science-based context that reframes the numbers without changing the verdict.
@@ -218,14 +226,40 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
   const sodiumOffset = sodiumDv >= t.sodium && naK != null && naK <= 1;
 
   const transWarn = sn.transFat != null && sn.transFat >= TRANS_WARN_G;
+  const sugarHigh  = sugarDvBasis >= t.sugar && !sugarOffset;
+  const sodiumHigh = sodiumDv >= t.sodium && !sodiumOffset;
+  const satFatHigh = satFatDv >= t.satFat;
+
+  // Sat-fat budget reframe (see SATFAT_BUDGET_CEILING): in a nutrient-dense food where
+  // sat fat is the ONLY elevated nutrient and isn't extreme, it's a "don't live on these"
+  // caveat, not a per-serving quality flag. A use-pattern reframe — NOT a claim that
+  // protein offsets sat fat — so the trade-off stays visible in the summary below.
+  const nutrientDense = proteinDv >= 20 || fiberDv >= 20;
+  const satFatBudget =
+    nutrientDense && satFatDv >= 10 && satFatDv < SATFAT_BUDGET_CEILING &&
+    !transWarn && !sugarHigh && !sodiumHigh;
 
   const highItems: string[] = [];
-  if (transWarn) highItems.push(`trans fat (${sn.transFat!.toFixed(1)} g)`);
-  if (sugarDvBasis >= t.sugar && !sugarOffset) highItems.push(`${sugarLabel} (${sugarDvBasis}% DV)`);
-  if (sodiumDv >= t.sodium && !sodiumOffset) highItems.push(`sodium (${sodiumDv}% DV)`);
-  if (satFatDv >= t.satFat) highItems.push(`sat fat (${satFatDv}% DV)`);
+  const highNutrients: string[] = [];   // short labels, for the Layer 1 verdict sentence
+  if (transWarn) { highItems.push(`trans fat (${sn.transFat!.toFixed(1)} g)`); highNutrients.push('trans fat'); }
+  if (sugarHigh)  { highItems.push(`${sugarLabel} (${sugarDvBasis}% DV)`); highNutrients.push(sugarLabel); }
+  if (sodiumHigh) { highItems.push(`sodium (${sodiumDv}% DV)`); highNutrients.push('sodium'); }
+  if (satFatHigh && !satFatBudget) { highItems.push(`sat fat (${satFatDv}% DV)`); highNutrients.push('sat fat'); }
   if (highItems.length > 0) {
-    return { tone: 'warn', summary: `High in ${highItems.join(' and ')}`, profileNotes, contextLines };
+    return { tone: 'warn', summary: `High in ${highItems.join(' and ')}`, profileNotes, contextLines, highNutrients, satFatBudget: false };
+  }
+
+  // A nutrient-dense food whose lone concern is budgetable sat fat — good/ok, never warn,
+  // with the trade-off named. ≥20% DV lands as 'ok' (moderate), below as 'good'.
+  if (satFatBudget) {
+    const positive = proteinDv >= 20 && fiberDv >= 20 ? 'protein and fiber'
+      : proteinDv >= 20 ? 'protein' : 'fiber';
+    const forGoal = goal === 'build' ? ' for your goal' : '';
+    return {
+      tone: satFatHigh ? 'ok' : 'good',
+      summary: `Strong ${positive}${forGoal} — saturated fat is the one thing to budget across the day`,
+      profileNotes, contextLines, highNutrients: [], satFatBudget: true,
+    };
   }
 
   // A high nutrient was softened by an offset — call out why explicitly.
@@ -238,7 +272,7 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
   if (sodiumOffset) offsets.push(`high sodium (${sodiumDv}% DV) balanced by potassium`);
   if (offsets.length > 0) {
     const summary = offsets.join(' · ');
-    return { tone: 'ok', summary: summary.charAt(0).toUpperCase() + summary.slice(1), profileNotes, contextLines };
+    return { tone: 'ok', summary: summary.charAt(0).toUpperCase() + summary.slice(1), profileNotes, contextLines, highNutrients: [], satFatBudget: false };
   }
 
   const modItems: string[] = [];
@@ -246,8 +280,8 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
   if (sodiumDv >= 10) modItems.push('sodium');
   if (satFatDv >= 10) modItems.push('sat fat');
   if (modItems.length > 0) {
-    return { tone: 'ok', summary: `Moderate ${modItems.join(', ')} — frequency matters`, profileNotes, contextLines };
+    return { tone: 'ok', summary: `Moderate ${modItems.join(', ')} — frequency matters`, profileNotes, contextLines, highNutrients: [], satFatBudget: false };
   }
 
-  return { tone: 'good', summary: 'Clean nutrition per serving', profileNotes, contextLines };
+  return { tone: 'good', summary: 'Clean nutrition per serving', profileNotes, contextLines, highNutrients: [], satFatBudget: false };
 }
