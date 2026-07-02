@@ -148,6 +148,34 @@ describe("searchRestaurant — Culver's (spec 004 batch 2)", () => {
     const r = menu('culvers cheese curds');
     expect(r.hits[0].item.id).toBe('cul_cheese_curds_medium');
   });
+
+  it('a bare size-agnostic query surfaces every published size as a browsable list', () => {
+    const curds = menu('culvers cheese curds');
+    expect(curds.hits.map(h => h.item.id).sort()).toEqual(
+      ['cul_cheese_curds_large', 'cul_cheese_curds_medium'].sort()
+    );
+
+    const fries = menu('culvers crinkle fries');
+    expect(fries.hits.map(h => h.item.id).sort()).toEqual(
+      ['cul_crinkle_fries_large', 'cul_crinkle_fries_medium', 'cul_crinkle_fries_small'].sort()
+    );
+  });
+
+  it('concrete mixers publish Small/Medium/Large, each derived from a real published base + mix-in', () => {
+    const oreo = menu('culvers oreo concrete mixer');
+    expect(oreo.hits.map(h => h.item.id).sort()).toEqual(
+      ['cul_oreo_concrete_mixer_large', 'cul_oreo_concrete_mixer_medium', 'cul_oreo_concrete_mixer_small'].sort()
+    );
+
+    const turtle = menu('culvers caramel pecan concrete mixer');
+    expect(turtle.hits.map(h => h.item.id).sort()).toEqual(
+      [
+        'cul_caramel_pecan_concrete_mixer_large',
+        'cul_caramel_pecan_concrete_mixer_medium',
+        'cul_caramel_pecan_concrete_mixer_small',
+      ].sort()
+    );
+  });
 });
 
 describe('searchRestaurant — Dairy Queen (spec 004 M2 batch)', () => {
