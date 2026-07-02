@@ -136,6 +136,25 @@ describe('searchRestaurant — Panera Bread (nutrition-only chain)', () => {
   });
 });
 
+describe("Jimmy John's — chain-specific search sanity (spec 004 M2)", () => {
+  it('chain alias resolves to the full menu', () => {
+    const r = menu('jimmy johns');
+    expect(r.chain.id).toBe('jimmy_johns');
+    expect(r.filtered).toBe(false);
+    expect(r.hits.length).toBe(MENU_ITEMS.filter(i => i.chainId === 'jimmy_johns').length);
+  });
+
+  it('item alias resolves ("vito")', () => {
+    expect(menu('jimmy johns vito').hits[0].item.id).toBe('jj_5_vito');
+  });
+
+  it('modifier phrase annotates the top hit ("no mayo")', () => {
+    const r = menu('jimmy johns pepe no mayo');
+    expect(r.hits[0].item.id).toBe('jj_1_pepe');
+    expect(r.hits[0].removedIds).toEqual(['mayo']);
+  });
+});
+
 describe('menuItemGlance — browser pills', () => {
   it('reflects base verdicts on the standard build', () => {
     const g = menuItemGlance(getMenuItem('cfa_spicy_deluxe')!);

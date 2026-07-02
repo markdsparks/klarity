@@ -2,12 +2,14 @@ import type { CatalogComponent, MenuItem, RestaurantChain } from '../../types/re
 import { CHICK_FIL_A, CHICK_FIL_A_ITEMS } from './chick-fil-a';
 import { CHICK_FIL_A_CATALOG } from './chick-fil-a-catalog';
 import { PANERA, PANERA_ITEMS } from './panera';
+import { JIMMY_JOHNS, JIMMY_JOHNS_ITEMS } from './jimmy-johns';
+import { JIMMY_JOHNS_CATALOG } from './jimmy-johns-catalog';
 
-export const CHAINS: RestaurantChain[] = [CHICK_FIL_A, PANERA];
+export const CHAINS: RestaurantChain[] = [CHICK_FIL_A, PANERA, JIMMY_JOHNS];
 
-export const MENU_ITEMS: MenuItem[] = [...CHICK_FIL_A_ITEMS, ...PANERA_ITEMS];
+export const MENU_ITEMS: MenuItem[] = [...CHICK_FIL_A_ITEMS, ...PANERA_ITEMS, ...JIMMY_JOHNS_ITEMS];
 
-export const CATALOG: CatalogComponent[] = [...CHICK_FIL_A_CATALOG];
+export const CATALOG: CatalogComponent[] = [...CHICK_FIL_A_CATALOG, ...JIMMY_JOHNS_CATALOG];
 
 export function getChain(id: string): RestaurantChain | undefined {
   return CHAINS.find(c => c.id === id);
