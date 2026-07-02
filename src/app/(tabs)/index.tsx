@@ -16,6 +16,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useProfile } from '@/hooks/use-profile';
 import { searchProducts } from '@/services/off';
+import { chainOnlyMatch, resolveRestaurantQuery } from '@/services/restaurant-search';
+import { getChain } from '@/data/restaurants';
+import type { MenuItem, RestaurantResolution } from '@/types/restaurant';
 import type { OFFSearchProduct } from '@/types/off';
 
 const PROFILE_HINT_KEY = 'KLARITY_PROFILE_HINT_DISMISSED_V1';
@@ -177,7 +180,9 @@ type SearchState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'error' }
-  | { status: 'done'; results: OFFSearchProduct[] };
+  | { status: 'done'; results: OFFSearchProduct[] }
+  | { status: 'restaurant'; resolution: RestaurantResolution }
+  | { status: 'restaurant-menu'; chainName: string; items: MenuItem[] };
 
 function SearchOverlay({
   onClose,
@@ -200,6 +205,20 @@ function SearchOverlay({
   }
 
   async function runSearch(q: string) {
+    // Smart search box (spec 004): restaurant queries resolve locally first,
+    // everything else falls through to OFF exactly as before.
+    const restaurant = resolveRestaurantQuery(q);
+    if (restaurant) {
+      setState({ status: 'restaurant', resolution: restaurant });
+      return;
+    }
+    const chainMenu = chainOnlyMatch(q);
+    if (chainMenu) {
+      const chain = getChain(chainMenu.chainId);
+      setState({ status: 'restaurant-menu', chainName: chain?.name ?? '', items: chainMenu.items });
+      return;
+    }
+
     setState({ status: 'loading' });
     try {
       const results = await searchProducts(q);
@@ -262,6 +281,26 @@ function SearchOverlay({
         </View>
       )}
 
+      {state.status === 'restaurant' && (
+        <View style={{ paddingTop: 8 }}>
+          <RestaurantHitRow resolution={state.resolution} />
+        </View>
+      )}
+
+      {state.status === 'restaurant-menu' && (
+        <FlatList
+          data={state.items}
+          keyExtractor={i => i.id}
+          contentContainerStyle={{ paddingBottom: safeBottom + 20 }}
+          keyboardShouldPersistTaps="handled"
+          ListHeaderComponent={
+            <Text style={styles.menuHeader}>{state.chainName} menu</Text>
+          }
+          renderItem={({ item }) => <MenuItemRow item={item} />}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
+      )}
+
       {state.status === 'done' && state.results.length > 0 && (
         <FlatList
           data={state.results}
@@ -285,6 +324,54 @@ const AVATAR_PALETTE = [
   { bg: '#e8f0fe', fg: '#3d6bcc' },
   { bg: '#fce8e8', fg: '#c04a4a' },
 ];
+
+// Resolved restaurant hit — one prominent row routing to the restaurant result.
+function RestaurantHitRow({ resolution }: { resolution: RestaurantResolution }) {
+  const { chain, item, removedComponentIds } = resolution;
+  const removed = item.components.filter(c => removedComponentIds.includes(c.id));
+
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.resultRow, pressed && styles.resultRowPressed]}
+      onPress={() => router.push({
+        pathname: '/result/restaurant',
+        params: { item: item.id, ...(removedComponentIds.length ? { remove: removedComponentIds.join(',') } : {}) },
+      })}>
+      <View style={[styles.resultAvatar, { backgroundColor: '#e8f7ef' }]}>
+        <Text style={[styles.resultAvatarText, { color: '#1f9d6b' }]}>
+          {chain.name[0].toUpperCase()}
+        </Text>
+      </View>
+      <View style={styles.resultInfo}>
+        <Text style={styles.resultName} numberOfLines={2}>{item.name}</Text>
+        <Text style={styles.resultBrand}>
+          {chain.name}
+          {removed.length > 0 ? ` · no ${removed.map(c => c.name.toLowerCase()).join(', no ')}` : ''}
+        </Text>
+      </View>
+      <Text style={styles.chevron}>›</Text>
+    </Pressable>
+  );
+}
+
+function MenuItemRow({ item }: { item: MenuItem }) {
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.resultRow, pressed && styles.resultRowPressed]}
+      onPress={() => router.push({ pathname: '/result/restaurant', params: { item: item.id } })}>
+      <View style={[styles.resultAvatar, { backgroundColor: '#e8f7ef' }]}>
+        <Text style={[styles.resultAvatarText, { color: '#1f9d6b' }]}>
+          {item.name[0].toUpperCase()}
+        </Text>
+      </View>
+      <View style={styles.resultInfo}>
+        <Text style={styles.resultName} numberOfLines={2}>{item.name}</Text>
+        <Text style={styles.resultBrand}>{item.nutrition.calories} cal · {item.serving}</Text>
+      </View>
+      <Text style={styles.chevron}>›</Text>
+    </Pressable>
+  );
+}
 
 function SearchResultRow({ product }: { product: OFFSearchProduct }) {
   const brand = product.brands?.split(',')[0].trim();
@@ -489,5 +576,15 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#e4eaf2',
     marginLeft: 71,
+  },
+  menuHeader: {
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: '#8896a7',
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 8,
   },
 });
