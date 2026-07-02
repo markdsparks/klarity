@@ -74,7 +74,8 @@ describe('searchRestaurant — progressive search (spec 006)', () => {
 
   it('is forgiving: partial chain, squashed spellings, joined words', () => {
     expect(menu('chick fil spicy deluxe').hits[0].item.id).toBe('cfa_spicy_deluxe');
-    expect(menu('chickfila waffle fries').hits[0].item.id).toBe('cfa_waffle_fries_md');
+    expect(menu('chickfila waffle fries').hits.map(h => h.item.id))
+      .toEqual(['cfa_waffle_fries_sm', 'cfa_waffle_fries_md', 'cfa_waffle_fries_lg']);
     expect(menu('chick-fil-a nuggets').hits[0].item.id).toBe('cfa_nuggets_8');
     expect(menu('cfa grilled chicken sandwich').hits[0].item.id).toBe('cfa_grilled_sandwich');
   });
@@ -108,6 +109,18 @@ describe('searchRestaurant — progressive search (spec 006)', () => {
     const r = menu('chick fil a zzzz');
     expect(r.filtered).toBe(false);
     expect(r.hits.length).toBeGreaterThanOrEqual(8);
+  });
+
+  it('a bare size-unqualified query surfaces every published size as a browsable list (spec 004 size-completion fix)', () => {
+    const fries = menu('chick fil a fries');
+    expect(fries.hits.map(h => h.item.id).sort()).toEqual(
+      ['cfa_waffle_fries_lg', 'cfa_waffle_fries_md', 'cfa_waffle_fries_sm'].sort(),
+    );
+
+    const macCheese = menu('chick fil a mac and cheese');
+    expect(macCheese.hits.map(h => h.item.id).sort()).toEqual(
+      ['cfa_mac_cheese_md', 'cfa_mac_cheese_sm'].sort(),
+    );
   });
 
   it('a lone short prefix is a suggestion, not a hijack', () => {
