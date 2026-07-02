@@ -4,11 +4,29 @@ import type { USDANutrition } from '../types/usda';
 
 // Evidence basis for every rule in this file: docs/nutrition-evidence.md
 
-// FDA 2020 Daily Values (grams; sodium in g)
+// FDA 2020 Daily Values (grams; sodium/potassium in g)
 export const FDA_DV = {
   totalFat: 78, carbs: 275, sugar: 50, addedSugar: 50,
-  satFat: 20, sodium: 2.3, fiber: 28, protein: 50,
+  satFat: 20, sodium: 2.3, potassium: 4.7, fiber: 28, protein: 50,
 };
+
+export type DailyValues = typeof FDA_DV;
+
+// Sex/age-specific reference intakes (IOM DRIs). Only fiber and protein among the
+// nutrients we display differ enough by sex/age to personalize; everything else
+// stays on the generic FDA DV. 'unspecified'/absent sex → generic FDA behavior.
+export function referenceValues(profile: Profile): DailyValues {
+  const older = profile.ageBand === 'older_adult';
+  if (profile.sex === 'female') return { ...FDA_DV, fiber: older ? 21 : 25, protein: 46 };
+  if (profile.sex === 'male')   return { ...FDA_DV, fiber: older ? 30 : 38, protein: 56 };
+  return FDA_DV;
+}
+
+// True when %DV denominators have been personalized away from the FDA label values —
+// the result screen labels those rows so they're not mistaken for the printed panel.
+export function isPersonalizedReference(profile: Profile): boolean {
+  return profile.sex === 'female' || profile.sex === 'male';
+}
 
 export type ServingNutrients = {
   source: 'usda' | 'off';
@@ -19,7 +37,9 @@ export type ServingNutrients = {
   sugar?: number;      sugarDv?: number;
   addedSugar?: number; addedSugarDv?: number;
   satFat?: number;     satFatDv?: number;
+  transFat?: number;
   sodium?: number;     sodiumDv?: number;
+  potassium?: number;  potassiumDv?: number;
   protein?: number;    proteinDv?: number;
   fiber?: number;      fiberDv?: number;
 };
@@ -27,6 +47,7 @@ export type ServingNutrients = {
 export function computeServingNutrients(
   p: OFFProduct,
   usda: USDANutrition | null,
+  refs: DailyValues = FDA_DV,
 ): ServingNutrients {
   const dv = (val: number | undefined, ref: number): number | undefined =>
     val != null ? Math.round(val / ref * 100) : undefined;
@@ -37,14 +58,16 @@ export function computeServingNutrients(
       source: 'usda',
       factor: 1,
       calories:   usda.calories,
-      totalFat:   usda.totalFat,    fatDv:        dv(usda.totalFat,    FDA_DV.totalFat),
-      carbs:      usda.carbs,       carbsDv:      dv(usda.carbs,       FDA_DV.carbs),
-      sugar:      usda.sugar,       sugarDv:      dv(usda.sugar,       FDA_DV.sugar),
-      addedSugar: usda.addedSugar,  addedSugarDv: dv(usda.addedSugar,  FDA_DV.addedSugar),
-      satFat:     usda.saturatedFat, satFatDv:    dv(usda.saturatedFat, FDA_DV.satFat),
-      sodium:     usda.sodium,      sodiumDv:     dv(usda.sodium,      FDA_DV.sodium),
-      protein:    usda.protein,     proteinDv:    dv(usda.protein,     FDA_DV.protein),
-      fiber:      usda.fiber,       fiberDv:      dv(usda.fiber,       FDA_DV.fiber),
+      totalFat:   usda.totalFat,    fatDv:        dv(usda.totalFat,    refs.totalFat),
+      carbs:      usda.carbs,       carbsDv:      dv(usda.carbs,       refs.carbs),
+      sugar:      usda.sugar,       sugarDv:      dv(usda.sugar,       refs.sugar),
+      addedSugar: usda.addedSugar,  addedSugarDv: dv(usda.addedSugar,  refs.addedSugar),
+      satFat:     usda.saturatedFat, satFatDv:    dv(usda.saturatedFat, refs.satFat),
+      transFat:   usda.transFat,
+      sodium:     usda.sodium,      sodiumDv:     dv(usda.sodium,      refs.sodium),
+      potassium:  usda.potassium,   potassiumDv:  dv(usda.potassium,   refs.potassium),
+      protein:    usda.protein,     proteinDv:    dv(usda.protein,     refs.protein),
+      fiber:      usda.fiber,       fiberDv:      dv(usda.fiber,       refs.fiber),
     };
   }
 
@@ -58,7 +81,9 @@ export function computeServingNutrients(
   const carbs    = scale(n.carbohydrates_100g);
   const sugar    = scale(n.sugars_100g);
   const satFat   = scale(n['saturated-fat_100g']);
+  const transFat = scale(n['trans-fat_100g']);
   const sodium   = scale(n.sodium_100g);
+  const potassium = scale(n.potassium_100g);
   const protein  = scale(n.proteins_100g);
   const fiber    = scale(n.fiber_100g);
 
@@ -66,22 +91,26 @@ export function computeServingNutrients(
     source: 'off',
     factor,
     calories,
-    totalFat, fatDv:     dv(totalFat, FDA_DV.totalFat),
-    carbs,    carbsDv:   dv(carbs,    FDA_DV.carbs),
-    sugar,    sugarDv:   dv(sugar,    FDA_DV.sugar),
-    satFat,   satFatDv:  dv(satFat,   FDA_DV.satFat),
-    sodium,   sodiumDv:  dv(sodium,   FDA_DV.sodium),
-    protein,  proteinDv: dv(protein,  FDA_DV.protein),
-    fiber,    fiberDv:   dv(fiber,    FDA_DV.fiber),
+    totalFat,  fatDv:       dv(totalFat, refs.totalFat),
+    carbs,     carbsDv:     dv(carbs,    refs.carbs),
+    sugar,     sugarDv:     dv(sugar,    refs.sugar),
+    satFat,    satFatDv:    dv(satFat,   refs.satFat),
+    transFat,
+    sodium,    sodiumDv:    dv(sodium,   refs.sodium),
+    potassium, potassiumDv: dv(potassium, refs.potassium),
+    protein,   proteinDv:   dv(protein,  refs.protein),
+    fiber,     fiberDv:     dv(fiber,    refs.fiber),
   };
 }
 
 // Warn thresholds in %DV. Baseline is FDA's 5/20 rule (≥20% DV = high).
-// Profile conditions tighten the relevant threshold — Tier A backed
-// (DASH/sodium-reduction RCTs for bp; glycemic-control guidance for blood_sugar).
+// Profile conditions AND the weight-loss goal tighten the relevant threshold —
+// Tier A backed (DASH/sodium RCTs for bp; glycemic-control guidance for blood_sugar;
+// AHA/DGA added-sugar limits for weight loss).
 export function warnThresholds(profile: Profile): { sugar: number; sodium: number; satFat: number } {
+  const tightenSugar = profile.conditions.includes('blood_sugar') || profile.goal === 'lose';
   return {
-    sugar:  profile.conditions.includes('blood_sugar') ? 15 : 20,
+    sugar:  tightenSugar ? 15 : 20,
     sodium: profile.conditions.includes('bp') ? 15 : 20,
     satFat: 20,
   };
@@ -94,17 +123,68 @@ export function sugarBasisDv(sn: ServingNutrients): number {
   return sn.addedSugarDv ?? sn.sugarDv ?? 0;
 }
 
+// Trans fat has no-safe-level consensus, but labels round to 0 below 0.5 g and
+// we can't distinguish industrial from ruminant trans. Flag at the label-detectable
+// 0.5 g (verdict-moving); a positive trace below that surfaces as context only.
+const TRANS_WARN_G = 0.5;
+
 export interface NutritionAssessment {
   tone: NutritionTone;
   summary: string;
   profileNotes: string[];  // condition-driven context lines, rendered under the summary
+  contextLines: string[];  // science-based "so what" context; never moves the tone
+}
+
+// Science-based context that reframes the numbers without changing the verdict.
+function buildContextLines(sn: ServingNutrients, sugarLabel: string, goal: string): string[] {
+  const lines: string[] = [];
+
+  // Sugar as % of energy — WHO frames free-sugar guidance as <10% of calories,
+  // which %DV only proxies. Surface when it's a notable share of the product.
+  const sugarGrams = sn.addedSugar ?? sn.sugar;
+  if (sn.calories != null && sn.calories > 0 && sugarGrams != null) {
+    const pct = Math.round((sugarGrams * 4) / sn.calories * 100);
+    if (pct >= 25) lines.push(`${pct}% of calories come from ${sugarLabel}`);
+  }
+
+  // Total Fat %DV is nearly meaningless — reframe a high number when the fat is
+  // mostly unsaturated (olive oil / nuts) rather than saturated + trans.
+  if (sn.totalFat != null && sn.fatDv != null && sn.fatDv >= 20) {
+    const unsat = sn.totalFat - (sn.satFat ?? 0) - (sn.transFat ?? 0);
+    if (unsat > 0 && unsat / sn.totalFat >= 0.7) {
+      lines.push('Most of the fat here is unsaturated, not saturated');
+    }
+  }
+
+  // Trace trans fat (below the 0.5 g warn line) — worth noting, not worth flagging.
+  if (sn.transFat != null && sn.transFat > 0 && sn.transFat < TRANS_WARN_G) {
+    lines.push('Contains a trace of trans fat');
+  }
+
+  // Carbohydrate quality via the research-backed 10:1 fiber-to-carb heuristic —
+  // a better whole-grain signal than fiber %DV alone.
+  if (sn.carbs != null && sn.carbs >= 15 && sn.fiber != null && sn.fiber > 0) {
+    if (sn.carbs / sn.fiber <= 10) lines.push('Clears the 1:10 fiber-to-carb whole-grain bar');
+  }
+
+  // Goal lens — protein becomes a positive signal (satiety / lean-mass support).
+  const proteinDv = sn.proteinDv ?? 0;
+  const fiberDv = sn.fiberDv ?? 0;
+  if (goal === 'build' && proteinDv >= 20) {
+    lines.push(`Strong protein (${proteinDv}% DV) — supports muscle building`);
+  } else if (goal === 'lose' && proteinDv >= 15 && fiberDv >= 15) {
+    lines.push('Protein and fiber here help you feel full for longer');
+  }
+
+  return lines;
 }
 
 export function toneNutrition(sn: ServingNutrients, profile: Profile): NutritionAssessment {
   const t = warnThresholds(profile);
   const sugarDvBasis = sugarBasisDv(sn);
   const sugarLabel = sn.addedSugarDv != null ? 'added sugar' : 'sugar';
-  const { sodiumDv = 0, satFatDv = 0, fiberDv = 0 } = sn;
+  const { sodiumDv = 0, satFatDv = 0, fiberDv = 0, proteinDv = 0 } = sn;
+  const goal = profile.goal ?? 'unset';
 
   const profileNotes: string[] = [];
   if (profile.conditions.includes('bp') && sodiumDv >= 15) {
@@ -121,30 +201,44 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
     );
   }
 
-  // Fiber ≥20% DV meaningfully slows glucose absorption from sugar (human RCT evidence).
-  // High sugar + strong fiber is nutritionally different from high sugar alone.
-  const fiberOffsetsSugar = sugarDvBasis >= t.sugar && fiberDv >= 20;
+  const contextLines = buildContextLines(sn, sugarLabel, goal);
+
+  // ── Verdict-moving offsets (extend the fiber↔sugar precedent) ──
+  // Fiber and/or protein slow glucose absorption and add satiety — a high-sugar
+  // food with strong fiber or protein is nutritionally different from sugar alone.
+  const fiberQualifies = fiberDv >= 20;
+  const proteinQualifies = proteinDv >= 20;
+  const sugarOffset = sugarDvBasis >= t.sugar && (fiberQualifies || proteinQualifies);
+
+  // Na:K ratio predicts BP/CVD better than sodium alone — high sodium paired with
+  // at-least-equal potassium (by mass) reads as moderated, not high.
+  const naK = (sn.sodium != null && sn.potassium != null && sn.potassium > 0)
+    ? sn.sodium / sn.potassium
+    : null;
+  const sodiumOffset = sodiumDv >= t.sodium && naK != null && naK <= 1;
+
+  const transWarn = sn.transFat != null && sn.transFat >= TRANS_WARN_G;
 
   const highItems: string[] = [];
-  if (sugarDvBasis >= t.sugar && !fiberOffsetsSugar) highItems.push(`${sugarLabel} (${sugarDvBasis}% DV)`);
-  if (sodiumDv >= t.sodium) highItems.push(`sodium (${sodiumDv}% DV)`);
+  if (transWarn) highItems.push(`trans fat (${sn.transFat!.toFixed(1)} g)`);
+  if (sugarDvBasis >= t.sugar && !sugarOffset) highItems.push(`${sugarLabel} (${sugarDvBasis}% DV)`);
+  if (sodiumDv >= t.sodium && !sodiumOffset) highItems.push(`sodium (${sodiumDv}% DV)`);
   if (satFatDv >= t.satFat) highItems.push(`sat fat (${satFatDv}% DV)`);
   if (highItems.length > 0) {
-    return { tone: 'warn', summary: `High in ${highItems.join(' and ')}`, profileNotes };
+    return { tone: 'warn', summary: `High in ${highItems.join(' and ')}`, profileNotes, contextLines };
   }
 
-  // Sugar is high but fiber offsets it — call this out explicitly
-  if (fiberOffsetsSugar) {
-    const otherMod = [
-      sodiumDv >= 10 ? 'sodium' : null,
-      satFatDv >= 10 ? 'sat fat' : null,
-    ].filter(Boolean).join(', ');
-    const suffix = otherMod ? ` · moderate ${otherMod}` : '';
-    return {
-      tone: 'ok',
-      summary: `High ${sugarLabel} (${sugarDvBasis}% DV) moderated by strong fiber (${fiberDv}% DV)${suffix}`,
-      profileNotes,
-    };
+  // A high nutrient was softened by an offset — call out why explicitly.
+  const offsets: string[] = [];
+  if (sugarOffset) {
+    const by = fiberQualifies && proteinQualifies ? 'fiber and protein'
+      : fiberQualifies ? 'strong fiber' : 'protein';
+    offsets.push(`high ${sugarLabel} (${sugarDvBasis}% DV) moderated by ${by}`);
+  }
+  if (sodiumOffset) offsets.push(`high sodium (${sodiumDv}% DV) balanced by potassium`);
+  if (offsets.length > 0) {
+    const summary = offsets.join(' · ');
+    return { tone: 'ok', summary: summary.charAt(0).toUpperCase() + summary.slice(1), profileNotes, contextLines };
   }
 
   const modItems: string[] = [];
@@ -152,8 +246,8 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
   if (sodiumDv >= 10) modItems.push('sodium');
   if (satFatDv >= 10) modItems.push('sat fat');
   if (modItems.length > 0) {
-    return { tone: 'ok', summary: `Moderate ${modItems.join(', ')} — frequency matters`, profileNotes };
+    return { tone: 'ok', summary: `Moderate ${modItems.join(', ')} — frequency matters`, profileNotes, contextLines };
   }
 
-  return { tone: 'good', summary: 'Clean nutrition per serving', profileNotes };
+  return { tone: 'good', summary: 'Clean nutrition per serving', profileNotes, contextLines };
 }

@@ -70,11 +70,20 @@ export interface Additive {
 
 export type ProfileValues = 'balanced' | 'precaution' | 'risk';
 
+// Nutrition reference personalization (spec 003). Optional so profiles stored
+// before this shipped still parse; absence falls back to generic FDA Daily Values.
+export type ProfileSex = 'female' | 'male' | 'unspecified';
+export type ProfileAgeBand = 'adult' | 'older_adult';  // older_adult = 51+ (IOM fiber break)
+export type ProfileGoal = 'lose' | 'maintain' | 'build' | 'unset';
+
 export interface Profile {
   id: string;
   label: string;
   values: ProfileValues;
   conditions: string[];  // e.g. ['ibd'] — subgroup notes to surface
+  sex?: ProfileSex;      // shifts sex/age-specific reference intakes (fiber, protein)
+  ageBand?: ProfileAgeBand;
+  goal?: ProfileGoal;    // re-weights nutrition emphasis — a lens, never a calorie ledger
 }
 
 // ── Product (from OFF + evidence layer) ────────────────────────────────────────

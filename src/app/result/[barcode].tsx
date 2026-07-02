@@ -24,6 +24,8 @@ import {
 } from '@/services/history';
 import {
   computeServingNutrients,
+  isPersonalizedReference,
+  referenceValues,
   sugarBasisDv,
   toneNutrition,
   warnThresholds,
@@ -206,10 +208,11 @@ export default function ResultScreen() {
   const name     = product.product_name || 'Unknown product';
   const brand    = product.brands?.split(',')[0].trim() || '';
   const imageUrl = product.image_front_url ?? product.image_url;
-  const sn = computeServingNutrients(product, usdaNutrition);
+  const sn = computeServingNutrients(product, usdaNutrition, referenceValues(profile));
   const nutrition = toneNutrition(sn, profile);
   const thresholds = warnThresholds(profile);
   const bloodSugar = profile.conditions.includes('blood_sugar');
+  const personalizedRef = isPersonalizedReference(profile);
 
   const matchedAdditives = additiveIds
     .map(id => ADDITIVES[id])
@@ -393,6 +396,12 @@ export default function ResultScreen() {
             </View>
           </View>
           <Text style={styles.nutritionSummary}>{nutrition.summary}</Text>
+          {nutrition.contextLines.map(line => (
+            <View key={line} style={styles.contextRow}>
+              <Text style={styles.contextBullet}>·</Text>
+              <Text style={styles.contextText}>{line}</Text>
+            </View>
+          ))}
           {nutrition.profileNotes.map(note => (
             <View key={note} style={styles.profileNoteBanner}>
               <Text style={styles.profileNoteLabel}>FOR YOU</Text>
@@ -402,12 +411,13 @@ export default function ResultScreen() {
           <NutrientRow label="Calories"      value={sn.calories} unit="kcal" />
           <NutrientRow label="Total Fat"     value={sn.totalFat} unit="g" dvPct={sn.fatDv}    />
           <NutrientRow label="Saturated Fat" value={sn.satFat}   unit="g" dvPct={sn.satFatDv} highlight={sn.satFatDv != null && sn.satFatDv >= thresholds.satFat ? 'warn' : null} sub />
+          <NutrientRow label="Trans Fat"     value={sn.transFat} unit="g" highlight={sn.transFat != null && sn.transFat >= 0.5 ? 'warn' : null} sub />
           <NutrientRow label="Total Carbs"   value={sn.carbs}    unit="g" dvPct={sn.carbsDv}  />
           <NutrientRow label="Sugar"         value={sn.sugar}    unit="g" dvPct={sn.sugarDv}  highlight={sn.addedSugar == null && sugarHot ? 'warn' : null} sub />
           {sn.addedSugar != null && (
             <NutrientRow label="of which added" value={sn.addedSugar} unit="g" dvPct={sn.addedSugarDv} highlight={sugarHot ? 'warn' : null} sub />
           )}
-          <NutrientRow label="Fiber"         value={sn.fiber}    unit="g" dvPct={sn.fiberDv}  highlight={sn.fiberDv != null && sn.fiberDv >= 10 ? 'good' : null} sub />
+          <NutrientRow label={personalizedRef ? 'Fiber *' : 'Fiber'} value={sn.fiber} unit="g" dvPct={sn.fiberDv} highlight={sn.fiberDv != null && sn.fiberDv >= 10 ? 'good' : null} sub />
           {sn.carbs != null && sn.fiber != null && (
             <NutrientRow
               label="Net carbs"
@@ -418,8 +428,14 @@ export default function ResultScreen() {
               highlight={bloodSugar ? 'warn' : null}
             />
           )}
-          <NutrientRow label="Protein"       value={sn.protein}  unit="g" dvPct={sn.proteinDv} highlight={sn.proteinDv != null && sn.proteinDv >= 10 ? 'good' : null} />
+          <NutrientRow label={personalizedRef ? 'Protein *' : 'Protein'} value={sn.protein} unit="g" dvPct={sn.proteinDv} highlight={sn.proteinDv != null && sn.proteinDv >= 10 ? 'good' : null} />
           <NutrientRow label="Sodium"        value={sn.sodium}   unit="g" dvPct={sn.sodiumDv}  highlight={sn.sodiumDv != null && sn.sodiumDv >= thresholds.sodium ? 'warn' : null} />
+          <NutrientRow label="Potassium"     value={sn.potassium} unit="g" dvPct={sn.potassiumDv} highlight={sn.potassiumDv != null && sn.potassiumDv >= 10 ? 'good' : null} sub />
+          {personalizedRef && (
+            <Text style={styles.refFootnote}>
+              * Fiber &amp; protein %DV use your reference intake (sex/age), not the generic label value.
+            </Text>
+          )}
         </View>
       </View>
     </ScrollView>
@@ -678,6 +694,11 @@ const styles = StyleSheet.create({
   toneTag:     { borderRadius: 99, paddingHorizontal: 10, paddingVertical: 4 },
   toneTagText: { fontSize: 11.5, fontWeight: '800' },
   nutritionSummary: { fontSize: 13, color: '#5b6675', lineHeight: 19, marginBottom: 6 },
+
+  contextRow:    { flexDirection: 'row', gap: 6, paddingLeft: 2, marginBottom: 4 },
+  contextBullet: { fontSize: 13, color: '#9fadbf', lineHeight: 18 },
+  contextText:   { flex: 1, fontSize: 12.5, color: '#6b7787', lineHeight: 18 },
+  refFootnote:   { fontSize: 11, color: '#9fadbf', lineHeight: 16, marginTop: 8 },
 
   nutrientRow: {
     flexDirection: 'row',

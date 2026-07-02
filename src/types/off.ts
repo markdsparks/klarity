@@ -8,8 +8,10 @@ export interface OFFNutriments {
   sugars_100g?: number;
   fat_100g?: number;
   'saturated-fat_100g'?: number;
+  'trans-fat_100g'?: number;
   fiber_100g?: number;
   sodium_100g?: number;
+  potassium_100g?: number;
   salt_100g?: number;
 }
 

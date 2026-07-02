@@ -35,12 +35,14 @@ export interface USDALabelNutrients {
   calories?: USDALabelNutrientValue;
   fat?: USDALabelNutrientValue;
   saturatedFat?: USDALabelNutrientValue;
+  transFat?: USDALabelNutrientValue;
   carbohydrates?: USDALabelNutrientValue;
   fiber?: USDALabelNutrientValue;
   sugars?: USDALabelNutrientValue;
   addedSugar?: USDALabelNutrientValue;
   protein?: USDALabelNutrientValue;
-  sodium?: USDALabelNutrientValue;  // mg
+  sodium?: USDALabelNutrientValue;     // mg
+  potassium?: USDALabelNutrientValue;  // mg
 }
 
 export interface USDAFoodDetail {
@@ -58,7 +60,9 @@ export interface USDANutrition {
   sugar?: number;
   addedSugar?: number;    // WHO/AHA guidance is about added sugar — use when present
   saturatedFat?: number;
+  transFat?: number;      // grams — no-safe-level consensus, flagged when present
   sodium?: number;        // grams (converted from USDA's mg)
+  potassium?: number;     // grams (converted from USDA's mg) — for the Na:K ratio
   servingSize?: number;   // grams
   servingSizeUnit?: string;
   householdServing?: string;  // e.g. "1 STICK"
