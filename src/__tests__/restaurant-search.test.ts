@@ -167,6 +167,18 @@ describe('searchRestaurant — Panera Bread (nutrition-only chain)', () => {
     expect(searchRestaurant('pane').kind).toBe('suggestion');
     expect(menu('panerabread broccoli cheddar').hits[0].item.id).toBe('pnr_broccoli_cheddar_soup');
   });
+
+  it('a bare soup name surfaces both cup and bowl sizes as a browsable list (M1 size-completion fix)', () => {
+    const r = menu('panera broccoli cheddar');
+    const ids = r.hits.map(h => h.item.id);
+    expect(ids).toContain('pnr_broccoli_cheddar_soup');
+    expect(ids).toContain('pnr_broccoli_cheddar_soup_cup');
+  });
+
+  it('size-specific aliases resolve to the matching size', () => {
+    expect(menu('panera cup of broccoli cheddar').hits[0].item.id).toBe('pnr_broccoli_cheddar_soup_cup');
+    expect(menu('panera small broccoli cheddar').hits[0].item.id).toBe('pnr_broccoli_cheddar_soup_cup');
+  });
 });
 
 describe('searchRestaurant — Subway (build-your-own, full coverage)', () => {
