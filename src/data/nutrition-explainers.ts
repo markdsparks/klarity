@@ -92,6 +92,29 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
       '"natural." The number is still shown, just not held against the verdict.',
     source: 'Eur J Nutr 2024 review (food source & physiological response to sugars); WHO free-sugars guidance, which classifies fruit juice as free sugar because processing removes the matrix.',
   },
+  sugar_basis_added: {
+    id: 'sugar_basis_added',
+    title: 'Scored on added sugar',
+    tier: 'A',
+    body:
+      'Health guidance on sugar targets added sugars, not the sugar naturally in fruit or plain dairy. ' +
+      'This product\'s label breaks out its added sugar, so that\'s the number we judged it on. A ' +
+      'sweet-tasting food with little or no *added* sugar is not penalized for its natural content — ' +
+      'the total-sugar figure can still look high on the panel, but it is not what drives the verdict.',
+    source: 'FDA Nutrition Facts added-sugar line (required since 2020); WHO/AHA guidance targets added sugar specifically.',
+  },
+  sugar_basis_total_only: {
+    id: 'sugar_basis_total_only',
+    title: 'Sugar we couldn\'t fully classify',
+    tier: 'A',
+    body:
+      'This item\'s data doesn\'t separate added sugar from the sugar naturally in the food. Rather than ' +
+      'guess, we scored the full amount — the cautious choice, so we never quietly give a pass to ' +
+      'something sweetened. The trade-off: if this is genuinely whole fruit or plain dairy, we may read ' +
+      'a little stricter than the guidance intends. We would rather tell you that than pretend to a ' +
+      'precision the label doesn\'t give us.',
+    source: 'Added sugar is not reported for this product; WHO/AHA guidance concerns added sugar specifically.',
+  },
   added_sugar: {
     id: 'added_sugar',
     title: 'Added sugar vs. total sugar',
@@ -144,6 +167,8 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
 // more-specific phrases precede general ones.
 const MATCHERS: [RegExp, string][] = [
   [/packaged in whole fruit's fiber and structure/i, 'whole_food_sugar_matrix'],
+  [/scored the full amount to be safe/i, 'sugar_basis_total_only'],
+  [/scored on added sugar from the label/i, 'sugar_basis_added'],
   [/moderated by/i, 'fiber_protein_sugar'],
   [/fiber-to-carb/i, 'fiber_carb_ratio'],
   [/balanced by potassium/i, 'sodium_potassium'],

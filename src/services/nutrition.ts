@@ -134,6 +134,18 @@ const TRANS_WARN_G = 0.5;
 // (≈2 servings still fits a day's ~20 g budget); above it, sat fat is genuinely high.
 const SATFAT_BUDGET_CEILING = 25;
 
+// Which basis the sugar tone was scored on, surfaced to the user as a calm
+// disclosure line (spec 008). Turns a data limitation into visible method:
+// when we can't distinguish added from intrinsic sugar we say so and say we
+// erred toward caution. ('disqualified' — a category veto forcing total-sugar
+// scoring on juice/soda/dessert — is defined for M2 but not yet produced.)
+export type SugarBasis =
+  | 'negligible'   // total sugar < 10% DV — nothing worth disclosing
+  | 'added-known'  // added sugar present in the data → scored on it (USDA)
+  | 'whole-food'   // intact whole-food matrix → sugar exempted (spec 007)
+  | 'disqualified' // (M2) category veto → total-sugar scoring even at 0 added
+  | 'total-only';  // no added-sugar data → scored on TOTAL as the safe default
+
 export interface NutritionAssessment {
   tone: NutritionTone;
   summary: string;
@@ -141,6 +153,7 @@ export interface NutritionAssessment {
   contextLines: string[];  // science-based "so what" context; never moves the tone
   highNutrients: string[]; // short labels of what drove a warn ('sat fat', 'sodium') — for the Layer 1 sentence
   satFatBudget: boolean;   // tone was good/ok only because sat fat is budget-reframed — Layer 1 keeps the trade-off in the headline
+  sugarBasis: SugarBasis;  // what the sugar verdict was scored on — disclosed to the user (spec 008)
 }
 
 // Science-based context that reframes the numbers without changing the verdict.
@@ -209,6 +222,17 @@ export function toneNutrition(
   // line below — never hidden, just not held against the verdict.
   const sugarToneDvBasis = ctx?.wholeFoodSugarMatrix ? 0 : sugarDvBasis;
 
+  // Spec 008: classify what the sugar verdict rests on, for a visible disclosure
+  // line. Materiality gates on TOTAL sugar %DV (what the user sees on the panel
+  // and might question), regardless of what we scored on. M1 produces four of
+  // the five bases; 'disqualified' (category veto) is M2.
+  const totalSugarDv = sn.sugarDv ?? 0;
+  const sugarBasis: SugarBasis =
+    totalSugarDv < 10 ? 'negligible'
+    : ctx?.wholeFoodSugarMatrix ? 'whole-food'
+    : sn.addedSugarDv != null ? 'added-known'
+    : 'total-only';
+
   const profileNotes: string[] = [];
   if (profile.conditions.includes('bp') && sodiumDv >= 15) {
     profileNotes.push(
@@ -225,8 +249,14 @@ export function toneNutrition(
   }
 
   const contextLines = buildContextLines(sn, sugarLabel, goal);
-  if (ctx?.wholeFoodSugarMatrix && sugarDvBasis >= 10) {
+  // Sugar-basis disclosure (spec 008) — a calm, tappable line stating what the
+  // sugar verdict rests on. Only when sugar is material (basis ≠ negligible).
+  if (sugarBasis === 'whole-food') {
     contextLines.push(`${sugarDvBasis}% DV sugar here comes packaged in whole fruit's fiber and structure`);
+  } else if (sugarBasis === 'added-known') {
+    contextLines.push('Scored on added sugar from the label');
+  } else if (sugarBasis === 'total-only') {
+    contextLines.push("This label doesn't separate added from natural sugar, so we scored the full amount to be safe");
   }
 
   // ── Verdict-moving offsets (extend the fiber↔sugar precedent) ──
@@ -273,7 +303,7 @@ export function toneNutrition(
     return {
       tone: 'warn',
       summary: `High in ${his.map(h => h.label).join(' and ')}`,
-      profileNotes, contextLines, highNutrients: his.map(h => h.short), satFatBudget: false,
+      profileNotes, contextLines, highNutrients: his.map(h => h.short), satFatBudget: false, sugarBasis,
     };
   }
 
@@ -286,7 +316,7 @@ export function toneNutrition(
     return {
       tone: satFatHigh ? 'ok' : 'good',
       summary: `Strong ${positive}${forGoal} — saturated fat is the one thing to budget across the day`,
-      profileNotes, contextLines, highNutrients: [], satFatBudget: true,
+      profileNotes, contextLines, highNutrients: [], satFatBudget: true, sugarBasis,
     };
   }
 
@@ -300,7 +330,7 @@ export function toneNutrition(
   if (sodiumOffset) offsets.push(`high sodium (${sodiumDv}% DV) balanced by potassium`);
   if (offsets.length > 0) {
     const summary = offsets.join(' · ');
-    return { tone: 'ok', summary: summary.charAt(0).toUpperCase() + summary.slice(1), profileNotes, contextLines, highNutrients: [], satFatBudget: false };
+    return { tone: 'ok', summary: summary.charAt(0).toUpperCase() + summary.slice(1), profileNotes, contextLines, highNutrients: [], satFatBudget: false, sugarBasis };
   }
 
   // Same biggest-first ordering as the warn line (all share the 10% moderate floor).
@@ -310,8 +340,8 @@ export function toneNutrition(
   if (satFatDv >= 10) mods.push({ label: 'sat fat', dv: satFatDv });
   mods.sort((a, b) => b.dv - a.dv);
   if (mods.length > 0) {
-    return { tone: 'ok', summary: `Moderate ${mods.map(m => m.label).join(', ')} — frequency matters`, profileNotes, contextLines, highNutrients: [], satFatBudget: false };
+    return { tone: 'ok', summary: `Moderate ${mods.map(m => m.label).join(', ')} — frequency matters`, profileNotes, contextLines, highNutrients: [], satFatBudget: false, sugarBasis };
   }
 
-  return { tone: 'good', summary: 'Clean nutrition per serving', profileNotes, contextLines, highNutrients: [], satFatBudget: false };
+  return { tone: 'good', summary: 'Clean nutrition per serving', profileNotes, contextLines, highNutrients: [], satFatBudget: false, sugarBasis };
 }
