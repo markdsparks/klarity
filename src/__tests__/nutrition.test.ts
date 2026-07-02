@@ -39,6 +39,28 @@ describe('toneNutrition — baseline (FDA 5/20 rule)', () => {
   });
 });
 
+describe('toneNutrition — headline leads with the biggest offender', () => {
+  it('warn line orders by how far each nutrient exceeds its threshold', () => {
+    // sodium 60/20 = 3× over; sugar 30/20 = 1.5× over → sodium should lead
+    const r = toneNutrition(nutrients({ sugarDv: 30, sodiumDv: 60 }), profileWith());
+    expect(r.tone).toBe('warn');
+    expect(r.summary).toBe('High in sodium (60% DV) and sugar (30% DV)');
+    expect(r.highNutrients[0]).toBe('sodium');
+  });
+
+  it('trans fat always leads regardless of the others magnitudes', () => {
+    const r = toneNutrition(nutrients({ transFat: 0.6, sodiumDv: 80 }), profileWith());
+    expect(r.summary.startsWith('High in trans fat')).toBe(true);
+    expect(r.highNutrients[0]).toBe('trans fat');
+  });
+
+  it('moderate line also leads with the biggest of the moderate items', () => {
+    const r = toneNutrition(nutrients({ sugarDv: 11, sodiumDv: 18 }), profileWith());
+    expect(r.tone).toBe('ok');
+    expect(r.summary.indexOf('sodium')).toBeLessThan(r.summary.indexOf('sugar'));
+  });
+});
+
 describe('toneNutrition — added sugar replaces total when known', () => {
   it('high total sugar with low added sugar is not high (WHO/AHA basis)', () => {
     // e.g. plain yogurt with fruit: lots of lactose/fructose, little added
