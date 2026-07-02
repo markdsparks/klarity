@@ -240,6 +240,16 @@ describe('searchRestaurant — Subway (build-your-own, full coverage)', () => {
     expect(r.hits[0].item.id).toBe('sub_tuna');
     expect(r.hits[0].removedIds).toEqual(['onion']);
   });
+
+  it('a bare item name is a shared alias — both sizes show as a browsable list (spec 004 fast-follow)', () => {
+    const r = menu('subway turkey');
+    const ids = r.hits.map(h => h.item.id);
+    expect(ids).toContain('sub_oven_roasted_turkey');
+    expect(ids).toContain('sub_oven_roasted_turkey_footlong');
+    // 6" ranks first — the bare name resolves to a size choice, not a snap
+    // to one hidden hit.
+    expect(ids[0]).toBe('sub_oven_roasted_turkey');
+  });
 });
 
 describe("Jimmy John's — chain-specific search sanity (spec 004 M2)", () => {
