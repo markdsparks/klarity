@@ -284,3 +284,53 @@ describe('referenceValues — sex/age personalization', () => {
     expect(referenceValues(profileWith([], { sex: 'female', ageBand: 'older_adult' })).fiber).toBe(21);
   });
 });
+
+describe('toneNutrition — intrinsic produce sugar exemption (spec 007)', () => {
+  it('a high-sugar item never warns when flagged intrinsicSugarOnly', () => {
+    const r = toneNutrition(
+      nutrients({ sugarDv: 24, sodiumDv: 2 }),
+      profileWith(),
+      { intrinsicSugarOnly: true },
+    );
+    expect(r.tone).not.toBe('warn');
+    expect(r.highNutrients).not.toContain('sugar');
+    expect(r.summary).not.toMatch(/sugar/i);
+  });
+
+  it('does not even land on moderate via the sugar floor when exempted', () => {
+    const r = toneNutrition(nutrients({ sugarDv: 12 }), profileWith(), { intrinsicSugarOnly: true });
+    expect(r.tone).toBe('good');
+  });
+
+  it('still surfaces the raw number as a context-only line, never hidden', () => {
+    const r = toneNutrition(nutrients({ sugarDv: 24 }), profileWith(), { intrinsicSugarOnly: true });
+    expect(r.contextLines.some(l => l.includes('24% DV') && l.includes('naturally occurring in whole fruit'))).toBe(true);
+  });
+
+  it('a genuinely high sat fat or sodium is unaffected by the sugar exemption', () => {
+    const r = toneNutrition(nutrients({ sugarDv: 24, sodiumDv: 40 }), profileWith(), { intrinsicSugarOnly: true });
+    expect(r.tone).toBe('warn');
+    expect(r.summary).toContain('sodium');
+    expect(r.summary).not.toMatch(/sugar/i);
+  });
+
+  it('blood_sugar profile note still fires on the raw number regardless of the flag', () => {
+    const withFlag = toneNutrition(
+      nutrients({ sugarDv: 24, carbs: 16, fiber: 2 }),
+      profileWith(['blood_sugar']),
+      { intrinsicSugarOnly: true },
+    );
+    const withoutFlag = toneNutrition(
+      nutrients({ sugarDv: 24, carbs: 16, fiber: 2 }),
+      profileWith(['blood_sugar']),
+    );
+    expect(withFlag.profileNotes).toEqual(withoutFlag.profileNotes);
+    expect(withFlag.profileNotes[0]).toMatch(/blood sugar.*24%/);
+  });
+
+  it('without the flag, behavior is unchanged from before spec 007 (regression guard)', () => {
+    const flagged = toneNutrition(nutrients({ sugarDv: 24 }), profileWith());
+    expect(flagged.tone).toBe('warn');
+    expect(flagged.summary).toContain('sugar (24% DV)');
+  });
+});

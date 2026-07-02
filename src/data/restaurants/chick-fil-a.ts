@@ -296,6 +296,11 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
         nutrition: null,
       },
     ],
+    // Spec 007: predominantly fresh apples/blueberries/strawberries; the
+    // canned mandarin oranges' light syrup is a minor component, not the
+    // sugar driver — WHO's added-sugar guidance doesn't apply to this item.
+    intrinsicSugarOnly: true,
+    intrinsicSugarBasis: 'Mixed fresh fruit (apples, blueberries, strawberries); canned mandarin oranges are a minor component of the mix, not the sugar driver.',
   },
   {
     id: 'cfa_fruit_cup_md',
@@ -312,6 +317,11 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
         nutrition: null,
       },
     ],
+    // Spec 007: predominantly fresh apples/blueberries/strawberries; the
+    // canned mandarin oranges' light syrup is a minor component, not the
+    // sugar driver — WHO's added-sugar guidance doesn't apply to this item.
+    intrinsicSugarOnly: true,
+    intrinsicSugarBasis: 'Mixed fresh fruit (apples, blueberries, strawberries); canned mandarin oranges are a minor component of the mix, not the sugar driver.',
   },
   {
     id: 'cfa_fruit_cup_lg',
@@ -328,6 +338,11 @@ export const CHICK_FIL_A_ITEMS: MenuItem[] = [
         nutrition: null,
       },
     ],
+    // Spec 007: predominantly fresh apples/blueberries/strawberries; the
+    // canned mandarin oranges' light syrup is a minor component, not the
+    // sugar driver — WHO's added-sugar guidance doesn't apply to this item.
+    intrinsicSugarOnly: true,
+    intrinsicSugarBasis: 'Mixed fresh fruit (apples, blueberries, strawberries); canned mandarin oranges are a minor component of the mix, not the sugar driver.',
   },
   {
     id: 'cfa_kale_crunch_side',

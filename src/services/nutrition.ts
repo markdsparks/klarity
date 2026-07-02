@@ -187,12 +187,26 @@ function buildContextLines(sn: ServingNutrients, sugarLabel: string, goal: strin
   return lines;
 }
 
-export function toneNutrition(sn: ServingNutrients, profile: Profile): NutritionAssessment {
+export function toneNutrition(
+  sn: ServingNutrients,
+  profile: Profile,
+  ctx?: { intrinsicSugarOnly?: boolean },
+): NutritionAssessment {
   const t = warnThresholds(profile);
   const sugarDvBasis = sugarBasisDv(sn);
   const sugarLabel = sn.addedSugarDv != null ? 'added sugar' : 'sugar';
   const { sodiumDv = 0, satFatDv = 0, fiberDv = 0, proteinDv = 0 } = sn;
   const goal = profile.goal ?? 'unset';
+
+  // Spec 007: WHO/AHA added-sugar guidance explicitly excludes sugars intrinsic
+  // to whole fruit/vegetables. Restaurant data has no added-sugar field to score
+  // on directly, so items reviewed and flagged as intrinsic-sugar-only (never
+  // inferred from ingredient text — see docs/nutrition-evidence.md's rejection
+  // of NOVA-style scores) are scored on 0 for tone purposes. The raw sugarDvBasis
+  // still drives the blood_sugar profileNote (glycemic load, not added-sugar
+  // policy) and a context-only line below — never hidden, just not held against
+  // the verdict.
+  const sugarToneDvBasis = ctx?.intrinsicSugarOnly ? 0 : sugarDvBasis;
 
   const profileNotes: string[] = [];
   if (profile.conditions.includes('bp') && sodiumDv >= 15) {
@@ -210,13 +224,16 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
   }
 
   const contextLines = buildContextLines(sn, sugarLabel, goal);
+  if (ctx?.intrinsicSugarOnly && sugarDvBasis >= 10) {
+    contextLines.push(`${sugarDvBasis}% DV sugar here is naturally occurring in whole fruit`);
+  }
 
   // ── Verdict-moving offsets (extend the fiber↔sugar precedent) ──
   // Fiber and/or protein slow glucose absorption and add satiety — a high-sugar
   // food with strong fiber or protein is nutritionally different from sugar alone.
   const fiberQualifies = fiberDv >= 20;
   const proteinQualifies = proteinDv >= 20;
-  const sugarOffset = sugarDvBasis >= t.sugar && (fiberQualifies || proteinQualifies);
+  const sugarOffset = sugarToneDvBasis >= t.sugar && (fiberQualifies || proteinQualifies);
 
   // Na:K ratio predicts BP/CVD better than sodium alone — high sodium paired with
   // at-least-equal potassium (by mass) reads as moderated, not high.
@@ -226,7 +243,7 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
   const sodiumOffset = sodiumDv >= t.sodium && naK != null && naK <= 1;
 
   const transWarn = sn.transFat != null && sn.transFat >= TRANS_WARN_G;
-  const sugarHigh  = sugarDvBasis >= t.sugar && !sugarOffset;
+  const sugarHigh  = sugarToneDvBasis >= t.sugar && !sugarOffset;
   const sodiumHigh = sodiumDv >= t.sodium && !sodiumOffset;
   const satFatHigh = satFatDv >= t.satFat;
 
@@ -287,7 +304,7 @@ export function toneNutrition(sn: ServingNutrients, profile: Profile): Nutrition
 
   // Same biggest-first ordering as the warn line (all share the 10% moderate floor).
   const mods: { label: string; dv: number }[] = [];
-  if (sugarDvBasis >= 10) mods.push({ label: sugarLabel, dv: sugarDvBasis });
+  if (sugarToneDvBasis >= 10) mods.push({ label: sugarLabel, dv: sugarToneDvBasis });
   if (sodiumDv >= 10) mods.push({ label: 'sodium', dv: sodiumDv });
   if (satFatDv >= 10) mods.push({ label: 'sat fat', dv: satFatDv });
   mods.sort((a, b) => b.dv - a.dv);

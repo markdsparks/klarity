@@ -67,6 +67,14 @@ export interface MenuItem {
   slots?: ItemSlot[];            // choice slots (cheese, …)
   addOnIds?: string[];           // catalog ids addable to this item (sauces, bacon)
   nutrition: MandatedNutrition;  // whole item, as published
+  // True only when this item's sugar is intrinsic to whole fruit/vegetable
+  // content, not added — WHO/AHA added-sugar guidance doesn't apply to it
+  // (spec 007). Human-reviewed at authoring time, never inferred from
+  // ingredient text (see docs/nutrition-evidence.md's rejection of
+  // NOVA-style processing scores — same discipline applies here). Requires
+  // intrinsicSugarBasis.
+  intrinsicSugarOnly?: boolean;
+  intrinsicSugarBasis?: string;
 }
 
 export interface RestaurantChain {
