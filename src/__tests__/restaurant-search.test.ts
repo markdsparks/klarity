@@ -123,6 +123,20 @@ describe('searchRestaurant — progressive search (spec 006)', () => {
   });
 });
 
+describe("searchRestaurant — Culver's (spec 004 batch 2)", () => {
+  it('chain alias resolves to the full menu', () => {
+    const r = menu("culver's");
+    expect(r.chain.id).toBe('culvers');
+    expect(r.filtered).toBe(false);
+    expect(r.hits.length).toBe(MENU_ITEMS.filter(i => i.chainId === 'culvers').length);
+  });
+
+  it('an item alias resolves and narrows', () => {
+    const r = menu('culvers cheese curds');
+    expect(r.hits[0].item.id).toBe('cul_cheese_curds_medium');
+  });
+});
+
 describe('searchRestaurant — Dairy Queen (spec 004 M2 batch)', () => {
   it('chain alias resolves and opens the full menu', () => {
     const r = menu('dairy queen');
