@@ -9,7 +9,8 @@ import { explainerForLine, type NutritionExplainer } from '@/data/nutrition-expl
 import { ExplainerSheet } from '@/components/explainer-sheet';
 import { OptionSheet, type BuildOption } from '@/components/option-sheet';
 import { getCatalogComponent, getChain, getMenuItem } from '@/data/restaurants';
-import { useProfile } from '@/hooks/use-profile';
+import { DEFAULT_PROFILE, useProfile } from '@/hooks/use-profile';
+import { logOutcome } from '@/services/diagnostics';
 import {
   restaurantHistoryKey,
   saveToHistory,
@@ -115,6 +116,20 @@ export default function RestaurantResultScreen() {
         ...glance,
         scannedAt: Date.now(),
         restaurant: { itemId: item.id, removedIds, addedIds },
+      });
+      // Instrumentation (spec 009) — the curated restaurant path, logged once.
+      const sn = restaurantServingNutrients(
+        adjustedNutrition(item, removedIds, addedIds).nutrition,
+        referenceValues(DEFAULT_PROFILE),
+      );
+      void logOutcome({
+        at: Date.now(),
+        source: 'restaurant',
+        outcome: 'restaurant',
+        sugarBasis: toneNutrition(sn, DEFAULT_PROFILE, {
+          wholeFoodSugarMatrix: item.wholeFoodSugarMatrix,
+        }).sugarBasis,
+        productName: item.name,
       });
     } else {
       void updateRestaurantBuild(item.id, { removedIds, addedIds, ...glance });

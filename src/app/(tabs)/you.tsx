@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { ScrollView, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -194,6 +195,14 @@ export default function YouScreen() {
         )}
       </View>
 
+      <Pressable style={styles.diagnosticsRow} onPress={() => router.push('/diagnostics')}>
+        <View style={styles.diagnosticsText}>
+          <Text style={styles.diagnosticsLabel}>How Klarity’s doing</Text>
+          <Text style={styles.diagnosticsHint}>How your scans are resolving — coverage &amp; gaps</Text>
+        </View>
+        <Text style={styles.diagnosticsChevron}>›</Text>
+      </Pressable>
+
       <Text style={styles.footer}>
         Klarity never changes an “everyday” or “sometimes” verdict to match your
         values — evidence sets those. Goals re-weight nutrition emphasis; they never
@@ -269,4 +278,14 @@ const styles = StyleSheet.create({
     fontSize: 12, color: '#9fadbf', lineHeight: 18,
     paddingHorizontal: 4, marginTop: 4,
   },
+
+  diagnosticsRow: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#e7ebf0',
+    paddingHorizontal: 16, paddingVertical: 14, marginTop: 4, marginBottom: 8,
+  },
+  diagnosticsText: { flex: 1 },
+  diagnosticsLabel: { fontSize: 15, fontWeight: '700', color: '#1a1f29' },
+  diagnosticsHint: { fontSize: 12.5, color: '#8896a7', marginTop: 2 },
+  diagnosticsChevron: { fontSize: 20, color: '#c3cad4' },
 });
