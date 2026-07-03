@@ -32,9 +32,16 @@ describe('REGULATORY_ADDITIVES (generated from EFSA OpenFoodTox)', () => {
     }
   });
 
-  it('never claims dose data it does not have (ADI join is a deferred fast-follow)', () => {
+  it('ADI is one of the three honest states, never a fabricated shape (spec 011)', () => {
     for (const [, entry] of entries) {
-      expect(entry.adi).toBeNull();
+      const adi = entry.adi;
+      if (adi === null) continue;
+      if (adi.kind === 'value') {
+        expect(typeof adi.value).toBe('number');
+        expect(typeof adi.unit).toBe('string');
+      } else {
+        expect(adi.kind).toBe('not-necessary');
+      }
     }
   });
 

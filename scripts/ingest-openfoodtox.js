@@ -12,12 +12,20 @@
  * Usage:
  *   node scripts/ingest-openfoodtox.js /path/to/OFT3.0-export-repository.xlsx
  *
- * What this does NOT do (by design — see spec 002):
- *   - No ADI/NOAEL join. Those values live in a separate IUCLID relational
- *     structure (SUB -> DOSSIER -> FLEX_SUM.ToxRefValues, joined by UUID).
- *     Real data, but a real second project — deferred to a fast-follow so
- *     this pass ships a verified, well-tested crosswalk rather than a
- *     partially-verified join.
+ * ADI join (spec 011): a substance's Acceptable Daily Intake is joined in via
+ *   REF_SUB.DocumentUUID <- SUB.ReferenceSubstance <- FLEX_SUM.ToxRefValues
+ *   (tox rows Parent-UUID to their SUB). A substance often carries MULTIPLE ADI
+ *   records from evaluations across years with no reliable per-record recency
+ *   signal, so we are deliberately conservative: an ADI is emitted ONLY when
+ *   every numeric record agrees on one value (normalized to mg/kg bw/day).
+ *   Conflicting histories (e.g. tartrazine 7.5 vs 10) emit null rather than risk
+ *   an outdated number — the "verified, not partial / never mislead" bar. EFSA's
+ *   "ADI not necessary" outcome is emitted as its own positive state.
+ *
+ * What this does NOT do (by design — see specs 002/011):
+ *   - No NOAEL / study-basis join yet (spec 011 Q1 — a later optional layer).
+ *   - No exposure / %-of-ADI figure. We have no per-product concentration, so a
+ *     gauge would be false precision (spec 011 Q2).
  *   - No narrative text of any kind. OpenFoodTox has none to extract. Every
  *     hand-authored entry in src/data/additives.ts stays hand-authored.
  *   - No automatic sometimes/contested inference. Presence in this output
@@ -91,9 +99,60 @@ function main() {
     }
   }
 
-  const byENumber = new Map(); // eNumber -> { name }
+  // ── ADI join maps (spec 011) ──────────────────────────────────────────────
+  // REF_SUB.DocumentUUID → [SUB.DocumentUUID]; SUB.DocumentUUID → [tox rows].
+  const subRows = XLSX.utils.sheet_to_json(workbook.Sheets['SUB'] ?? {}, { defval: null });
+  const toxRows = XLSX.utils.sheet_to_json(workbook.Sheets['FLEX_SUM.ToxRefValues'] ?? {}, { defval: null });
+  const subsByRef = new Map();
+  for (const s of subRows) {
+    const refU = s['ReferenceSubstance.ReferenceSubstance'];
+    if (refU) (subsByRef.get(refU) ?? subsByRef.set(refU, []).get(refU)).push(s['Document UUID']);
+  }
+  const toxByParent = new Map();
+  for (const t of toxRows) {
+    const p = t['Parent UUID'];
+    if (p) (toxByParent.get(p) ?? toxByParent.set(p, []).get(p)).push(t);
+  }
+  const ADI = 'HumanHealthHazardCharacteristics.AcceptableDailyIntake.';
+
+  // Normalize an ADI to a comparable string; µg→mg so unit variants don't look
+  // like conflicts. Non-mg/kg units (e.g. mg/person/day) are kept verbatim, so
+  // a mismatch against mg/kg records correctly reads as ambiguous.
+  function normAdi(value, unit) {
+    let v = value, u = String(unit || '').trim();
+    if (/^µg\/kg/i.test(u)) { v = +(v / 1000).toPrecision(6); u = 'mg/kg bw/day'; }
+    else if (/^mg\/kg/i.test(u)) { u = 'mg/kg bw/day'; }
+    return { value: v, unit: u, key: `${v}|${u}` };
+  }
+
+  // Conservative resolver: one value only if every numeric record agrees.
+  function resolveAdi(refUuid) {
+    const rows = (subsByRef.get(refUuid) ?? []).flatMap(su => toxByParent.get(su) ?? []);
+    const values = new Map();
+    let notNecessary = false;
+    for (const r of rows) {
+      const lo = r[ADI + 'Adi.lowerValue'];
+      const up = r[ADI + 'Adi.upperValue'];
+      const num = lo != null ? lo : up;
+      if (num != null) {
+        const n = normAdi(num, r[ADI + 'Adi.Unit']);
+        values.set(n.key, n);
+      } else if (r[ADI + 'NoAllocated'] != null) {
+        notNecessary = true;
+      }
+    }
+    if (values.size === 1) {
+      const { value, unit } = [...values.values()][0];
+      return { kind: 'value', value, unit };
+    }
+    if (values.size === 0 && notNecessary) return { kind: 'not-necessary' };
+    return null; // conflicting histories or no ADI record — honest null
+  }
+
+  const byENumber = new Map(); // eNumber -> { name, adi }
   let addTotal = 0;
   let unresolved = 0;
+  const adiStats = { value: 0, notNecessary: 0, null: 0 };
 
   for (let r = 1; r < rows.length; r++) {
     const row = rows[r];
@@ -121,9 +180,12 @@ function main() {
     // first one encountered wins — deterministic, and never surfaces once a hand-
     // authored entry exists for that E-number anyway (lookup precedence, spec 002).
     if (!byENumber.has(eNumber)) {
-      byENumber.set(eNumber, { name: commonName || eNumber });
+      const adi = resolveAdi(row[idx['Document UUID']]);
+      adiStats[adi ? adi.kind === 'value' ? 'value' : 'notNecessary' : 'null']++;
+      byENumber.set(eNumber, { name: commonName || eNumber, adi });
     }
   }
+  console.log(`ADI joined: ${adiStats.value} numeric, ${adiStats.notNecessary} "not necessary", ${adiStats.null} null`);
 
   console.log(`EFSA-classified food additive rows: ${addTotal}`);
   console.log(`Resolved to an E-number: ${addTotal - unresolved} (${unresolved} unresolved)`);
@@ -131,13 +193,19 @@ function main() {
 
   const entries = [...byENumber.entries()].sort(([a], [b]) => a.localeCompare(b));
 
-  const body = entries.map(([eNumber, { name }]) => {
+  const serializeAdi = (adi) => {
+    if (!adi) return 'null';
+    if (adi.kind === 'not-necessary') return `{ kind: 'not-necessary' }`;
+    return `{ kind: 'value', value: ${adi.value}, unit: ${JSON.stringify(adi.unit)} }`;
+  };
+
+  const body = entries.map(([eNumber, { name, adi }]) => {
     const id = eNumber;
     return `  '${eNumber}': {\n` +
       `    id: '${id}',\n` +
       `    name: ${JSON.stringify(name)},\n` +
       `    eNumber: '${eNumber}',\n` +
-      `    adi: null,\n` +
+      `    adi: ${serializeAdi(adi)},\n` +
       `    sourceLabel: '${SOURCE_LABEL}',\n` +
       `    sourceUrl: '${SOURCE_URL}',\n` +
       `  },`;
