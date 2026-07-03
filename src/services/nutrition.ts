@@ -123,6 +123,25 @@ export function sugarBasisDv(sn: ServingNutrients): number {
   return sn.addedSugarDv ?? sn.sugarDv ?? 0;
 }
 
+// Spec 008 M2 — category veto. Products whose form destroys the fruit/veg
+// matrix (juice, nectar, smoothie, sweet/carbonated beverage) count as free
+// sugar per WHO regardless of the added-sugar label: a 100% juice reports
+// addedSugar: 0, but its sugar behaves like added sugar once the structure is
+// gone. So for these OFF categories we score TOTAL sugar, not added. Exact
+// `en:` slug membership (not substring) to avoid false hits; the veto only
+// forces MORE caution, so the failure mode of a mistag is the safe direction.
+const MATRIX_DESTROYED_CATEGORIES = new Set<string>([
+  'en:juices', 'en:fruit-juices', 'en:fruit-nectars', 'en:vegetable-juices',
+  'en:concentrated-fruit-juices', 'en:fruit-juices-from-concentrate',
+  'en:smoothies', 'en:sodas', 'en:carbonated-drinks', 'en:energy-drinks',
+  'en:sports-drinks', 'en:sweetened-beverages', 'en:iced-teas',
+]);
+
+export function isMatrixDestroyedCategory(categoriesTags?: string[]): boolean {
+  if (!categoriesTags) return false;
+  return categoriesTags.some(t => MATRIX_DESTROYED_CATEGORIES.has(t));
+}
+
 // Trans fat has no-safe-level consensus, but labels round to 0 below 0.5 g and
 // we can't distinguish industrial from ruminant trans. Flag at the label-detectable
 // 0.5 g (verdict-moving); a positive trace below that surfaces as context only.
@@ -203,35 +222,43 @@ function buildContextLines(sn: ServingNutrients, sugarLabel: string, goal: strin
 export function toneNutrition(
   sn: ServingNutrients,
   profile: Profile,
-  ctx?: { wholeFoodSugarMatrix?: boolean },
+  ctx?: { wholeFoodSugarMatrix?: boolean; matrixDestroyedCategory?: boolean },
 ): NutritionAssessment {
   const t = warnThresholds(profile);
   const sugarDvBasis = sugarBasisDv(sn);
-  const sugarLabel = sn.addedSugarDv != null ? 'added sugar' : 'sugar';
   const { sodiumDv = 0, satFatDv = 0, fiberDv = 0, proteinDv = 0 } = sn;
   const goal = profile.goal ?? 'unset';
 
-  // Spec 007: the health signal in WHO/AHA sugar guidance is the food matrix and
-  // physical form, not natural-vs-added origin (WHO classifies natural fruit
-  // JUICE as free sugar because juicing destroys the matrix). Restaurant data has
-  // no added-sugar field to score on, so items reviewed and flagged as an intact
-  // whole-food solid matrix (never inferred from ingredient text — see
-  // docs/nutrition-evidence.md's rejection of NOVA-style scores) are scored on 0
-  // for tone purposes. The raw sugarDvBasis still drives the blood_sugar
-  // profileNote (glycemic load is real regardless of matrix) and a context-only
-  // line below — never hidden, just not held against the verdict.
-  const sugarToneDvBasis = ctx?.wholeFoodSugarMatrix ? 0 : sugarDvBasis;
-
   // Spec 008: classify what the sugar verdict rests on, for a visible disclosure
   // line. Materiality gates on TOTAL sugar %DV (what the user sees on the panel
-  // and might question), regardless of what we scored on. M1 produces four of
-  // the five bases; 'disqualified' (category veto) is M2.
+  // and might question), regardless of what we scored on. Precedence: a
+  // human-reviewed whole-food matrix flag (spec 007, restaurant items) wins;
+  // then the M2 category veto (juice/soda/dessert → free sugar per WHO, scored
+  // on TOTAL even if the added-sugar label reads 0); then the added-sugar field;
+  // else total-only.
   const totalSugarDv = sn.sugarDv ?? 0;
   const sugarBasis: SugarBasis =
     totalSugarDv < 10 ? 'negligible'
     : ctx?.wholeFoodSugarMatrix ? 'whole-food'
+    : ctx?.matrixDestroyedCategory ? 'disqualified'
     : sn.addedSugarDv != null ? 'added-known'
     : 'total-only';
+
+  // Spec 007/008: the health signal in WHO/AHA sugar guidance is the food matrix
+  // and physical form, not natural-vs-added origin. A whole-food-matrix item is
+  // exempt (scored 0); a matrix-destroyed item (juice/soda) is scored on TOTAL
+  // sugar even if its added-sugar label reads 0; everything else scores on the
+  // added-sugar figure when present, total otherwise (sugarBasisDv). The raw
+  // sugarDvBasis still drives the blood_sugar profileNote (glycemic load is real
+  // regardless of matrix) and the context-only disclosure line — never hidden.
+  const sugarToneDvBasis =
+    sugarBasis === 'whole-food' ? 0
+    : sugarBasis === 'disqualified' ? totalSugarDv
+    : sugarDvBasis;
+
+  // A disqualified item is scored on TOTAL sugar (not the label's added figure),
+  // so it must read "sugar", not "added sugar", in the summary and notes.
+  const sugarLabel = (sugarBasis !== 'disqualified' && sn.addedSugarDv != null) ? 'added sugar' : 'sugar';
 
   const profileNotes: string[] = [];
   if (profile.conditions.includes('bp') && sodiumDv >= 15) {
@@ -239,12 +266,16 @@ export function toneNutrition(
       `You flagged blood pressure — one serving is ${sodiumDv}% of the daily sodium value.`,
     );
   }
-  if (profile.conditions.includes('blood_sugar') && sugarDvBasis >= 15) {
+  // Blood sugar is a glycemic concern, not an added-sugar-policy one: for a
+  // matrix-destroyed item (juice) the glucose hit is the TOTAL sugar even though
+  // its added-sugar label reads 0. Score the note on total in that case.
+  const glycemicSugarDv = sugarBasis === 'disqualified' ? totalSugarDv : sugarDvBasis;
+  if (profile.conditions.includes('blood_sugar') && glycemicSugarDv >= 15) {
     const netCarbs = sn.carbs != null && sn.fiber != null
       ? ` (${(sn.carbs - sn.fiber).toFixed(0)} g net carbs)`
       : '';
     profileNotes.push(
-      `You flagged blood sugar — one serving is ${sugarDvBasis}% of the daily ${sugarLabel} value${netCarbs}.`,
+      `You flagged blood sugar — one serving is ${glycemicSugarDv}% of the daily ${sugarLabel} value${netCarbs}.`,
     );
   }
 
@@ -293,7 +324,7 @@ export function toneNutrition(
   // has no safe level, so severity isn't a %DV comparison.
   type Hi = { label: string; short: string; over: number };
   const his: Hi[] = [];
-  if (sugarHigh)  his.push({ label: `${sugarLabel} (${sugarDvBasis}% DV)`, short: sugarLabel, over: sugarDvBasis / t.sugar });
+  if (sugarHigh)  his.push({ label: `${sugarLabel} (${sugarToneDvBasis}% DV)`, short: sugarLabel, over: sugarToneDvBasis / t.sugar });
   if (sodiumHigh) his.push({ label: `sodium (${sodiumDv}% DV)`, short: 'sodium', over: sodiumDv / t.sodium });
   if (satFatHigh && !satFatBudget) his.push({ label: `sat fat (${satFatDv}% DV)`, short: 'sat fat', over: satFatDv / t.satFat });
   his.sort((a, b) => b.over - a.over);
@@ -325,7 +356,7 @@ export function toneNutrition(
   if (sugarOffset) {
     const by = fiberQualifies && proteinQualifies ? 'fiber and protein'
       : fiberQualifies ? 'strong fiber' : 'protein';
-    offsets.push(`high ${sugarLabel} (${sugarDvBasis}% DV) moderated by ${by}`);
+    offsets.push(`high ${sugarLabel} (${sugarToneDvBasis}% DV) moderated by ${by}`);
   }
   if (sodiumOffset) offsets.push(`high sodium (${sodiumDv}% DV) balanced by potassium`);
   if (offsets.length > 0) {

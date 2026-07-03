@@ -1,6 +1,7 @@
 # Spec 008 — Scaling the Sugar-Matrix Distinction to Scanned Foods
 
-**Status:** draft — awaiting approval
+**Status:** approved — **M1 shipped** (disclosure), **M2 shipped** (category veto).
+M3 (coverage investigation) and M4 (whole-food allow-list) still pending.
 **Phase:** nutrition axis (extends spec 007; applies to the barcode/search scan path)
 **Surface:** `src/services/nutrition.ts` (`toneNutrition`, `computeServingNutrients`),
 `src/services/off.ts` + `src/types/off.ts` (new fields fetched),

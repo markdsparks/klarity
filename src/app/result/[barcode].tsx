@@ -26,6 +26,7 @@ import {
 } from '@/services/history';
 import {
   computeServingNutrients,
+  isMatrixDestroyedCategory,
   isPersonalizedReference,
   referenceValues,
   sugarBasisDv,
@@ -144,6 +145,7 @@ export default function ResultScreen() {
           .map(id => ADDITIVES[id])
           .filter((a): a is Additive => !!a);
         const sn = computeServingNutrients(product, usdaNutrition);
+        const matrixDestroyedCategory = isMatrixDestroyedCategory(product.categories_tags);
         const historyEntry = await saveToHistory({
           barcode,
           productName: product.product_name || 'Unknown product',
@@ -153,7 +155,7 @@ export default function ResultScreen() {
             matchedAdditives.map(a => a.baseVerdict),
             regulatoryAdditives.length + unknownAdditives.length,
           ),
-          nutritionTone: toneNutrition(sn, DEFAULT_PROFILE).tone,
+          nutritionTone: toneNutrition(sn, DEFAULT_PROFILE, { matrixDestroyedCategory }).tone,
           scannedAt: Date.now(),
         });
 
@@ -213,7 +215,9 @@ export default function ResultScreen() {
   const brand    = product.brands?.split(',')[0].trim() || '';
   const imageUrl = product.image_front_url ?? product.image_url;
   const sn = computeServingNutrients(product, usdaNutrition, referenceValues(profile));
-  const nutrition = toneNutrition(sn, profile);
+  const nutrition = toneNutrition(sn, profile, {
+    matrixDestroyedCategory: isMatrixDestroyedCategory(product.categories_tags),
+  });
   const thresholds = warnThresholds(profile);
   const bloodSugar = profile.conditions.includes('blood_sugar');
   const personalizedRef = isPersonalizedReference(profile);

@@ -6,7 +6,7 @@ const BASE = 'https://world.openfoodfacts.org/api/v2/product';
 const FIELDS = [
   'product_name', 'brands', 'serving_size', 'serving_quantity',
   'quantity', 'nutriments', 'additives_tags', 'ingredients_text',
-  'image_url', 'image_front_url',
+  'categories_tags', 'image_url', 'image_front_url',
 ].join(',');
 
 // OFF dedicated search service — supports full-text query, returns hits sorted by relevance
