@@ -1,7 +1,10 @@
 import {
+  buildExport,
   classifyOutcome,
   clearDiagnostics,
+  loadFeedback,
   loadOutcomes,
+  logFeedback,
   logOutcome,
   summarize,
   type ScanOutcomeRecord,
@@ -75,5 +78,35 @@ describe('diagnostics persistence + summary', () => {
     expect(s.total).toBe(0);
     expect(s.outcomes.confident).toBe(0);
     expect(s.outcomes.restaurant).toBe(0);
+  });
+});
+
+describe('feedback + export (spec 009 M2/M3)', () => {
+  beforeEach(async () => { await clearDiagnostics(); });
+
+  it('logs and loads feedback, newest first', async () => {
+    await logFeedback({ at: 1, source: 'barcode', category: 'wrong-verdict', productName: 'X' });
+    await logFeedback({ at: 2, source: 'not-found', category: 'not-found', note: 'Acme cola', barcode: '123' });
+    const fb = await loadFeedback();
+    expect(fb).toHaveLength(2);
+    expect(fb[0].category).toBe('not-found');
+    expect(fb[0].note).toBe('Acme cola');
+  });
+
+  it('clearDiagnostics wipes both outcomes and feedback', async () => {
+    await logOutcome({ at: 1, source: 'barcode', outcome: 'confident' });
+    await logFeedback({ at: 1, source: 'barcode', category: 'other' });
+    await clearDiagnostics();
+    expect(await loadOutcomes()).toHaveLength(0);
+    expect(await loadFeedback()).toHaveLength(0);
+  });
+
+  it('buildExport bundles outcomes + feedback with a timestamp', async () => {
+    await logOutcome({ at: 1, source: 'barcode', outcome: 'not-found' });
+    await logFeedback({ at: 1, source: 'not-found', category: 'not-found', note: 'Test' });
+    const exp = await buildExport();
+    expect(exp.outcomes).toHaveLength(1);
+    expect(exp.feedback).toHaveLength(1);
+    expect(typeof exp.exportedAt).toBe('number');
   });
 });

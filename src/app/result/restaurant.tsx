@@ -10,7 +10,8 @@ import { ExplainerSheet } from '@/components/explainer-sheet';
 import { OptionSheet, type BuildOption } from '@/components/option-sheet';
 import { getCatalogComponent, getChain, getMenuItem } from '@/data/restaurants';
 import { DEFAULT_PROFILE, useProfile } from '@/hooks/use-profile';
-import { logOutcome } from '@/services/diagnostics';
+import { logFeedback, logOutcome } from '@/services/diagnostics';
+import { FeedbackSheet } from '@/components/feedback-sheet';
 import {
   restaurantHistoryKey,
   saveToHistory,
@@ -99,6 +100,7 @@ export default function RestaurantResultScreen() {
     return seeded.filter(id => addable.has(id));
   });
   const [sheet, setSheet] = useState<null | { kind: 'slot'; slot: ItemSlot } | { kind: 'addons' }>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // First render records the scan (per-item frequency merge); later build
   // changes edit the entry in place so customizing never inflates the scan count.
@@ -528,8 +530,21 @@ export default function RestaurantResultScreen() {
             Source: {chain.source.label} (FDA menu-labeling disclosure) · retrieved {chain.source.retrieved}
           </Text>
         </View>
+
+        <Pressable style={styles.feedbackLink} onPress={() => setFeedbackOpen(true)}>
+          <Text style={styles.feedbackLinkText}>Something look off?</Text>
+        </Pressable>
       </View>
 
+      <FeedbackSheet
+        title={feedbackOpen ? 'Something look off?' : null}
+        categories={['wrong-verdict', 'wrong-data', 'missing-additive', 'other']}
+        onSubmit={(category, note) => logFeedback({
+          at: Date.now(), source: 'restaurant', category,
+          note: note || undefined, productName: item.name, barcode: restaurantHistoryKey(item.id),
+        })}
+        onClose={() => setFeedbackOpen(false)}
+      />
       <OptionSheet
         title={sheetProps?.title ?? null}
         options={sheetProps?.options ?? []}
@@ -627,6 +642,8 @@ const styles = StyleSheet.create({
   addRowText: { fontSize: 14, fontWeight: '700', color: '#1f9d6b' },
 
   sourceCard: { paddingHorizontal: 6 },
+  feedbackLink:  { alignSelf: 'center', paddingVertical: 14, marginTop: 2 },
+  feedbackLinkText: { fontSize: 13, fontWeight: '600', color: '#9aa4b2' },
   sourceText: { fontSize: 12, color: '#8a94a3', lineHeight: 17 },
 
   errorWrap: { flex: 1, alignItems: 'center', gap: 16, backgroundColor: '#f4f5f7' },

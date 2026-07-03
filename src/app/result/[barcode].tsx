@@ -33,7 +33,8 @@ import {
   toneNutrition,
   warnThresholds,
 } from '@/services/nutrition';
-import { classifyOutcome, logOutcome } from '@/services/diagnostics';
+import { classifyOutcome, logFeedback, logOutcome, type FeedbackCategory } from '@/services/diagnostics';
+import { FeedbackSheet } from '@/components/feedback-sheet';
 import { fetchUSDANutrition } from '@/services/usda';
 import { resolveVerdict } from '@/services/verdict';
 import { verdictSentence } from '@/services/verdict-sentence';
@@ -111,6 +112,7 @@ export default function ResultScreen() {
   const { profile } = useProfile();
   const [state, setState] = useState<State>({ status: 'loading' });
   const [explainer, setExplainer] = useState<NutritionExplainer | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   useEffect(() => {
     if (!barcode) return;
@@ -225,6 +227,18 @@ export default function ResultScreen() {
         <Pressable style={styles.errorBtn} onPress={() => router.back()}>
           <Text style={styles.errorBtnText}>← Go back</Text>
         </Pressable>
+        {isNotFound && (
+          <Pressable style={styles.errorFeedback} onPress={() => setFeedbackOpen(true)}>
+            <Text style={styles.errorFeedbackText}>Tell us what this was →</Text>
+          </Pressable>
+        )}
+        <FeedbackSheet
+          title={feedbackOpen ? 'What product was this?' : null}
+          categories={['not-found']}
+          notePlaceholder="Product name / brand — helps us close the gap"
+          onSubmit={(category, note) => logFeedback({ at: Date.now(), source: 'not-found', category, note: note || undefined, barcode })}
+          onClose={() => setFeedbackOpen(false)}
+        />
       </View>
     );
   }
@@ -494,9 +508,22 @@ export default function ResultScreen() {
             </Pressable>
           )}
         </View>
+
+        <Pressable style={styles.feedbackLink} onPress={() => setFeedbackOpen(true)}>
+          <Text style={styles.feedbackLinkText}>Something look off?</Text>
+        </Pressable>
       </View>
 
       <ExplainerSheet explainer={explainer} onClose={() => setExplainer(null)} />
+      <FeedbackSheet
+        title={feedbackOpen ? 'Something look off?' : null}
+        categories={['wrong-verdict', 'wrong-data', 'missing-additive', 'other']}
+        onSubmit={(category, note) => logFeedback({
+          at: Date.now(), source: 'barcode', category,
+          note: note || undefined, productName: name, barcode,
+        })}
+        onClose={() => setFeedbackOpen(false)}
+      />
     </ScrollView>
   );
 }
@@ -769,6 +796,10 @@ const styles = StyleSheet.create({
   contextTextLink: { color: '#1f9d6b', fontWeight: '600' },
   contextWhy:    { fontSize: 12, color: '#1f9d6b', fontWeight: '700' },
   refFootnote:   { fontSize: 11, color: '#9fadbf', lineHeight: 16, marginTop: 8 },
+  feedbackLink:  { alignSelf: 'center', paddingVertical: 14, marginTop: 4 },
+  feedbackLinkText: { fontSize: 13, fontWeight: '600', color: '#9fadbf' },
+  errorFeedback:    { marginTop: 14, paddingVertical: 8 },
+  errorFeedbackText: { fontSize: 14, fontWeight: '600', color: '#7fd3aa' },
 
   nutrientRow: {
     flexDirection: 'row',
