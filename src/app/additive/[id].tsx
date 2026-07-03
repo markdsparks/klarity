@@ -244,7 +244,25 @@ function RegulatoryDetail({ additive, insetsTop, insetsBottom }: {
       {additive.adi && (
         <View style={styles.card}>
           <Text style={styles.cardLabel}>Acceptable Daily Intake</Text>
-          <Text style={styles.headline}>{additive.adi.value} {additive.adi.unit}</Text>
+          {additive.adi.kind === 'value' ? (
+            <>
+              <Text style={styles.headline}>{additive.adi.value} {additive.adi.unit}</Text>
+              <Text style={styles.adiNote}>
+                The safe daily level EFSA established for this additive (per kg of
+                body weight). It’s regulatory context — the science behind
+                “permitted” — not a measure of how much is in this product, so
+                we don’t show a “percent of your limit.”
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.headline}>No limit needed</Text>
+              <Text style={styles.adiNote}>
+                EFSA found this additive safe enough that no numerical daily limit
+                is necessary — a positive sign, not missing data.
+              </Text>
+            </>
+          )}
         </View>
       )}
 
@@ -336,6 +354,7 @@ const styles = StyleSheet.create({
   cardLabel: { fontSize: 10.5, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase', color: '#9fadbf' },
 
   headline: { fontSize: 15, color: '#1a1f29', lineHeight: 23 },
+  adiNote: { fontSize: 12.5, color: '#6b7787', lineHeight: 18, marginTop: 8 },
 
   exposureGrid: { gap: 8 },
   exposureRow:  { flexDirection: 'row', gap: 10 },

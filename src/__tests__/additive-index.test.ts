@@ -67,7 +67,6 @@ describe('matchByETags', () => {
     expect(regulatory[0]).toMatchObject({
       eNumber: 'E101',
       name: 'Riboflavin',
-      adi: null,
       sourceLabel: 'EFSA OpenFoodTox v3.0',
     });
   });

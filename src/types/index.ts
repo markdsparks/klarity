@@ -133,11 +133,22 @@ export interface Product {
 // here means "EFSA classifies this as a permitted food additive," nothing
 // about dose, frequency, or contested status. See docs/specs/002-*.md.
 
+// Acceptable Daily Intake (spec 011). Three honest states:
+//   value          — a single regulatory ADI EFSA records agree on
+//   not-necessary  — EFSA's "ADI not necessary/specified": safe enough to need
+//                    no numerical limit (a positive signal, not missing data)
+//   null           — no ADI, or conflicting historical evaluations we won't
+//                    auto-pick between (never show an outdated/guessed number)
+export type RegulatoryADI =
+  | { kind: 'value'; value: number; unit: string }
+  | { kind: 'not-necessary' }
+  | null;
+
 export interface RegulatoryAdditive {
   id: string;
   name: string;
   eNumber: string;
-  adi: { value: number; unit: string } | null;
+  adi: RegulatoryADI;
   sourceLabel: string;
   sourceUrl: string;
 }
