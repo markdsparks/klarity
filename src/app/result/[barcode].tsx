@@ -256,6 +256,23 @@ export default function ResultScreen() {
   const bloodSugar = profile.conditions.includes('blood_sugar');
   const personalizedRef = isPersonalizedReference(profile);
 
+  // Serving-basis label (spec 012) — honest about what the numbers rest on.
+  const servingText = (() => {
+    switch (sn.basis) {
+      case 'racc-estimate':
+        return `~${sn.servingGrams} g · est. serving${sn.servingLabel ? ` (typical ${sn.servingLabel})` : ''}`;
+      case 'per-100g':
+        return 'per 100 g · no serving size on file';
+      case 'off-serving':
+      case 'off-serving-text':
+        return `per ${product.serving_size ?? `${sn.servingGrams} g`}`;
+      default: // usda-serving
+        return (usdaNutrition?.householdServing || product.serving_size)
+          ? `per ${usdaNutrition?.householdServing?.toLowerCase() ?? product.serving_size}`
+          : null;
+    }
+  })();
+
   const matchedAdditives = additiveIds
     .map(id => ADDITIVES[id])
     .filter((a): a is Additive => !!a);
@@ -284,6 +301,7 @@ export default function ResultScreen() {
     nutritionTone: nutrition.tone,
     highNutrients: nutrition.highNutrients,
     budgetNutrient: nutrition.budgetNutrient,
+    nutritionBasis: sn.basis,
     profile,
     proteinDv: sn.proteinDv ?? 0,
   });
@@ -440,11 +458,7 @@ export default function ResultScreen() {
               )}
             </View>
             <View style={styles.cardHeaderRight}>
-              {(usdaNutrition?.householdServing || product.serving_size) ? (
-                <Text style={styles.cardMeta}>
-                  per {usdaNutrition?.householdServing?.toLowerCase() ?? product.serving_size}
-                </Text>
-              ) : null}
+              {servingText ? <Text style={styles.cardMeta}>{servingText}</Text> : null}
               <View style={[styles.toneTag, {
                 backgroundColor: nutrition.tone === 'good' ? '#e8f7ef' : '#fdf3e3',
               }]}>
@@ -498,7 +512,7 @@ export default function ResultScreen() {
             />
           )}
           <NutrientRow label={personalizedRef ? 'Protein *' : 'Protein'} value={sn.protein} unit="g" dvPct={sn.proteinDv} highlight={sn.proteinDv != null && sn.proteinDv >= 10 ? 'good' : null} />
-          <NutrientRow label="Sodium"        value={sn.sodium}   unit="g" dvPct={sn.sodiumDv}  highlight={sn.sodiumDv != null && sn.sodiumDv >= thresholds.sodium ? 'warn' : null} />
+          <NutrientRow label="Sodium"        value={sn.sodium != null ? Math.round(sn.sodium * 1000) : undefined} unit="mg" dvPct={sn.sodiumDv}  highlight={sn.sodiumDv != null && sn.sodiumDv >= thresholds.sodium ? 'warn' : null} />
           <NutrientRow label="Potassium"     value={sn.potassium} unit="g" dvPct={sn.potassiumDv} highlight={sn.potassiumDv != null && sn.potassiumDv >= 10 ? 'good' : null} sub />
           {personalizedRef && (
             <Pressable onPress={() => setExplainer(getExplainer('personalized_reference'))}>
@@ -634,7 +648,7 @@ function NutrientRow({ label, value, unit, dvPct, highlight, sub, computed }: {
       </Text>
       <View style={styles.nutrientRight}>
         <Text style={[styles.nutrientValue, sub && styles.nutrientSubValue, { color: valueColor }]}>
-          {unit === 'kcal' ? Math.round(value) : value.toFixed(1)} {unit}
+          {unit === 'kcal' || unit === 'mg' ? Math.round(value) : value.toFixed(1)} {unit}
         </Text>
         {dvPct != null && (
           <Text style={[styles.nutrientDv, { color: dvColor }]}>{dvPct}% DV</Text>

@@ -1,6 +1,8 @@
 import type { NutritionTone, Profile } from '../types';
 import type { OFFProduct } from '../types/off';
 import type { USDANutrition } from '../types/usda';
+import { parseServingGrams } from './serving';
+import { raccServing } from '../data/racc';
 
 // Evidence basis for every rule in this file: docs/nutrition-evidence.md
 
@@ -28,9 +30,21 @@ export function isPersonalizedReference(profile: Profile): boolean {
   return profile.sex === 'female' || profile.sex === 'male';
 }
 
+// What serving basis the numbers rest on (spec 012), for honest labeling. Only
+// the barcode/OFF path sets it; restaurant data is always exact per-serving.
+export type NutritionBasis =
+  | 'usda-serving'      // exact USDA label serving
+  | 'off-serving'       // OFF numeric serving_quantity
+  | 'off-serving-text'  // parsed from OFF serving_size text
+  | 'racc-estimate'     // FDA category reference amount — an estimate
+  | 'per-100g';         // no serving anywhere — shown as "per 100 g"
+
 export type ServingNutrients = {
   source: 'usda' | 'off';
   factor: number;
+  basis?: NutritionBasis;
+  servingLabel?: string;    // e.g. 'nuts & seeds' for a racc-estimate line
+  servingGrams?: number;    // resolved serving weight in grams, when known
   calories?: number;
   totalFat?: number;   fatDv?: number;
   carbs?: number;      carbsDv?: number;
@@ -57,6 +71,8 @@ export function computeServingNutrients(
     return {
       source: 'usda',
       factor: 1,
+      basis: 'usda-serving',
+      servingGrams: usda.servingSize,
       calories:   usda.calories,
       totalFat:   usda.totalFat,    fatDv:        dv(usda.totalFat,    refs.totalFat),
       carbs:      usda.carbs,       carbsDv:      dv(usda.carbs,       refs.carbs),
@@ -71,9 +87,26 @@ export function computeServingNutrients(
     };
   }
 
-  // Fall back to OFF per-100g values scaled to serving size (OFF has no added sugar)
+  // Fall back to OFF per-100g values (OFF has no added sugar). Resolve a serving
+  // basis so we never render per-100g as if it were a serving (spec 012):
+  // OFF numeric qty → parsed OFF serving_size text → FDA RACC category estimate →
+  // labeled per-100g. Each non-exact tier is disclosed on the result screen.
   const n = p.nutriments ?? {};
-  const factor = p.serving_quantity ? p.serving_quantity / 100 : 1;
+  let basis: NutritionBasis;
+  let servingGrams: number | undefined;
+  let servingLabel: string | undefined;
+  const racc = raccServing(p.categories_tags);
+  if (p.serving_quantity) {
+    basis = 'off-serving'; servingGrams = p.serving_quantity;
+  } else if (parseServingGrams(p.serving_size) != null) {
+    basis = 'off-serving-text'; servingGrams = parseServingGrams(p.serving_size)!;
+  } else if (racc) {
+    basis = 'racc-estimate'; servingGrams = racc.grams; servingLabel = racc.label;
+  } else {
+    basis = 'per-100g'; servingGrams = undefined;
+  }
+  // per-100g basis keeps factor 1 (values ARE per 100 g, honestly labeled as such)
+  const factor = servingGrams != null ? servingGrams / 100 : 1;
   const scale = (val: number | undefined) => val != null ? val * factor : undefined;
 
   const calories = scale(n['energy-kcal_100g']);
@@ -90,6 +123,9 @@ export function computeServingNutrients(
   return {
     source: 'off',
     factor,
+    basis,
+    servingGrams,
+    servingLabel,
     calories,
     totalFat,  fatDv:       dv(totalFat, refs.totalFat),
     carbs,     carbsDv:     dv(carbs,    refs.carbs),

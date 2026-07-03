@@ -1,5 +1,5 @@
 import type { Additive, LimitType, NutritionTone, Profile } from '../types';
-import type { BudgetNutrient } from './nutrition';
+import type { BudgetNutrient, NutritionBasis } from './nutrition';
 
 // ── Layer 1: the plain-language verdict sentence ────────────────────────────────
 //
@@ -27,6 +27,7 @@ export interface SentenceInput {
   nutritionTone: NutritionTone;
   highNutrients: string[];            // short labels driving a nutrition warn ('sat fat', 'sodium')
   budgetNutrient: BudgetNutrient;    // good/ok only via a daily-budget reframe — keep the trade-off in the headline
+  nutritionBasis?: NutritionBasis;   // per-100g basis hedges the Layer-1 headline (spec 012)
   profile: Profile;
   proteinDv: number;                  // serving protein as %DV — gates the goal-staple framing
 }
@@ -68,7 +69,7 @@ function nutritionCaveat(tone: NutritionTone, high: string[], staple: boolean): 
 }
 
 export function verdictSentence(input: SentenceInput): string | null {
-  const { contestedDriver, sometimesAdditives, nutritionTone, highNutrients, budgetNutrient, profile, proteinDv } = input;
+  const { contestedDriver, sometimesAdditives, nutritionTone, highNutrients, budgetNutrient, nutritionBasis, profile, proteinDv } = input;
   const goalBuild = profile.goal === 'build' && proteinDv >= 20;
 
   // ── 1. Contested additive leads — resolved by the user's stated posture ──
@@ -88,6 +89,13 @@ export function verdictSentence(input: SentenceInput): string | null {
   // dominant "how should I use this?" signal — micro-advice about one additive would
   // bury it. Additive detail still lives in the list below.
   if (nutritionTone === 'warn') {
+    // Spec 012: a per-100g basis means we couldn't confirm a serving size, so the
+    // "watch" rests on per-100g numbers — don't lead with a scary occasional-pick
+    // headline built on that. Say what we don't know instead; the labeled per-100g
+    // numbers are in the card below.
+    if (nutritionBasis === 'per-100g') {
+      return `We couldn't confirm a serving size, so the nutrition below is shown per 100 g — worth a look before you decide.`;
+    }
     const noun = joinNouns(highNutrients);
     const tail = noun ? ` — high in ${noun}` : '';
     if (goalBuild) {
