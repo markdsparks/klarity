@@ -79,6 +79,28 @@ exists never to do (CLAUDE.md rule #1).
 ## Milestones
 
 - **M1 (one PR):** vocabulary unification + 3-level color + hero/chip hierarchy.
+- **M2 (follow-up, from family testing):** the ladder words invite tapping —
+  users want to know how a word was calculated and why THIS product got it.
+  Added:
+  - `src/data/verdict-ladder.ts` — generic, product-independent copy per
+    axis+level (what the word means, the full ladder for context, and a
+    one-line "how we calculate this"). Additive copy is evidence-tier framed;
+    nutrition copy is %DV framed — same words, different justification.
+  - `VerdictExplainerSheet` — bottom sheet combining that generic copy with a
+    **per-product** line composed from data already on screen (nutrition:
+    reuses `nutrition.summary` verbatim; additives: names the specific
+    Sometimes/Contested additive(s) driving the verdict). No new judgment,
+    just decorating fusion logic that already existed.
+  - `heroTone()` in `verdict-sentence.ts` — a small pure function mirroring
+    `verdictSentence`'s existing priority order (contested > nutrition warn >
+    sometimes > budget/ok caveat > clean), used only to color the hero card's
+    left accent + a soft background tint. This is NOT a new merged score —
+    it reads the same fusion the sentence already makes, it doesn't compute a
+    new one. Kept deliberately subtle (a 3px accent bar + ~10% tint) per the
+    same anti-fake-simplicity guardrail as M1.
+  - Fixed a real bug found in testing: the nutrition card's serving-size
+    caption and tone pill shared one row and clipped off-screen for the
+    longer word "Occasionally". Serving text now sits on its own line.
 
 ## Open questions (minor — noted, not blocking)
 

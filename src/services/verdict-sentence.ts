@@ -52,7 +52,7 @@ function pickDriver(additives: Additive[]): Additive | null {
 }
 
 // "sat fat and sugar" / "sat fat, sodium, and sugar"
-function joinNouns(items: string[]): string {
+export function joinNouns(items: string[]): string {
   if (items.length <= 1) return items[0] ?? '';
   if (items.length === 2) return `${items[0]} and ${items[1]}`;
   return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
@@ -66,6 +66,23 @@ function nutritionCaveat(tone: NutritionTone, high: string[], staple: boolean): 
   return staple
     ? ` Just keep an eye on the ${noun} if you stack them.`
     : ` It's also high in ${noun}.`;
+}
+
+// A subtle color hint for the hero card (spec 013 follow-up). Mirrors the exact
+// same priority order as verdictSentence's branches below — contested leads,
+// then nutrition warn, then any sometimes additive or budget/ok caveat, else
+// clean — so the hint never disagrees with the sentence it decorates. This is
+// NOT a new merged score: it reads the same fusion the sentence already makes,
+// it does not compute a new one. Keep this in sync if the branch order above changes.
+export type HeroTone = 'good' | 'sometimes' | 'warn' | 'contested';
+
+export function heroTone(input: SentenceInput): HeroTone {
+  const { contestedDriver, sometimesAdditives, nutritionTone, budgetNutrient } = input;
+  if (contestedDriver) return 'contested';
+  if (nutritionTone === 'warn') return 'warn';
+  if (sometimesAdditives.length > 0) return 'sometimes';
+  if (budgetNutrient || nutritionTone === 'ok') return 'sometimes';
+  return 'good';
 }
 
 export function verdictSentence(input: SentenceInput): string | null {

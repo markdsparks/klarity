@@ -6,7 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { matchByIngredientText } from '@/data/ingredient-text-index';
 import { ADDITIVES } from '@/data/additives';
 import { explainerForLine, type NutritionExplainer } from '@/data/nutrition-explainers';
+import { additiveLadderContext, nutritionToneToLadderLevel } from '@/data/verdict-ladder';
 import { ExplainerSheet } from '@/components/explainer-sheet';
+import { VerdictExplainerSheet, type VerdictExplainerInput } from '@/components/verdict-explainer-sheet';
 import { OptionSheet, type BuildOption } from '@/components/option-sheet';
 import { getCatalogComponent, getChain, getMenuItem } from '@/data/restaurants';
 import { DEFAULT_PROFILE, useProfile } from '@/hooks/use-profile';
@@ -25,7 +27,7 @@ import {
   restaurantServingNutrients,
 } from '@/services/restaurant-search';
 import { resolveVerdict } from '@/services/verdict';
-import { verdictSentence } from '@/services/verdict-sentence';
+import { heroTone, verdictSentence } from '@/services/verdict-sentence';
 import type { AdditiveResult, VerdictKey } from '@/types/index';
 import type { ItemSlot } from '@/types/restaurant';
 
@@ -82,10 +84,19 @@ const VERDICT_PILL: Record<VerdictKey, { bg: string; fg: string; label: string }
   contested: { bg: '#efecfb', fg: '#6b5bd2', label: 'Contested' },
 };
 
+// Subtle hero color hint (spec 013 follow-up) — matches [barcode].tsx.
+const HERO_TONE = {
+  good:      { bg: 'rgba(127,211,170,0.09)', accent: '#7fd3aa' },
+  sometimes: { bg: 'rgba(240,184,117,0.10)', accent: '#f0b875' },
+  warn:      { bg: 'rgba(239,143,86,0.12)',  accent: '#ef8f56' },
+  contested: { bg: 'rgba(176,158,232,0.12)', accent: '#b09ee8' },
+} as const;
+
 export default function RestaurantResultScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useProfile();
   const [explainer, setExplainer] = useState<NutritionExplainer | null>(null);
+  const [ladderInput, setLadderInput] = useState<VerdictExplainerInput | null>(null);
   const params = useLocalSearchParams<{ item: string; remove?: string; add?: string }>();
 
   const item = params.item ? getMenuItem(params.item) : undefined;
@@ -229,7 +240,7 @@ export default function RestaurantResultScreen() {
   const nutritionGlance = NUTRITION_GLANCE[nutrition.tone];
 
   const matched = additiveIds.map(id => ADDITIVES[id]).filter(Boolean);
-  const summarySentence = verdictSentence({
+  const sentenceInput = {
     contestedDriver: matched.find(a => a.baseVerdict === 'contested') ?? null,
     sometimesAdditives: matched.filter(a => a.baseVerdict === 'sometimes'),
     nutritionTone: nutrition.tone,
@@ -237,7 +248,10 @@ export default function RestaurantResultScreen() {
     budgetNutrient: nutrition.budgetNutrient,
     profile,
     proteinDv: sn.proteinDv ?? 0,
-  });
+  };
+  const summarySentence = verdictSentence(sentenceInput);
+  const heroColor = HERO_TONE[heroTone(sentenceInput)];
+  const additiveContext = additiveLadderContext(glanceKey, additiveResults);
 
   // Sheet contents — slot options show deltas vs the current selection;
   // add-ons show their absolute addition. Both show additive consequences.
@@ -336,22 +350,35 @@ export default function RestaurantResultScreen() {
 
         {/* Layer 1 — plain-language verdict */}
         {summarySentence ? (
-          <View style={styles.summaryCard}>
+          <View style={[styles.summaryCard, { backgroundColor: heroColor.bg, borderLeftColor: heroColor.accent }]}>
             <Text style={styles.summaryText}>{summarySentence}</Text>
           </View>
         ) : null}
 
-        {/* At-a-glance badges — the two axes behind the read above */}
-        {summarySentence ? <Text style={styles.glanceCaption}>The two axes behind it</Text> : null}
+        {/* At-a-glance badges — the two axes behind the read above. Tappable:
+            each opens the ladder sheet for what that word means + why this item. */}
+        {summarySentence ? <Text style={styles.glanceCaption}>The two axes behind it — tap either for why</Text> : null}
         <View style={styles.glanceRow}>
-          <View style={[styles.glanceBadge, { backgroundColor: additiveGlance.bg }]}>
+          <Pressable
+            style={({ pressed }) => [styles.glanceBadge, { backgroundColor: additiveGlance.bg }, pressed && styles.glanceBadgePressed]}
+            onPress={() => setLadderInput({
+              axis: 'additives',
+              level: glanceKey === 'clean' ? 'everyday' : glanceKey,
+              productContext: additiveContext,
+            })}>
             <Text style={[styles.glanceAxis, { color: additiveGlance.fg }]}>ADDITIVES</Text>
             <Text style={[styles.glanceVerdict, { color: additiveGlance.fg }]}>{additiveGlance.label}</Text>
-          </View>
-          <View style={[styles.glanceBadge, { backgroundColor: nutritionGlance.bg }]}>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.glanceBadge, { backgroundColor: nutritionGlance.bg }, pressed && styles.glanceBadgePressed]}
+            onPress={() => setLadderInput({
+              axis: 'nutrition',
+              level: nutritionToneToLadderLevel(nutrition.tone),
+              productContext: nutrition.summary,
+            })}>
             <Text style={[styles.glanceAxis, { color: nutritionGlance.fg }]}>NUTRITION</Text>
             <Text style={[styles.glanceVerdict, { color: nutritionGlance.fg }]}>{nutritionGlance.label}</Text>
-          </View>
+          </Pressable>
         </View>
       </View>
 
@@ -490,11 +517,17 @@ export default function RestaurantResultScreen() {
                 </View>
               )}
             </View>
-            <View style={[styles.pill, { backgroundColor: NUTRITION_TAG[nutrition.tone].bg }]}>
+            <Pressable
+              style={({ pressed }) => [styles.pill, { backgroundColor: NUTRITION_TAG[nutrition.tone].bg }, pressed && styles.glanceBadgePressed]}
+              onPress={() => setLadderInput({
+                axis: 'nutrition',
+                level: nutritionToneToLadderLevel(nutrition.tone),
+                productContext: nutrition.summary,
+              })}>
               <Text style={[styles.pillText, { color: NUTRITION_TAG[nutrition.tone].fg }]}>
                 {nutritionGlance.label}
               </Text>
-            </View>
+            </Pressable>
           </View>
 
           <Text style={styles.nutritionSummary}>{nutrition.summary}</Text>
@@ -562,6 +595,7 @@ export default function RestaurantResultScreen() {
         onClose={() => setSheet(null)}
       />
       <ExplainerSheet explainer={explainer} onClose={() => setExplainer(null)} />
+      <VerdictExplainerSheet input={ladderInput} onClose={() => setLadderInput(null)} />
     </ScrollView>
   );
 }
@@ -591,12 +625,13 @@ const styles = StyleSheet.create({
   addChipText: { color: '#7fd3aa' },
 
   // Spec 013 — hero the read, demote the two axis chips to supporting detail.
-  summaryCard: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 15 },
+  summaryCard: { borderRadius: 16, paddingHorizontal: 16, paddingVertical: 15, borderLeftWidth: 3 },
   summaryText: { fontSize: 17.5, color: '#f2f4f6', lineHeight: 25, fontWeight: '600' },
 
   glanceCaption: { fontSize: 10, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', color: '#8b9199', marginBottom: -2 },
   glanceRow:   { flexDirection: 'row', gap: 8 },
   glanceBadge: { flex: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, gap: 2 },
+  glanceBadgePressed: { opacity: 0.6 },
   glanceAxis:    { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase', opacity: 0.7 },
   glanceVerdict: { fontSize: 15, fontWeight: '700', letterSpacing: -0.2 },
 
