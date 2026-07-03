@@ -62,7 +62,7 @@ export const LADDER_EXPLAINERS: Record<LadderAxis, Record<LadderLevel, LadderExp
       axis: 'additives', level: 'sometimes', title: 'Additives: Sometimes',
       body: 'There is a real signal behind this rating — enough evidence that a regulator or study ' +
         'flags a dose, frequency, or sensitive-group caveat. That is not "avoid" — it is "this is not ' +
-        'something to build a daily habit around." Tap any additive below for the specific reason.',
+        'something to build a daily habit around."',
       method: ADDITIVE_METHOD, steps: ADDITIVE_STEPS,
     },
     occasionally: {
@@ -125,37 +125,68 @@ export function nutritionToneToLadderLevel(tone: 'good' | 'ok' | 'warn'): Ladder
   return 'occasionally';
 }
 
+// A specific additive the sheet can jump straight to — only set when exactly
+// one additive is the named driver, so there's no ambiguity about which one
+// the sheet would open.
+export interface AdditiveLink {
+  id: string;
+  name: string;
+  verdict: VerdictKey;
+}
+
+export interface AdditiveContext {
+  text: string;
+  link?: AdditiveLink;
+}
+
 // Per-product "why" for the additives ladder sheet, shared by both result
 // screens — built entirely from data already computed on screen, no new
 // judgment. Nutrition's equivalent is nutrition.summary (already exists).
+// When exactly one additive drives the verdict, `link` lets the sheet render
+// a real tappable row straight to its evidence page — no "tap it below"
+// promise the sheet (which covers the screen) can't keep.
 export function additiveLadderContext(
   glanceKey: 'clean' | 'unrated' | VerdictKey,
   additiveResults: AdditiveResult[],
   regulatoryCount = 0,
   unknownCount = 0,
-): string {
+): AdditiveContext {
   if (glanceKey === 'clean') {
-    return regulatoryCount + unknownCount > 0
-      ? 'No dose/frequency-rated additives were detected — anything listed below is regulatory-status or not-yet-rated only.'
-      : 'No additives were detected in this product.';
+    return {
+      text: regulatoryCount + unknownCount > 0
+        ? 'No dose/frequency-rated additives were detected — anything else listed is regulatory-status or not-yet-rated only.'
+        : 'No additives were detected in this product.',
+    };
   }
   if (glanceKey === 'unrated') {
-    return "This product's additives aren't yet in our rated database, so there's no dose/frequency verdict to show yet.";
+    return { text: "This product's additives aren't yet in our rated database, so there's no dose/frequency verdict to show yet." };
   }
   if (glanceKey === 'contested') {
-    const names = additiveResults.filter(r => r.additive.baseVerdict === 'contested').map(r => r.additive.name);
-    return names.length > 0
-      ? `${joinNouns(names)} ${names.length > 1 ? 'are' : 'is'} Contested here — tap into ${names.length > 1 ? 'them' : 'it'} below for the specific disagreement.`
-      : 'This product has a Contested additive — tap into it below for the specific disagreement.';
+    const contested = additiveResults.filter(r => r.additive.baseVerdict === 'contested');
+    if (contested.length === 1) {
+      const a = contested[0].additive;
+      return { text: `${a.name} is Contested here.`, link: { id: a.id, name: a.name, verdict: 'contested' } };
+    }
+    if (contested.length > 1) {
+      return { text: `${joinNouns(contested.map(r => r.additive.name))} are Contested here — check the additives list for each disagreement.` };
+    }
+    return { text: 'This product has a Contested additive — check the additives list for the specific disagreement.' };
   }
   if (glanceKey === 'sometimes') {
-    const names = additiveResults.filter(r => r.verdict === 'sometimes').map(r => r.additive.name);
-    return names.length > 0
-      ? `Driven by ${joinNouns(names)} — tap ${names.length > 1 ? 'them' : 'it'} below for the specific reason.`
-      : 'One or more additives here land in Sometimes — tap into them below for the specific reason.';
+    const sometimes = additiveResults.filter(r => r.verdict === 'sometimes');
+    if (sometimes.length === 1) {
+      const a = sometimes[0].additive;
+      return { text: `Driven by ${a.name}.`, link: { id: a.id, name: a.name, verdict: 'sometimes' } };
+    }
+    if (sometimes.length > 1) {
+      return { text: `Driven by ${joinNouns(sometimes.map(r => r.additive.name))} — check the additives list for each specific reason.` };
+    }
+    return { text: 'One or more additives here land in Sometimes — check the additives list for the specific reason.' };
   }
   const n = additiveResults.length;
-  return n > 0
-    ? `All ${n} rated additive${n === 1 ? '' : 's'} here ${n === 1 ? 'is' : 'are'} individually Everyday.`
-    : 'Nothing here needs a second thought.';
+  return {
+    text: n > 0
+      ? `All ${n} rated additive${n === 1 ? '' : 's'} here ${n === 1 ? 'is' : 'are'} individually Everyday.`
+      : 'Nothing here needs a second thought.',
+  };
 }

@@ -386,7 +386,8 @@ export default function ResultScreen() {
             onPress={glanceKey === 'unrated' ? undefined : () => setLadderInput({
               axis: 'additives',
               level: glanceKey === 'clean' ? 'everyday' : glanceKey,
-              productContext: additiveContext,
+              productContext: additiveContext.text,
+              productLink: additiveContext.link,
             })}
           />
           <GlanceBadge

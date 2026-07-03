@@ -364,7 +364,8 @@ export default function RestaurantResultScreen() {
             onPress={() => setLadderInput({
               axis: 'additives',
               level: glanceKey === 'clean' ? 'everyday' : glanceKey,
-              productContext: additiveContext,
+              productContext: additiveContext.text,
+              productLink: additiveContext.link,
             })}>
             <Text style={[styles.glanceAxis, { color: additiveGlance.fg }]}>ADDITIVES</Text>
             <Text style={[styles.glanceVerdict, { color: additiveGlance.fg }]}>{additiveGlance.label}</Text>

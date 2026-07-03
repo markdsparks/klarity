@@ -1,18 +1,25 @@
+import { router } from 'expo-router';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { getLadderExplainer, type LadderAxis, type LadderLevel } from '@/data/verdict-ladder';
+import { getLadderExplainer, type AdditiveLink, type LadderAxis, type LadderLevel } from '@/data/verdict-ladder';
 
 // "What does this word mean, and why did THIS product get it?" bottom sheet
 // (spec 013 follow-up). Tapping any ladder badge (the hero glance chips, or
 // the nutrition-card tone tag) opens this: the generic meaning of the word on
 // that axis's ladder, how we calculate it, the full ladder for context, and a
 // product-specific line composed by the caller from data already on screen.
+//
+// When the caller identifies one specific additive as the driver, `link`
+// renders as a real tappable row that closes the sheet and jumps straight to
+// that additive's evidence page — the sheet covers the additives list below,
+// so it never tells the user to "tap it below" and leave them nowhere to tap.
 
 export interface VerdictExplainerInput {
   axis: LadderAxis;
   level: LadderLevel;
   productContext: string;
+  productLink?: AdditiveLink;
 }
 
 const LEVEL_COLOR: Record<LadderLevel, { bg: string; fg: string }> = {
@@ -33,6 +40,11 @@ export function VerdictExplainerSheet({
   const explainer = input ? getLadderExplainer(input.axis, input.level) : null;
   const color = input ? LEVEL_COLOR[input.level] : null;
 
+  function openLink(link: AdditiveLink) {
+    onClose();
+    router.push(`/additive/${link.id}`);
+  }
+
   return (
     <Modal
       visible={explainer != null}
@@ -51,9 +63,20 @@ export function VerdictExplainerSheet({
               <Text style={styles.body}>{explainer.body}</Text>
 
               <Text style={styles.sectionLabel}>For this product</Text>
-              <View style={styles.productBox}>
-                <Text style={styles.productText}>{input.productContext}</Text>
-              </View>
+              <Text style={styles.productText}>{input.productContext}</Text>
+              {input.productLink ? (
+                <Pressable
+                  style={({ pressed }) => [styles.productLinkRow, pressed && styles.productLinkRowPressed]}
+                  onPress={() => openLink(input.productLink!)}>
+                  <Text style={styles.productLinkName} numberOfLines={1}>{input.productLink.name}</Text>
+                  <View style={[styles.productLinkPill, { backgroundColor: LEVEL_COLOR[input.productLink.verdict].bg }]}>
+                    <Text style={[styles.productLinkPillText, { color: LEVEL_COLOR[input.productLink.verdict].fg }]}>
+                      {input.productLink.verdict === 'contested' ? 'Contested' : 'Sometimes'}
+                    </Text>
+                  </View>
+                  <Text style={styles.productLinkChevron}>›</Text>
+                </Pressable>
+              ) : null}
 
               <Text style={styles.sectionLabel}>The full ladder</Text>
               <View style={styles.ladder}>
@@ -102,8 +125,18 @@ const styles = StyleSheet.create({
 
   sectionLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 1, color: '#9aa4b2', textTransform: 'uppercase', marginTop: 22, marginBottom: 8 },
 
-  productBox: { backgroundColor: '#f6f8fa', borderRadius: 14, padding: 14 },
   productText: { fontSize: 14, lineHeight: 20, color: '#1a1f29', fontWeight: '500' },
+
+  productLinkRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#f6f8fa', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12,
+    marginTop: 10,
+  },
+  productLinkRowPressed: { opacity: 0.6 },
+  productLinkName: { flex: 1, fontSize: 14.5, fontWeight: '700', color: '#1a1f29' },
+  productLinkPill: { borderRadius: 99, paddingHorizontal: 10, paddingVertical: 4 },
+  productLinkPillText: { fontSize: 11.5, fontWeight: '800' },
+  productLinkChevron: { fontSize: 17, color: '#c3cad4' },
 
   ladder: { gap: 10 },
   ladderRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', opacity: 0.5 },
