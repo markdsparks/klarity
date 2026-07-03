@@ -33,6 +33,7 @@ import {
   toneNutrition,
   warnThresholds,
 } from '@/services/nutrition';
+import { classifyOutcome, logOutcome } from '@/services/diagnostics';
 import { fetchUSDANutrition } from '@/services/usda';
 import { resolveVerdict } from '@/services/verdict';
 import { verdictSentence } from '@/services/verdict-sentence';
@@ -118,6 +119,7 @@ export default function ResultScreen() {
       .then(async ([product, usdaNutrition]) => {
         if (!product) {
           if (!cancelled) setState({ status: 'not_found' });
+          void logOutcome({ at: Date.now(), source: 'barcode', outcome: 'not-found', barcode });
           return;
         }
         const { matched: tagMatched, regulatory: regulatoryAdditives, unknown: unknownAdditives } =
@@ -146,6 +148,7 @@ export default function ResultScreen() {
           .filter((a): a is Additive => !!a);
         const sn = computeServingNutrients(product, usdaNutrition);
         const matrixDestroyedCategory = isMatrixDestroyedCategory(product.categories_tags);
+        const baseAssessment = toneNutrition(sn, DEFAULT_PROFILE, { matrixDestroyedCategory });
         const historyEntry = await saveToHistory({
           barcode,
           productName: product.product_name || 'Unknown product',
@@ -155,8 +158,25 @@ export default function ResultScreen() {
             matchedAdditives.map(a => a.baseVerdict),
             regulatoryAdditives.length + unknownAdditives.length,
           ),
-          nutritionTone: toneNutrition(sn, DEFAULT_PROFILE, { matrixDestroyedCategory }).tone,
+          nutritionTone: baseAssessment.tone,
           scannedAt: Date.now(),
+        });
+
+        // Instrumentation (spec 009) — profile-independent, fire-and-forget.
+        void logOutcome({
+          at: Date.now(),
+          source: 'barcode',
+          outcome: classifyOutcome({
+            source: 'barcode',
+            found: true,
+            ratedAdditiveCount: matchedAdditives.length,
+            regulatoryAdditiveCount: regulatoryAdditives.length,
+            unknownAdditiveCount: unknownAdditives.length,
+            hasNutrition: sn.calories != null,
+          }),
+          sugarBasis: baseAssessment.sugarBasis,
+          productName: product.product_name || undefined,
+          barcode,
         });
 
         if (!cancelled) {
