@@ -436,3 +436,46 @@ describe('toneNutrition — category veto (spec 008 M2)', () => {
     expect(r.profileNotes.some(n => /blood sugar.*24%/.test(n))).toBe(true);
   });
 });
+
+describe('toneNutrition — sodium as a budget nutrient (over-indexing fix)', () => {
+  // A genuinely nutritious food that's merely salty: "everyday, not all-day-everyday"
+  const saltyButNutritious = { sodiumDv: 30, proteinDv: 25 };
+
+  it('reframes high sodium in a nutrient-dense lone-sodium food away from warn', () => {
+    const r = toneNutrition(nutrients(saltyButNutritious), profileWith());
+    expect(r.tone).toBe('ok');                    // moderate, not warn
+    expect(r.budgetNutrient).toBe('sodium');
+    expect(r.summary).toMatch(/budget across the day/);
+    expect(r.summary).toMatch(/sodium/);
+    expect(r.highNutrients).not.toContain('sodium');
+  });
+
+  it('does NOT reframe for someone who flagged blood pressure', () => {
+    const r = toneNutrition(nutrients(saltyButNutritious), profileWith(['bp']));
+    expect(r.tone).toBe('warn');
+    expect(r.budgetNutrient).toBeNull();
+    expect(r.summary).toMatch(/sodium/);
+  });
+
+  it('does NOT reframe genuinely extreme sodium (≥ ceiling), even if nutrient-dense', () => {
+    const r = toneNutrition(nutrients({ sodiumDv: 45, proteinDv: 25 }), profileWith());
+    expect(r.tone).toBe('warn');
+    expect(r.budgetNutrient).toBeNull();
+  });
+
+  it('does NOT reframe a salty food that is not nutrient-dense (no free pass for junk)', () => {
+    const r = toneNutrition(nutrients({ sodiumDv: 30, proteinDv: 4, fiberDv: 2 }), profileWith());
+    expect(r.tone).toBe('warn');
+    expect(r.budgetNutrient).toBeNull();
+  });
+
+  it('does NOT reframe when sodium is not the lone concern (high sodium + high sat fat)', () => {
+    // fiber makes it nutrient-dense; sat fat is a second, un-offset concern, so
+    // neither budgets — two genuine concerns is a real warn.
+    const r = toneNutrition(nutrients({ sodiumDv: 30, satFatDv: 22, fiberDv: 25 }), profileWith());
+    expect(r.tone).toBe('warn');
+    expect(r.budgetNutrient).toBeNull();
+    expect(r.summary).toMatch(/sodium/);
+    expect(r.summary).toMatch(/sat fat/);
+  });
+});

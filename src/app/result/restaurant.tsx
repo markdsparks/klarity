@@ -226,7 +226,7 @@ export default function RestaurantResultScreen() {
     sometimesAdditives: matched.filter(a => a.baseVerdict === 'sometimes'),
     nutritionTone: nutrition.tone,
     highNutrients: nutrition.highNutrients,
-    satFatBudget: nutrition.satFatBudget,
+    budgetNutrient: nutrition.budgetNutrient,
     profile,
     proteinDv: sn.proteinDv ?? 0,
   });

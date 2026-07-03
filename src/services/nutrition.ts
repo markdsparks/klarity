@@ -147,11 +147,16 @@ export function isMatrixDestroyedCategory(categoriesTags?: string[]): boolean {
 // 0.5 g (verdict-moving); a positive trace below that surfaces as context only.
 const TRANS_WARN_G = 0.5;
 
-// Saturated fat is a budget nutrient: a moderate amount per serving isn't a quality
-// defect, it's only a concern in aggregate. In a nutrient-dense food where sat fat is
-// the lone elevated nutrient we reframe it as a daily-budget caveat up to this ceiling
-// (≈2 servings still fits a day's ~20 g budget); above it, sat fat is genuinely high.
-const SATFAT_BUDGET_CEILING = 25;
+// Budget nutrients: sat fat and sodium are both *daily-total* concerns (the
+// ~20 g and ~2300 mg/day limits), not per-serving quality defects — the FDA 20%
+// DV "high" line is per serving for both. In a nutrient-dense food where one of
+// them is the lone elevated nutrient and isn't extreme, we reframe it from a
+// "watch" flag into a daily-budget caveat ("everyday, just not all-day-everyday")
+// up to a ceiling; above the ceiling, one serving is genuinely high and warns.
+// Not a claim that protein/fiber offsets sat fat or sodium — a use-pattern
+// reframe, so the trade-off stays named in the headline. See docs/nutrition-evidence.md.
+const SATFAT_BUDGET_CEILING = 25;  // band 20–25% DV (≈2 servings fits a day's ~20 g)
+const SODIUM_BUDGET_CEILING = 40;  // band 20–40% DV; ≥40% (~920 mg/serving) is genuinely high
 
 // Which basis the sugar tone was scored on, surfaced to the user as a calm
 // disclosure line (spec 008). Turns a data limitation into visible method:
@@ -165,13 +170,18 @@ export type SugarBasis =
   | 'disqualified' // (M2) category veto → total-sugar scoring even at 0 added
   | 'total-only';  // no added-sugar data → scored on TOTAL as the safe default
 
+// When a good/ok tone is only reached via the daily-budget reframe, this names
+// the nutrient to budget (sat fat or sodium) so Layer 1 keeps the trade-off in
+// the headline. null = no budget reframe in play.
+export type BudgetNutrient = 'sat fat' | 'sodium' | null;
+
 export interface NutritionAssessment {
   tone: NutritionTone;
   summary: string;
   profileNotes: string[];  // condition-driven context lines, rendered under the summary
   contextLines: string[];  // science-based "so what" context; never moves the tone
   highNutrients: string[]; // short labels of what drove a warn ('sat fat', 'sodium') — for the Layer 1 sentence
-  satFatBudget: boolean;   // tone was good/ok only because sat fat is budget-reframed — Layer 1 keeps the trade-off in the headline
+  budgetNutrient: BudgetNutrient; // tone is good/ok only via a budget reframe — keep the trade-off in the headline
   sugarBasis: SugarBasis;  // what the sugar verdict was scored on — disclosed to the user (spec 008)
 }
 
@@ -309,14 +319,23 @@ export function toneNutrition(
   const sodiumHigh = sodiumDv >= t.sodium && !sodiumOffset;
   const satFatHigh = satFatDv >= t.satFat;
 
-  // Sat-fat budget reframe (see SATFAT_BUDGET_CEILING): in a nutrient-dense food where
-  // sat fat is the ONLY elevated nutrient and isn't extreme, it's a "don't live on these"
-  // caveat, not a per-serving quality flag. A use-pattern reframe — NOT a claim that
-  // protein offsets sat fat — so the trade-off stays visible in the summary below.
+  // Budget reframe (see SATFAT/SODIUM_BUDGET_CEILING): in a nutrient-dense food
+  // where a daily-total nutrient is the ONLY elevated one and isn't extreme, it's
+  // a "budget it across the day" caveat, not a per-serving quality flag. The
+  // "lone elevated nutrient" gates below mean at most one can reframe — if both
+  // sat fat and sodium are high, that's two concerns and neither budgets (warns).
   const nutrientDense = proteinDv >= 20 || fiberDv >= 20;
   const satFatBudget =
     nutrientDense && satFatDv >= 10 && satFatDv < SATFAT_BUDGET_CEILING &&
     !transWarn && !sugarHigh && !sodiumHigh;
+  // Sodium reframe requested by real-world use (over-indexing on "watch"): a
+  // genuinely nutritious food that's merely salty is "everyday, not all-day-
+  // everyday." NOT applied when the user flagged blood pressure — for them
+  // sodium stays a flag, not a budget caveat.
+  const sodiumBudget =
+    nutrientDense && !profile.conditions.includes('bp') &&
+    sodiumHigh && sodiumDv < SODIUM_BUDGET_CEILING &&
+    !transWarn && !sugarHigh && !satFatHigh;
 
   // Order high items by how far each exceeds its own threshold, so the biggest
   // offender leads the headline (a 3× sodium product shouldn't read "sugar and
@@ -325,7 +344,7 @@ export function toneNutrition(
   type Hi = { label: string; short: string; over: number };
   const his: Hi[] = [];
   if (sugarHigh)  his.push({ label: `${sugarLabel} (${sugarToneDvBasis}% DV)`, short: sugarLabel, over: sugarToneDvBasis / t.sugar });
-  if (sodiumHigh) his.push({ label: `sodium (${sodiumDv}% DV)`, short: 'sodium', over: sodiumDv / t.sodium });
+  if (sodiumHigh && !sodiumBudget) his.push({ label: `sodium (${sodiumDv}% DV)`, short: 'sodium', over: sodiumDv / t.sodium });
   if (satFatHigh && !satFatBudget) his.push({ label: `sat fat (${satFatDv}% DV)`, short: 'sat fat', over: satFatDv / t.satFat });
   his.sort((a, b) => b.over - a.over);
   if (transWarn) his.unshift({ label: `trans fat (${sn.transFat!.toFixed(1)} g)`, short: 'trans fat', over: Infinity });
@@ -334,20 +353,25 @@ export function toneNutrition(
     return {
       tone: 'warn',
       summary: `High in ${his.map(h => h.label).join(' and ')}`,
-      profileNotes, contextLines, highNutrients: his.map(h => h.short), satFatBudget: false, sugarBasis,
+      profileNotes, contextLines, highNutrients: his.map(h => h.short), budgetNutrient: null, sugarBasis,
     };
   }
 
-  // A nutrient-dense food whose lone concern is budgetable sat fat — good/ok, never warn,
-  // with the trade-off named. ≥20% DV lands as 'ok' (moderate), below as 'good'.
-  if (satFatBudget) {
+  // A nutrient-dense food whose lone concern is a budgetable daily-total nutrient
+  // (sat fat OR sodium) — good/ok, never warn, with the trade-off named. Sat fat
+  // in its 10–20% band reads 'good'; a genuinely-high-but-budgetable nutrient
+  // (≥20% DV — always true for sodium here) reads 'ok'/moderate.
+  const budgetNutrient: BudgetNutrient = satFatBudget ? 'sat fat' : sodiumBudget ? 'sodium' : null;
+  if (budgetNutrient) {
     const positive = proteinDv >= 20 && fiberDv >= 20 ? 'protein and fiber'
       : proteinDv >= 20 ? 'protein' : 'fiber';
     const forGoal = goal === 'build' ? ' for your goal' : '';
+    const displayName = budgetNutrient === 'sat fat' ? 'saturated fat' : 'sodium';
+    const elevated = budgetNutrient === 'sat fat' ? satFatHigh : true; // sodium only budgets when ≥ warn line
     return {
-      tone: satFatHigh ? 'ok' : 'good',
-      summary: `Strong ${positive}${forGoal} — saturated fat is the one thing to budget across the day`,
-      profileNotes, contextLines, highNutrients: [], satFatBudget: true, sugarBasis,
+      tone: elevated ? 'ok' : 'good',
+      summary: `Strong ${positive}${forGoal} — ${displayName} is the one thing to budget across the day`,
+      profileNotes, contextLines, highNutrients: [], budgetNutrient, sugarBasis,
     };
   }
 
@@ -361,7 +385,7 @@ export function toneNutrition(
   if (sodiumOffset) offsets.push(`high sodium (${sodiumDv}% DV) balanced by potassium`);
   if (offsets.length > 0) {
     const summary = offsets.join(' · ');
-    return { tone: 'ok', summary: summary.charAt(0).toUpperCase() + summary.slice(1), profileNotes, contextLines, highNutrients: [], satFatBudget: false, sugarBasis };
+    return { tone: 'ok', summary: summary.charAt(0).toUpperCase() + summary.slice(1), profileNotes, contextLines, highNutrients: [], budgetNutrient: null, sugarBasis };
   }
 
   // Same biggest-first ordering as the warn line (all share the 10% moderate floor).
@@ -371,8 +395,8 @@ export function toneNutrition(
   if (satFatDv >= 10) mods.push({ label: 'sat fat', dv: satFatDv });
   mods.sort((a, b) => b.dv - a.dv);
   if (mods.length > 0) {
-    return { tone: 'ok', summary: `Moderate ${mods.map(m => m.label).join(', ')} — frequency matters`, profileNotes, contextLines, highNutrients: [], satFatBudget: false, sugarBasis };
+    return { tone: 'ok', summary: `Moderate ${mods.map(m => m.label).join(', ')} — frequency matters`, profileNotes, contextLines, highNutrients: [], budgetNutrient: null, sugarBasis };
   }
 
-  return { tone: 'good', summary: 'Clean nutrition per serving', profileNotes, contextLines, highNutrients: [], satFatBudget: false, sugarBasis };
+  return { tone: 'good', summary: 'Clean nutrition per serving', profileNotes, contextLines, highNutrients: [], budgetNutrient: null, sugarBasis };
 }
