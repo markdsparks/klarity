@@ -61,10 +61,20 @@ const GLANCE: Record<GlanceKey, { bg: string; fg: string; label: string }> = {
   unrated:   { bg: 'rgba(159,173,191,0.12)', fg: '#9fadbf', label: 'Not rated'   },
 };
 
+// Unified behavioral ladder (spec 013): both axes speak everyday/sometimes/…,
+// and the three nutrition levels get three distinct colors (was: ok & warn both
+// amber). green → amber → deep orange; purple stays reserved for Contested.
 const NUTRITION_GLANCE: Record<NutritionTone, { bg: string; fg: string; label: string }> = {
-  good: { bg: 'rgba(127,211,170,0.16)', fg: '#7fd3aa', label: 'Good'     },
-  ok:   { bg: 'rgba(240,184,117,0.16)', fg: '#f0b875', label: 'Moderate' },
-  warn: { bg: 'rgba(240,184,117,0.16)', fg: '#f0b875', label: 'Watch'    },
+  good: { bg: 'rgba(127,211,170,0.16)', fg: '#7fd3aa', label: 'Everyday'     },
+  ok:   { bg: 'rgba(240,184,117,0.16)', fg: '#f0b875', label: 'Sometimes'    },
+  warn: { bg: 'rgba(239,143,86,0.18)',  fg: '#ef8f56', label: 'Occasionally' },
+};
+
+// Same ladder as a light pill (nutrition card sits on a white card): green → amber → deep orange.
+const NUTRITION_TAG: Record<NutritionTone, { bg: string; fg: string }> = {
+  good: { bg: '#e8f7ef', fg: '#1f9d6b' },
+  ok:   { bg: '#fdf3e3', fg: '#c8821a' },
+  warn: { bg: '#fbe7db', fg: '#c2410c' },
 };
 
 // Verdict pill colours (light card section)
@@ -346,7 +356,8 @@ export default function ResultScreen() {
           </View>
         ) : null}
 
-        {/* At-a-glance badges */}
+        {/* At-a-glance badges — the two axes behind the read above */}
+        {summarySentence ? <Text style={styles.glanceCaption}>The two axes behind it</Text> : null}
         <View style={styles.glanceRow}>
           <GlanceBadge
             axis="ADDITIVES"
@@ -459,12 +470,8 @@ export default function ResultScreen() {
             </View>
             <View style={styles.cardHeaderRight}>
               {servingText ? <Text style={styles.cardMeta}>{servingText}</Text> : null}
-              <View style={[styles.toneTag, {
-                backgroundColor: nutrition.tone === 'good' ? '#e8f7ef' : '#fdf3e3',
-              }]}>
-                <Text style={[styles.toneTagText, {
-                  color: nutrition.tone === 'good' ? '#1f9d6b' : '#c8821a',
-                }]}>
+              <View style={[styles.toneTag, { backgroundColor: NUTRITION_TAG[nutrition.tone].bg }]}>
+                <Text style={[styles.toneTagText, { color: NUTRITION_TAG[nutrition.tone].fg }]}>
                   {nutritionGlance.label}
                 </Text>
               </View>
@@ -692,18 +699,21 @@ const styles = StyleSheet.create({
   productImage:   { width: 72, height: 72, borderRadius: 14, backgroundColor: '#1c2230' },
 
   // Layer 1 plain-language verdict card
+  // Spec 013 — the plain-language read is the hero; the two axis chips below are
+  // the supporting "why," deliberately smaller so there's one thing to read first.
   summaryCard: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 15,
   },
-  summaryText: { fontSize: 15, color: '#e8eaed', lineHeight: 22, fontWeight: '500' },
+  summaryText: { fontSize: 17.5, color: '#f2f4f6', lineHeight: 25, fontWeight: '600' },
 
-  glanceRow: { flexDirection: 'row', gap: 10 },
-  glanceBadge: { flex: 1, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14, gap: 3 },
-  glanceAxis:    { fontSize: 10, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', opacity: 0.7 },
-  glanceVerdict: { fontSize: 20, fontWeight: '800', letterSpacing: -0.3 },
+  glanceCaption: { fontSize: 10, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', color: '#8b9199', marginBottom: -2 },
+  glanceRow: { flexDirection: 'row', gap: 8 },
+  glanceBadge: { flex: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, gap: 2 },
+  glanceAxis:    { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase', opacity: 0.7 },
+  glanceVerdict: { fontSize: 15, fontWeight: '700', letterSpacing: -0.2 },
 
   // Frequency context card
   freqCard: {
