@@ -283,7 +283,7 @@ export default function ResultScreen() {
     sometimesAdditives: matchedAdditives.filter(a => a.baseVerdict === 'sometimes'),
     nutritionTone: nutrition.tone,
     highNutrients: nutrition.highNutrients,
-    satFatBudget: nutrition.satFatBudget,
+    budgetNutrient: nutrition.budgetNutrient,
     profile,
     proteinDv: sn.proteinDv ?? 0,
   });

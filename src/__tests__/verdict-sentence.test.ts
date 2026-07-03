@@ -16,7 +16,7 @@ function make(overrides: Partial<SentenceInput>): SentenceInput {
     sometimesAdditives: [],
     nutritionTone: 'good',
     highNutrients: [],
-    satFatBudget: false,
+    budgetNutrient: null,
     profile: baseProfile,
     proteinDv: 0,
     ...overrides,
@@ -68,7 +68,7 @@ describe('verdictSentence', () => {
       const s = verdictSentence(make({
         sometimesAdditives: [],          // maltitol + sucralose are both everyday now
         nutritionTone: 'good',
-        satFatBudget: true,
+        budgetNutrient: 'sat fat',
         profile: { ...baseProfile, goal: 'build' },
         proteinDv: 40,
       }))!;
@@ -78,8 +78,15 @@ describe('verdictSentence', () => {
     });
 
     it('no goal → solid everyday choice, still names the sat-fat budget', () => {
-      const s = verdictSentence(make({ satFatBudget: true, nutritionTone: 'good' }))!;
+      const s = verdictSentence(make({ budgetNutrient: 'sat fat', nutritionTone: 'good' }))!;
       expect(s).toMatch(/budget the saturated fat/i);
+      expect(s).not.toMatch(/nothing here needs a second thought/i);
+    });
+
+    it('sodium budget → everyday choice that names the sodium trade-off', () => {
+      const s = verdictSentence(make({ budgetNutrient: 'sodium', nutritionTone: 'ok' }))!;
+      expect(s).toMatch(/solid everyday choice/i);
+      expect(s).toMatch(/budget the sodium/i);
       expect(s).not.toMatch(/nothing here needs a second thought/i);
     });
   });
