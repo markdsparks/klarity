@@ -23,6 +23,7 @@ export interface OFFProduct {
   quantity?: string;
   nutriments?: OFFNutriments;
   additives_tags?: string[];       // e.g. ["en:e407", "en:e300"]
+  categories_tags?: string[];      // e.g. ["en:beverages", "en:sodas"] — sugar-basis category veto (spec 008 M2)
   ingredients_text?: string;
   image_url?: string;
   image_front_url?: string;

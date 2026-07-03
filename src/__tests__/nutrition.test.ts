@@ -1,4 +1,5 @@
 import {
+  isMatrixDestroyedCategory,
   referenceValues,
   toneNutrition,
   warnThresholds,
@@ -378,5 +379,60 @@ describe('toneNutrition — sugar-basis disclosure (spec 008 M1)', () => {
     expect(totalOnly.tone).toBe(addedKnown.tone); // both warn on 22% — basis differs, verdict doesn't
     expect(totalOnly.sugarBasis).toBe('total-only');
     expect(addedKnown.sugarBasis).toBe('added-known');
+  });
+});
+
+describe('isMatrixDestroyedCategory (spec 008 M2)', () => {
+  it('flags juices, sodas, smoothies by exact OFF slug', () => {
+    expect(isMatrixDestroyedCategory(['en:beverages', 'en:fruit-juices'])).toBe(true);
+    expect(isMatrixDestroyedCategory(['en:carbonated-drinks', 'en:sodas'])).toBe(true);
+    expect(isMatrixDestroyedCategory(['en:smoothies'])).toBe(true);
+  });
+  it('does not flag whole foods or missing tags', () => {
+    expect(isMatrixDestroyedCategory(['en:fruits', 'en:fresh-fruits'])).toBe(false);
+    expect(isMatrixDestroyedCategory(['en:snacks'])).toBe(false);
+    expect(isMatrixDestroyedCategory(undefined)).toBe(false);
+    expect(isMatrixDestroyedCategory([])).toBe(false);
+  });
+  it('uses exact membership, not substring (no false hit on unrelated slugs)', () => {
+    expect(isMatrixDestroyedCategory(['en:juice-based-desserts-with-fruit'])).toBe(false);
+  });
+});
+
+describe('toneNutrition — category veto (spec 008 M2)', () => {
+  it('a 100% juice (added sugar 0, high total) warns on TOTAL sugar via the veto', () => {
+    // Without the veto this is the loophole: added-known, scored on 0, no flag.
+    const noVeto = toneNutrition(nutrients({ sugarDv: 24, addedSugarDv: 0 }), profileWith());
+    expect(noVeto.tone).not.toBe('warn');
+    expect(noVeto.sugarBasis).toBe('added-known');
+
+    const vetoed = toneNutrition(
+      nutrients({ sugarDv: 24, addedSugarDv: 0 }),
+      profileWith(),
+      { matrixDestroyedCategory: true },
+    );
+    expect(vetoed.tone).toBe('warn');
+    expect(vetoed.sugarBasis).toBe('disqualified');
+    expect(vetoed.summary).toContain('sugar (24% DV)');
+    expect(vetoed.summary).not.toContain('added sugar'); // scored on total, labeled plainly
+  });
+
+  it('the human whole-food matrix flag wins over a category veto', () => {
+    const r = toneNutrition(
+      nutrients({ sugarDv: 24, addedSugarDv: 0 }),
+      profileWith(),
+      { wholeFoodSugarMatrix: true, matrixDestroyedCategory: true },
+    );
+    expect(r.sugarBasis).toBe('whole-food');
+    expect(r.tone).not.toBe('warn');
+  });
+
+  it('blood_sugar note fires on TOTAL sugar for a vetoed juice (added sugar 0)', () => {
+    const r = toneNutrition(
+      nutrients({ sugarDv: 24, addedSugarDv: 0, carbs: 26, fiber: 0 }),
+      profileWith(['blood_sugar']),
+      { matrixDestroyedCategory: true },
+    );
+    expect(r.profileNotes.some(n => /blood sugar.*24%/.test(n))).toBe(true);
   });
 });
