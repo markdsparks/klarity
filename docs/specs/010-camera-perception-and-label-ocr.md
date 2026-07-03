@@ -1,9 +1,40 @@
 # Spec 010 — Camera as Perception Surface: On-Device Label OCR (v1)
 
-**Status:** approved (2026-07-02) — Q1 additive-axis only for v1; Q2 surface on
-barcode miss; Q3 validation spike (M0) first; Q4 dev builds confirmed. Building
-M0 first: a zero-build OCR hit-rate spike (iOS Live Text = Apple's own Vision
-OCR engine) + a verifiable check that the additive matcher survives OCR-noisy text.
+**Status:** DEFERRED (2026-07-02) — M0 spike result: NO-GO for now. The JS half
+shipped (see below); M1 (native module + camera flow) is **not** built.
+
+## M0 result & decision (2026-07-02)
+
+The validate-first spike paid off by saying no cheaply. Mark ran the zero-build
+OCR hit-rate test (iOS Live Text = Apple's `VNRecognizeText`, the exact M1
+engine) against real pantry labels. Verdict: **"not bad, but not good enough."**
+
+The blocker isn't the model — it's the trust bar. For a calibration-first app
+whose entire promise is "we never fake a verdict," a perception layer that reads
+labels ~85% right is a *net negative*: a missed or misread additive breaks trust
+in a way a plain "not found" never does. Users expect near-100% or they're
+frustrated. On-device OCR doesn't clear that bar today. (And the VLM tasks —
+dish ID, menus — would clear it even less, so this finding weighs against the
+whole on-device vision direction, not just label OCR.)
+
+**Deferred, not killed.** Revisit only when one of these changes:
+- OCR/perception tech clears a much higher accuracy bar on real labels, OR
+- we design a **human-in-the-loop** interaction that makes imperfection
+  acceptable — e.g. "here's what I read, tap anything wrong before I verdict,"
+  turning OCR from a silent authority into a correctable draft. (Trades a higher
+  hit-rate requirement for a bit of user proofreading; worth exploring if/when we
+  return, but it adds friction the daily-driver flow may not want.)
+- a cloud path is reconsidered — but note the trust bar, not on-device-vs-cloud,
+  is the real constraint; even frontier models aren't 100% on tiny curved labels.
+
+**Groundwork kept intentionally:** `src/services/label-ocr.ts`
+(`normalizeOcrText` / `resolveLabelIngredients`) + its tests stay. They're
+isolated (no callers), proven, and encode the real OCR-noise finding, so a future
+revisit doesn't re-derive it. Not dead mystery code — deferred-feature scaffolding.
+
+---
+
+_Original plan (Q1–Q4 approved before the spike) retained below for context._
 **Phase:** 6 (new capability class — the camera's first non-barcode "sense")
 **Surface:** `src/app/(tabs)/index.tsx` (camera), a new native OCR module +
 Expo config plugin, `src/services/` (a perception/resolution layer), the
