@@ -8,6 +8,7 @@ import type { SugarBasis } from './nutrition';
 // scan history); logging is fire-and-forget and never affects the result screen.
 
 const KEY = 'KLARITY_DIAGNOSTICS_V1';
+const FEEDBACK_KEY = 'KLARITY_FEEDBACK_V1';
 const MAX_RECORDS = 500;
 
 // One tag per scan. Priority-ordered (see classifyOutcome) so the dominant,
@@ -75,7 +76,7 @@ export async function loadOutcomes(): Promise<ScanOutcomeRecord[]> {
 
 export async function clearDiagnostics(): Promise<void> {
   try {
-    await AsyncStorage.removeItem(KEY);
+    await AsyncStorage.multiRemove([KEY, FEEDBACK_KEY]);
   } catch {
     // ignore
   }
@@ -100,4 +101,54 @@ export function summarize(records: ScanOutcomeRecord[]): DiagnosticsSummary {
     if (r.sugarBasis) sugarBasis[r.sugarBasis] = (sugarBasis[r.sugarBasis] ?? 0) + 1;
   }
   return { total: records.length, outcomes, sugarBasis };
+}
+
+// ── Feedback (spec 009 M2) — the human signal raw stats can't give ────────────
+
+export type FeedbackCategory =
+  | 'wrong-verdict'    // the two-axis verdict felt wrong
+  | 'wrong-data'       // nutrition/ingredient numbers look off
+  | 'missing-additive' // an ingredient we should rate but didn't
+  | 'not-found'        // "here's what this product was" for a barcode we couldn't resolve
+  | 'other';
+
+export interface FeedbackRecord {
+  at: number;
+  source: 'barcode' | 'restaurant' | 'not-found';
+  category: FeedbackCategory;
+  note?: string;
+  productName?: string;
+  barcode?: string;
+}
+
+export async function logFeedback(rec: FeedbackRecord): Promise<void> {
+  try {
+    const raw = await AsyncStorage.getItem(FEEDBACK_KEY);
+    const list: FeedbackRecord[] = raw ? JSON.parse(raw) : [];
+    await AsyncStorage.setItem(FEEDBACK_KEY, JSON.stringify([rec, ...list].slice(0, MAX_RECORDS)));
+  } catch {
+    // never affects the app
+  }
+}
+
+export async function loadFeedback(): Promise<FeedbackRecord[]> {
+  try {
+    const raw = await AsyncStorage.getItem(FEEDBACK_KEY);
+    return raw ? (JSON.parse(raw) as FeedbackRecord[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+// ── Export (spec 009 M3) — explicit user action, never automatic ──────────────
+
+export interface DiagnosticsExport {
+  exportedAt: number;
+  outcomes: ScanOutcomeRecord[];
+  feedback: FeedbackRecord[];
+}
+
+export async function buildExport(): Promise<DiagnosticsExport> {
+  const [outcomes, feedback] = await Promise.all([loadOutcomes(), loadFeedback()]);
+  return { exportedAt: Date.now(), outcomes, feedback };
 }
