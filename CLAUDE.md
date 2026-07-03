@@ -189,7 +189,34 @@ npm run web          # Browser (limited camera)
       signal, frequency context line on amber products (scan ≠ consumption rules)
 - [x] Nutrition personalization: added sugar (USDA 1235) replaces total when known;
       bp / blood_sugar conditions tighten thresholds (docs/nutrition-evidence.md)
-- [ ] Multi-member family profiles (Phase 3.5)
+- [ ] Multi-member family profiles (Phase 3.5) — NOT STARTED; biggest remaining
+      thesis gap (product is "for Mark's family" but personalization is single-user)
+
+**Phase 4 — Restaurant menu items** (specs 004/005/006; playbook: docs/restaurant-data-playbook.md)
+- [x] Restaurant dataset architecture — dev-time mandated-disclosure ingestion,
+      `full` vs `nutrition-only` coverage tiers, provenance rendered on results
+- [x] 7 chains live: Chick-fil-A (full menu), Subway, Jimmy John's, Culver's,
+      Dairy Queen, Panera Bread, Panda Express — all flagged for Mark's spot-check
+- [x] Build customizer (spec 005): component toggles, live synchronous two-axis recompute
+- [x] HCD search (spec 006 M1): progressive menu browser (narrows, never snaps),
+      forgiving chain matching, glance pills, modifier-as-annotation
+- [x] Slot customization (spec 006 M2): cheese/bread slots, sauce/bacon add-ons,
+      option sheet with per-option calorie + additive-consequence deltas
+- [ ] Dairy Queen size variants — blocked (bot wall; needs browser session or
+      supplied doc); Dairy Queen shipped-data currency also flagged for spot-check
+
+**Nutrition-science deepening** (specs 007/008)
+- [x] Whole-food sugar-matrix exemption (spec 007) — keyed on the food matrix /
+      physical form, NOT natural-vs-added origin (WHO counts fruit juice as free sugar)
+- [x] Sugar-basis disclosure (spec 008 M1) — every sugar verdict states its basis;
+      when uncertain, says so and that we erred toward caution
+- [x] Category veto (spec 008 M2) — juices/sodas/smoothies scored on total sugar
+- [ ] Coverage investigation + whole-food allow-list (spec 008 M3/M4) — folded
+      into the instrumentation effort (spec 009)
+
+**Phase 5 — Validation & instrumentation** (spec: docs/specs/009 — in progress)
+- [ ] Real-world scan-outcome logging + family feedback loop — measure how the
+      app actually performs on real scans before building more breadth
 
 ## Build & deploy
 
