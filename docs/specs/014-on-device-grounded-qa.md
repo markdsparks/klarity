@@ -1,6 +1,7 @@
 # Spec 014 — On-Device Grounded Follow-Up Q&A
 
-**Status:** M0 complete (2026-07-04) — **GO.** Proceeding to M1.
+**Status:** M0 + M1 complete (2026-07-04). Proceeding to M2 (native model
+wiring).
 **Phase:** new capability class (conversational interface onto evidence the app already has)
 **Surface:** a new "Ask about this" affordance inside the existing evidence
 sheets (`ExplainerSheet`, `VerdictExplainerSheet` — spec 013), a new
@@ -195,6 +196,15 @@ split spec 010 used (JS-side resolution vs. native capture).
   if M0 comes back NO-GO: worst case, expose it as a small fixed picker
   ("see what adding flax seed / chia / protein powder does") with no model
   at all, same fallback spirit as spec 010 keeping its OCR groundwork.
+  **Done (2026-07-04):** `src/data/common-additions.ts` (15 common pantry
+  additions, alias-matched, honestly labeled approximate), `simulate_addition`
+  (`src/services/qa/simulate-addition.ts` — merges an addition's nutrients
+  into the product's numbers and re-runs the exact same `toneNutrition()`
+  every verdict already uses), `explain_rule`
+  (`src/services/qa/explain-rule.ts` — a stable lookup onto the existing
+  `NUTRITION_EXPLAINERS` content, with `EXPLAIN_RULE_TOPICS` as the source for
+  M2's tool-schema enum). 8 new unit tests, including the exact flax/chia
+  fiber-crosses-20%-DV scenario from this spec's worked example.
 - **M2 — On-device model + tool-calling wire-up.** The native module, the
   "Ask about this" entry point, wiring the model's tool-calling to M1's
   functions, the scope-boundary system prompt, the decline-don't-fabricate
