@@ -222,22 +222,35 @@ split spec 010 used (JS-side resolution vs. native capture).
   no console errors, no crash — the exact fallback this milestone exists to
   prove).
 
-  **Real gotcha found on the first on-device pass, worth recording so it
-  isn't re-discovered:** passing `tools` to `generateText()` the standard
-  Vercel AI SDK way (works for most providers) silently fails with Apple's
-  provider — it returned the generic "couldn't get an answer" fallback every
-  time. Apple's provider binds tools at **construction**, not per-call:
-  `createAppleProvider({ availableTools })` → `provider.languageModel()` →
-  `await model.prepare()` → *then* `generateText({ model, ... })` with no
-  `tools` argument at all. Confirmed against `@react-native-ai/apple`'s own
-  example app (`appleSetupAdapter.ts`), which uses exactly this shape. Fixed
-  in `ask.ts`. Also fixed in the same pass: the keyboard covered the
-  "Ask about this" input on-device (the sheets are plain `Modal`s with no
-  keyboard handling) — wrapped both `ExplainerSheet` and
-  `VerdictExplainerSheet` in `KeyboardAvoidingView`.
+  **Real gotchas found across three on-device passes, worth recording in
+  full so none get re-discovered:**
 
-  **Still not verified:** the real on-device inference call end to end
-  through the corrected wiring — this needs one more on-device pass.
+  1. Passing `tools` to `generateText()` alone (no `createAppleProvider`)
+     threw — caught by the outer catch, generic fallback text, no signal.
+  2. Switching to `createAppleProvider({ availableTools }) →
+     provider.languageModel() → await model.prepare()` with **no** `tools`
+     argument on `generateText()` stopped throwing, but the model never
+     attempted a tool call at all (`finish=stop tools=[] steps=1`, confirmed
+     via temporary debug instrumentation) — it just declined outright, every
+     time, even for an on-topic question.
+  3. **The actual fix, confirmed against `@react-native-ai/apple`'s own demo
+     app (`ChatScreen/index.tsx`):** tools are needed in **both** places —
+     bound at construction (wires each tool's `execute` into the native
+     bridge) *and* passed again to `generateText({ tools, stopWhen:
+     stepCountIs(3) })` (what the SDK actually reads per-call to offer tools
+     to the model, and the round-trip budget to call a tool then produce a
+     final answer from its result). Fixed in `ask.ts`.
+
+  Also fixed in this pass: the keyboard covered the "Ask about this" input
+  on-device (the sheets are plain `Modal`s with no keyboard handling) —
+  wrapped both `ExplainerSheet` and `VerdictExplainerSheet` in
+  `KeyboardAvoidingView`.
+
+  **Still not verified:** the real on-device inference call actually
+  resolving via a tool end to end through the corrected wiring — this needs
+  one more on-device pass. Temporary debug output (`AskResult.debug`,
+  visible in the answer box) stays until that's confirmed, then gets
+  removed.
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**
   Still open: spec 009 logging, safety telemetry

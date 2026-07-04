@@ -66,7 +66,7 @@ export async function isQAAvailable(): Promise<boolean> {
 
 export async function askAboutProduct(question: string, context: AskContext): Promise<AskResult> {
   try {
-    const [{ createAppleProvider }, { generateText, tool }, { z }] = await Promise.all([
+    const [{ createAppleProvider }, { generateText, tool, stepCountIs }, { z }] = await Promise.all([
       import('@react-native-ai/apple'),
       import('ai'),
       import('zod'),
@@ -75,38 +75,41 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
     let usedTool = false;
     const topics = EXPLAIN_RULE_TOPICS as [string, ...string[]];
 
-    // Apple's provider binds tools at construction, not per-call — unlike the
-    // generic Vercel AI SDK pattern of passing `tools` to generateText. This
-    // matches @react-native-ai/apple's own example app (appleSetupAdapter.ts):
-    // createAppleProvider({ availableTools }) -> languageModel() -> prepare().
-    const provider = createAppleProvider({
-      availableTools: {
-        simulate_addition: tool({
-          description:
-            'Simulate adding a common food or ingredient to the product currently ' +
-            "on screen, and report whether the nutrition verdict changes. Use this " +
-            "for any \"what if I add X\" question.",
-          inputSchema: z.object({
-            ingredient: z.string().describe('the plain ingredient name, e.g. "flax seed"'),
-          }),
-          execute: async ({ ingredient }: { ingredient: string }) => {
-            usedTool = true;
-            return simulateAddition(context.sn, context.profile, ingredient, context.ctx);
-          },
+    // Apple's provider needs tools in TWO places, confirmed against
+    // @react-native-ai/apple's own example app (ChatScreen/index.tsx):
+    // bound at construction via createAppleProvider({ availableTools }) —
+    // this is what wires each tool's `execute` into the native bridge — AND
+    // passed again to generateText({ tools }) — this is what the SDK reads
+    // per-call to actually offer the tools to the model. Binding only at
+    // construction (no `tools` on generateText) compiles fine and never
+    // throws, but the model silently never attempts a tool call at all.
+    const tools = {
+      simulate_addition: tool({
+        description:
+          'Simulate adding a common food or ingredient to the product currently ' +
+          "on screen, and report whether the nutrition verdict changes. Use this " +
+          "for any \"what if I add X\" question.",
+        inputSchema: z.object({
+          ingredient: z.string().describe('the plain ingredient name, e.g. "flax seed"'),
         }),
-        explain_rule: tool({
-          description:
-            'Look up the existing, vetted explanation for a specific nutrition rule ' +
-            'already used by this app, by topic id.',
-          inputSchema: z.object({ topic: z.enum(topics) }),
-          execute: async ({ topic }: { topic: string }) => {
-            usedTool = true;
-            return explainRule(topic);
-          },
-        }),
-      },
-    });
+        execute: async ({ ingredient }: { ingredient: string }) => {
+          usedTool = true;
+          return simulateAddition(context.sn, context.profile, ingredient, context.ctx);
+        },
+      }),
+      explain_rule: tool({
+        description:
+          'Look up the existing, vetted explanation for a specific nutrition rule ' +
+          'already used by this app, by topic id.',
+        inputSchema: z.object({ topic: z.enum(topics) }),
+        execute: async ({ topic }: { topic: string }) => {
+          usedTool = true;
+          return explainRule(topic);
+        },
+      }),
+    };
 
+    const provider = createAppleProvider({ availableTools: tools });
     const model = provider.languageModel();
     await model.prepare();
 
@@ -114,6 +117,8 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
       model,
       system: SYSTEM_PROMPT,
       prompt: question,
+      tools,
+      stopWhen: stepCountIs(3), // allow a tool-call round trip + a final answer step
     });
 
     const toolNames = result.toolCalls.map(c => c.toolName);
