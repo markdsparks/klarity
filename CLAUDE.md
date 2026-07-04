@@ -214,9 +214,34 @@ npm run web          # Browser (limited camera)
 - [ ] Coverage investigation + whole-food allow-list (spec 008 M3/M4) — folded
       into the instrumentation effort (spec 009)
 
-**Phase 5 — Validation & instrumentation** (spec: docs/specs/009 — in progress)
-- [ ] Real-world scan-outcome logging + family feedback loop — measure how the
-      app actually performs on real scans before building more breadth
+**Cognitive-load / verdict language** (spec 013)
+- [x] Unified vocabulary across both axes — Everyday/Sometimes/Occasionally,
+      shared ladder instead of two separate word sets; distinct 3-level color
+- [x] Hero the plain-language sentence, demote the two axis chips to supporting
+      detail; subtle color hint on the hero card (mirrors the sentence's own
+      driver logic, not a new merged judgment)
+- [x] Tap-through ladder explainer sheet — generic "what does this word mean +
+      how do we calculate it" plus a per-product "why this one" line, with a
+      real tappable row (not dead "tap it below" copy) straight to the specific
+      additive's evidence page when there's one clear driver
+
+**Phase 5 — Validation & instrumentation** (spec: docs/specs/009 — shipped)
+- [x] Scan-outcome logging + diagnostics view ("How Klarity's doing" in the You
+      tab) — M1
+- [x] Feedback capture (tap-categories + optional note) on result/not-found
+      screens — M2
+- [x] JSON export for cross-device review — M3
+- [ ] **Not started: actually reading the collected data.** The infrastructure
+      is live but nobody has exported/reviewed real family scan data yet — the
+      instrumentation only pays off once someone looks. Do this before betting
+      on more breadth (Phase 3.5, more chains, etc.).
+
+**Deploy pipeline**
+- [x] Local Xcode build is the default TestFlight path (ADR-003) — EAS cloud
+      build's free-tier quota was exhausted; `eas submit` (upload) isn't
+      quota-gated, only `eas build` (cloud compile) was, so only that step
+      moved local. `npm run build:local` → `npm run submit:local`. Revisit when
+      the EAS quota resets (2026-08-01) or the plan changes.
 
 ## Build & deploy
 
