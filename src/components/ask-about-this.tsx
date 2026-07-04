@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { askAboutProduct, isQAAvailable, type AskContext } from '@/services/qa/ask';
 
@@ -10,14 +10,22 @@ import { askAboutProduct, isQAAvailable, type AskContext } from '@/services/qa/a
 // run the on-device model (pre-iOS 26, no Apple Intelligence, Expo Go, web),
 // this component is invisible and the sheet behaves exactly as it did before
 // this feature existed. No error banner, no "unsupported" message — just absent.
+//
+// "Ask another question" is intentionally stateless, not a chat thread: each
+// question is its own independent call with no memory of prior Q&A in this
+// session. Deliberate scope line — real multi-turn conversation needs context
+// management (what counts as "this" across turns, when context gets stale,
+// how much history to feed a 3B on-device model without hurting the exact
+// tool-selection reliability the whole architecture depends on) that's a
+// separate feature decision, not a UI tweak. This just lets the box be reused.
 
 type State =
   | { phase: 'checking' }
   | { phase: 'hidden' }
   | { phase: 'idle' }
-  | { phase: 'asking' }
-  | { phase: 'answered'; text: string; debug?: string }
-  | { phase: 'error' };
+  | { phase: 'asking'; question: string }
+  | { phase: 'answered'; question: string; text: string; debug?: string }
+  | { phase: 'error'; question: string };
 
 export function AskAboutThis({ context }: { context: AskContext }) {
   const [state, setState] = useState<State>({ phase: 'checking' });
@@ -36,14 +44,21 @@ export function AskAboutThis({ context }: { context: AskContext }) {
   async function submit() {
     const q = question.trim();
     if (!q) return;
-    setState({ phase: 'asking' });
+    Keyboard.dismiss();
+    setQuestion(''); // clear immediately — box is ready for the next question right away
+    setState({ phase: 'asking', question: q });
     try {
       const result = await askAboutProduct(q, context);
-      setState({ phase: 'answered', text: result.text, debug: result.debug });
+      setState({ phase: 'answered', question: q, text: result.text, debug: result.debug });
     } catch {
-      setState({ phase: 'error' });
+      setState({ phase: 'error', question: q });
     }
   }
+
+  const asking = state.phase === 'asking';
+  const placeholder = state.phase === 'answered' || state.phase === 'error'
+    ? 'Ask another question…'
+    : 'e.g. what if I add flax seed?';
 
   return (
     <View style={styles.wrap}>
@@ -53,21 +68,25 @@ export function AskAboutThis({ context }: { context: AskContext }) {
           style={styles.input}
           value={question}
           onChangeText={setQuestion}
-          placeholder="e.g. what if I add flax seed?"
+          placeholder={placeholder}
           placeholderTextColor="#9aa4b2"
-          editable={state.phase !== 'asking'}
+          editable={!asking}
           onSubmitEditing={submit}
           returnKeyType="send"
         />
         <Pressable
-          style={({ pressed }) => [styles.askBtn, (pressed || state.phase === 'asking') && styles.askBtnPressed]}
+          style={({ pressed }) => [styles.askBtn, (pressed || asking) && styles.askBtnPressed]}
           onPress={submit}
-          disabled={state.phase === 'asking'}>
-          {state.phase === 'asking'
+          disabled={asking}>
+          {asking
             ? <ActivityIndicator size="small" color="#fff" />
             : <Text style={styles.askBtnText}>Ask</Text>}
         </Pressable>
       </View>
+
+      {(state.phase === 'asking' || state.phase === 'answered' || state.phase === 'error') && (
+        <Text style={styles.askedText} numberOfLines={2}>You asked: "{state.question}"</Text>
+      )}
 
       {state.phase === 'answered' && (
         <View style={styles.answerBox}>
@@ -97,6 +116,7 @@ const styles = StyleSheet.create({
   },
   askBtnPressed: { opacity: 0.7 },
   askBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  askedText: { fontSize: 12, color: '#9aa4b2', fontStyle: 'italic' },
   answerBox: { backgroundColor: '#f0faf5', borderRadius: 12, borderWidth: 1, borderColor: '#c3e6d5', padding: 14 },
   answerText: { fontSize: 14, lineHeight: 20, color: '#1a1f29' },
   debugText: { fontSize: 10.5, color: '#9aa4b2', marginTop: 8, fontFamily: 'Menlo' },

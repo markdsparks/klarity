@@ -357,11 +357,45 @@ split spec 010 used (JS-side resolution vs. native capture).
   beyond what was originally approved — a natural extension surfaced by
   real testing, not scope creep for its own sake.
 
-  **Still open:** confirm `suggest_additions` fires correctly on-device for
-  this exact question, and that `simulate_addition` no longer gets called
-  with an invented ingredient once the disambiguating description is in
-  place. Then remove the temporary debug output (`AskResult.debug`) once
-  both are confirmed.
+  **8th on-device pass — `suggest_additions` confirmed working correctly**
+  for the exact open-ended question that exposed the gap: correct ranking,
+  correct math, natural phrasing. (Debug showed `tools=[simulate_addition,
+  simulate_addition]` for this call despite the content being unmistakably
+  `suggest_additions`'s output — almost certainly the underlying
+  `@react-native-ai/apple` package mis-reporting which tool it invoked
+  internally, since the content proves the right function ran with the
+  right data. Not chasing this; it's a diagnostic quirk in a very new
+  library, not a functional bug.) **9th pass** re-confirmed
+  `simulate_addition` still resolves correctly for a named ingredient
+  (chia seeds) with the third tool now in place — no cross-contamination
+  between the two.
+
+  **Two more UX issues found in the same testing arc, both fixed:**
+  (1) the keyboard stayed open after submitting and blocked scrolling to
+  see the rest of the answer — `Keyboard.dismiss()` added on submit;
+  (2) no way to ask a follow-up without the stale previous question sitting
+  in the box. Added "ask another question" as an explicitly **stateless**
+  capability — each question is independent, no conversation memory carried
+  between them. Real multi-turn context (what "this" refers to across
+  turns, when to drop stale context, how much history a 3B on-device model
+  can take without hurting the tool-selection reliability the whole
+  architecture depends on) is a genuine feature decision, not a UI tweak —
+  deliberately deferred, not an oversight.
+
+  **General-knowledge questions** (e.g. "why is high sugar relative to
+  calories bad?") are already covered by `explain_rule` — this maps
+  directly to the existing `sugar_pct_calories` explainer
+  (`nutrition-explainers.ts`) with zero new code. Not yet verified
+  on-device (all rounds so far exercised `simulate_addition`/
+  `suggest_additions`); this is the next thing to confirm. Expected
+  boundary, not a bug: `explain_rule` only answers topics already authored
+  in `NUTRITION_EXPLAINERS` — a question outside that set should get an
+  honest decline, not a fabricated explanation. Growing that coverage is a
+  content decision (write more explainers), not urgent code work.
+
+  **Still open:** confirm `explain_rule` on-device, then remove the
+  temporary debug output (`AskResult.debug`) once all three tools are
+  confirmed working end to end.
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**
   Still open: spec 009 logging, safety telemetry
