@@ -1,7 +1,10 @@
 # ADR-002 — Distribution: EAS + TestFlight
 
 **Date:** 2026-06-27  
-**Status:** Accepted
+**Status:** Accepted — build step superseded by [ADR-003](003-local-xcode-build-default.md)
+as of 2026-07-03 (local Xcode build is now the default; EAS cloud build
+remains available and this ADR's TestFlight/build-profile/tester setup below
+is otherwise unchanged).
 
 ## Context
 
