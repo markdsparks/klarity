@@ -297,9 +297,35 @@ split spec 010 used (JS-side resolution vs. native capture).
   exact number in your answer." Test updated to assert the amount leads the
   string, not just that it's present somewhere.
 
-  **Still open:** confirm the reordered `mechanism` field survives the
-  model's paraphrase this time (one more on-device pass), then remove the
-  temporary debug output (`AskResult.debug`) once that's confirmed.
+  **6th on-device pass — a regression, and the real lesson.** Same question,
+  reordered mechanism string, and the model produced *worse* fidelity than
+  pass 5: "Adding flax seed to this product will not change its sugar
+  verdict." — no fiber, no numbers, no recommendation, just the bare
+  `changed: false` boolean restated in prose. `tools=[simulate_addition]`
+  still fired correctly; the tool's data was still correct; the model's
+  paraphrase simply collapsed the entire result. Three consecutive passes
+  (4, 5, 6) each failed differently — wrong nutrient, dropped conclusion,
+  now a bare boolean — with no prompt wording surviving more than one
+  round. That pattern is the actual finding: **a ~3B on-device model cannot
+  be trusted to relay multi-fact tool output accurately, no matter how the
+  prompt is worded.**
+
+  **Architectural correction, not another prompt tweak:** the model's job
+  is now scoped to exactly what it's reliable at — deciding *which* tool to
+  call and with *what* parameters. The text shown to the user is the tool's
+  own deterministic string (`simulateAddition`'s `mechanism`/`note`,
+  `explainRule`'s `body`), captured directly in each tool's `execute` via a
+  closure variable (`groundedText`) and used in place of `result.text`
+  whenever a tool actually fired. `result.text` (the model's own generated
+  prose) is used only on the genuine no-tool-matched decline path, which
+  doesn't need factual precision. `SYSTEM_PROMPT` simplified to match — it
+  no longer instructs the model on how to phrase a result it will never be
+  shown relaying.
+
+  **Still open:** confirm this on-device (one more pass) — it should now be
+  structurally impossible for the answer to lose the recommendation, since
+  the model's paraphrase is no longer in the path at all. Then remove the
+  temporary debug output (`AskResult.debug`) once confirmed.
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**
   Still open: spec 009 logging, safety telemetry
