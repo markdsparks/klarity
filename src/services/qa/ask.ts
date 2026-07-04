@@ -63,9 +63,10 @@ export interface AskResult {
 // show up until the cumulative prompt text is actually measured.
 const SYSTEM_PROMPT =
   "You are Klarity's on-product assistant for the food on screen. Answer " +
-  'ONLY by calling a tool — exactly one, once. If no tool fits, briefly say ' +
-  "you don't have grounded data for that; never guess, and never give " +
-  'medical or treatment advice — point to a doctor instead.';
+  'ONLY by calling a tool — exactly one, once. After it responds, reply ' +
+  'with one short sentence, not a repeat of the result. If no tool fits, ' +
+  "briefly say you don't have grounded data for that; never guess, and " +
+  'never give medical or treatment advice — point to a doctor instead.';
 
 let cachedAvailability: boolean | null = null;
 
@@ -134,7 +135,9 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
           // "not in the common-additions list yet") otherwise. First call
           // wins — see the file-level note on multi-call clobbering.
           setGroundedText(r.mechanism ?? r.note);
-          return r;
+          // Deliberately NOT returning the full result object (see the
+          // "lean tool results" note below `tools` for why).
+          return { found: r.found, changed: r.changed ?? false };
         },
       }),
       suggest_additions: tool({
@@ -148,7 +151,7 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
           usedTool = true;
           const r = suggestAdditions(context.sn, context.profile, context.ctx);
           setGroundedText(r.summary);
-          return r;
+          return { applicable: r.applicable, count: r.suggestions.length };
         },
       }),
       explain_rule: tool({
@@ -161,10 +164,26 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
           usedTool = true;
           const r = explainRule(topic);
           if (r) setGroundedText(r.body);
-          return r;
+          return { found: r != null };
         },
       }),
     };
+    // Every `execute` above returns a small confirmation object, not the
+    // full result — deliberately. Apple's on-device provider runs the whole
+    // tool round trip (call -> result -> model reads result -> model
+    // composes a final reply) inside ONE native session, and that reply is
+    // discarded: the architecture always prefers `groundedText`, captured
+    // via closure above, over `result.text` (see the file-level note). The
+    // 12th on-device pass hit "exceeded model context window" after a
+    // string-trimming pass on tool *descriptions* alone didn't fix it —
+    // measurement showed explainRule()'s `body` text (the actual grounded
+    // answer, deliberately full and readable for display) runs 300-650
+    // characters on its own, and the model has to both ingest that AND
+    // generate its own paraphrase of it, on top of everything else, before
+    // that wasted step is thrown away. Returning `{ found }` instead of the
+    // full `{ title, body, source }` cuts both sides of that: less for the
+    // model to read, and nothing substantive left to paraphrase into a long
+    // reply. Combined with the short-reply instruction in SYSTEM_PROMPT.
 
     const provider = createAppleProvider({ availableTools: tools });
     const model = provider.languageModel();

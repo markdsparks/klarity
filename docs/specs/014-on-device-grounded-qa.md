@@ -485,12 +485,72 @@ split spec 010 used (JS-side resolution vs. native capture).
   `SYSTEM_PROMPT` or a tool description should be sanity-checked against
   total character count, not just re-tested for correctness in isolation.
 
-  **Still open:** confirm on-device that (a) the context-window error is
-  actually resolved, and (b) the pass-10 topic-disambiguation fix now
-  works cleanly — the 11th pass's multi-call bug and this pass's overflow
-  both preempted ever properly evaluating it. Then remove the temporary
-  debug output (`AskResult.debug`) once all three tools are confirmed
-  working end to end.
+  **13th on-device pass — same question, same error, after a fresh
+  reload.** The pass-12 fix (shorter `hint`s, trimmed descriptions) did not
+  resolve it. Ruled out session/state leakage first, on the reasonable
+  worry that "identical error after reload" meant a stale native session
+  surviving a JS-only reload: read `@react-native-ai/apple`'s Swift source
+  (`AppleLLMImpl.swift`) directly — `generateText` constructs a brand new
+  `LanguageModelSession` on every single native call, with no caching or
+  reuse. Each question is genuinely a fresh session; that theory was wrong.
+
+  Checked Apple's own numbers instead of continuing to guess: the
+  on-device model's context window is a fixed 4,096 tokens, input and
+  output both counted (Apple developer documentation, and independently
+  corroborated by community write-ups on the exact same error). Pass 12's
+  trimmed fixed overhead (~1,554 characters, roughly 400-500 tokens) is
+  well under that budget on its own — meaning the fixed prompt text was
+  never the real bottleneck, and pass 12, while a correct and worthwhile
+  cleanup, was fixing the wrong side of the ledger.
+
+  **Root cause, found by reading how the native provider actually handles
+  a tool call:** `AppleLLMChatLanguageModel.doGenerate` (`ai-sdk.ts`) and
+  the Swift `JSITool.call` hand the tool's *entire JS return value* back
+  into the same `LanguageModelSession` as the tool's result — and Apple's
+  `session.respond()` then has the model read that result and compose its
+  own final natural-language reply, all inside one native call, before
+  ever returning to our JS code. Every one of our three tools was
+  returning its full result object — for `explain_rule`, that includes
+  `body`, the actual hand-written explainer paragraph, measured at
+  300–650 characters per topic. The model was being handed a several
+  -hundred-character paragraph it had no reason to read (we already
+  discard `result.text` for `groundedText`, captured via closure before
+  the tool even returns) and then made to generate its own paraphrase of
+  it — spending real input *and* output tokens on a step whose output was
+  always going to be thrown away.
+
+  **Fixed:** every tool's `execute` now returns a minimal confirmation
+  object instead of the full result — `explain_rule` returns `{ found }`
+  instead of `{ title, body, source }`; `simulate_addition` returns
+  `{ found, changed }` instead of the full snapshot + `mechanism` string;
+  `suggest_additions` returns `{ applicable, count }` instead of the full
+  ranked list + summary. `groundedText` still captures the full, real
+  answer via closure beforehand — this only shrinks what the model itself
+  has to read and then (pointlessly) paraphrase. Also added one line to
+  `SYSTEM_PROMPT` — "after it responds, reply with one short sentence, not
+  a repeat of the result" — to cut the *output*-token half of the same
+  waste, since a short reply costs less than a full re-explanation even
+  when both are discarded.
+
+  **The lesson, generalized (again):** the token cost of a tool-calling
+  turn on a context-constrained on-device model isn't just the prompt and
+  tool descriptions (pass 12) — it's the *tool result payload* the model
+  has to ingest and then respond to, which is easy to miss because our
+  own architecture never reads that generated reply. "The model's answer
+  is discarded" does not mean "the model's answer is free" — generating it
+  still costs context budget. Any tool built for this pattern going
+  forward should return the model a minimal ack, and let `groundedText`
+  (or equivalent) carry the actual content directly from deterministic
+  code.
+
+  **Still open:** confirm on-device that (a) this pass's fix actually
+  resolves the context-window error now that the real cause (tool-result
+  payload size, not prompt text) has been addressed, and (b) the pass-10
+  topic-disambiguation fix works cleanly — the 11th pass's multi-call bug
+  and the 12th/13th passes' overflow have each preempted properly
+  evaluating it so far. Then remove the temporary debug output
+  (`AskResult.debug`) once all three tools are confirmed working end to
+  end.
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**
   Still open: spec 009 logging, safety telemetry
