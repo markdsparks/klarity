@@ -18,7 +18,7 @@ import type { Profile } from '@/types/index';
 //    before — the feature just reports itself unavailable rather than
 //    crashing anything.
 //
-// On-device testing (5 rounds) found rule 1 isn't enough by itself: even
+// On-device testing (10+ rounds) found rule 1 isn't enough by itself: even
 // with a correctly-called tool and correct data, a small (~3B) on-device
 // model paraphrasing a multi-sentence tool result is unreliable — it has
 // talked about the wrong nutrient, dropped the one actionable recommendation
@@ -29,6 +29,12 @@ import type { Profile } from '@/types/index';
 // (`groundedText` below), never `result.text`, whenever a tool actually
 // fired. The model's own generated text is used only for the one case it's
 // well-suited to: declining honestly when no tool matches the question.
+//
+// One more bug this surfaced: the model sometimes calls a tool MULTIPLE
+// times in one turn (observed: explain_rule called 4x with different topic
+// guesses). `groundedText` must only ever be set by the FIRST call — never
+// overwritten by later ones — or the shown answer is arbitrary, whichever
+// call happens to resolve last, not a deliberate choice by anyone.
 
 export interface AskContext {
   sn: ServingNutrients;
@@ -51,10 +57,12 @@ export interface AskResult {
 const SYSTEM_PROMPT =
   "You are Klarity's on-product assistant. The user is looking at one specific " +
   'food product and its computed nutrition/additive verdict. You may ONLY ' +
-  "answer using the tools provided. If no available tool can answer the " +
-  "question, say plainly and briefly that you don't have grounded data for " +
-  "it — do not guess, and never give medical, drug-interaction, diagnostic, " +
-  'or treatment advice; point those questions to a doctor instead.';
+  "answer using the tools provided. Call AT MOST ONE tool, exactly once — " +
+  "pick the single best match and commit to it, never call the same or a " +
+  "different tool again to try another guess. If no available tool can " +
+  "answer the question, say plainly and briefly that you don't have grounded " +
+  "data for it — do not guess, and never give medical, drug-interaction, " +
+  'diagnostic, or treatment advice; point those questions to a doctor instead.';
 
 let cachedAvailability: boolean | null = null;
 
@@ -87,6 +95,13 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
 
     let usedTool = false;
     let groundedText: string | null = null;
+    // First call wins, permanently — see the file-level note. Later calls
+    // (the model retrying/hedging with a different guess) still run and
+    // still get validated/executed normally, they just can't override the
+    // answer once one is already locked in.
+    function setGroundedText(text: string) {
+      if (groundedText == null) groundedText = text;
+    }
     const topics = EXPLAIN_RULE_TOPICS as [string, ...string[]];
 
     // Apple's provider needs tools in TWO places, confirmed against
@@ -114,8 +129,9 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
           // The tool's own text IS the answer — never the model's paraphrase
           // of it (see the file-level note above). Prefer the precomputed
           // mechanism when there is one; fall back to the plain note (e.g.
-          // "not in the common-additions list yet") otherwise.
-          groundedText = r.mechanism ?? r.note;
+          // "not in the common-additions list yet") otherwise. First call
+          // wins — see the file-level note on multi-call clobbering.
+          setGroundedText(r.mechanism ?? r.note);
           return r;
         },
       }),
@@ -131,7 +147,7 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
         execute: async () => {
           usedTool = true;
           const r = suggestAdditions(context.sn, context.profile, context.ctx);
-          groundedText = r.summary;
+          setGroundedText(r.summary);
           return r;
         },
       }),
@@ -144,7 +160,7 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
         execute: async ({ topic }: { topic: string }) => {
           usedTool = true;
           const r = explainRule(topic);
-          groundedText = r?.body ?? null;
+          if (r) setGroundedText(r.body);
           return r;
         },
       }),
@@ -162,8 +178,12 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
       stopWhen: stepCountIs(3), // allow a tool-call round trip + a final answer step
     });
 
-    const toolNames = result.toolCalls.map(c => c.toolName);
-    const debug = `finish=${result.finishReason} tools=[${toolNames.join(',')}] steps=${result.steps.length} grounded=${groundedText != null}`;
+    // Full call log, not just names — this is what actually diagnosed the
+    // multi-call bug (the tool-name list alone looked identical across all
+    // 4 calls; only the per-call arguments revealed they were different
+    // topic guesses).
+    const calls = result.toolCalls.map(c => `${c.toolName}(${JSON.stringify(c.input)})`);
+    const debug = `finish=${result.finishReason} steps=${result.steps.length} grounded=${groundedText != null} calls=[${calls.join(', ')}]`;
 
     return { text: groundedText ?? result.text, usedTool, debug };
   } catch (err) {

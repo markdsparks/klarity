@@ -414,8 +414,41 @@ split spec 010 used (JS-side resolution vs. native capture).
   hand-maintained, so it can't drift out of sync as topics are added.
   Locked in with a test built from the exact confused pair.
 
-  **Still open:** confirm the disambiguated topic guide actually fixes this
-  question on-device, then remove the temporary debug output
+  **11th on-device pass — the disambiguation alone didn't fix it, and
+  surfaced a genuine architecture bug.** Follow-up question "why does sugar
+  as a share of calories matter?" (via the new stateless follow-up box) got
+  `whole_food_sugar_matrix` instead of `sugar_pct_calories` — wrong again,
+  a different wrong topic than pass 10. But the debug line was the real
+  finding: `tools=[explain_rule,explain_rule,explain_rule,explain_rule]` —
+  the model called the tool **four times in one turn**, not once.
+
+  `groundedText` was a single mutable variable written by every `execute`
+  call with no guard — whichever of the 4 calls happened to resolve last
+  silently overwrote all previous ones. The shown answer was never a
+  deliberate choice, by the model or the code: it was an accident of
+  promise resolution order. This is a different bug class than any prior
+  round — not "the model picked wrong," but "the code doesn't control
+  which pick gets shown even when the model's tool-calling is working
+  exactly as designed."
+
+  **Fixed:** `setGroundedText()` — a tiny setter that only writes once, on
+  the first call; every subsequent call in the same turn still executes and
+  still returns a valid result to the model, it just can't overwrite the
+  answer already locked in. Also strengthened `SYSTEM_PROMPT` ("call AT
+  MOST ONE tool... never call the same or a different tool again to try
+  another guess") as a second, prompt-level layer — belt and suspenders,
+  not a replacement for the code-level fix, consistent with everything
+  learned so far about not trusting prompt wording alone. Debug output
+  upgraded from tool *names* only to full `toolName(args)` call log — the
+  names alone looked identical across all 4 calls in pass 11; only the
+  arguments would have revealed they were different topic guesses. Next
+  on-device pass should show exactly what the model tried and confirm only
+  the first result reaches the screen.
+
+  **Still open:** confirm `setGroundedText`'s first-call-wins behavior
+  on-device, and separately, whether the topic guide from pass 10 needs
+  further work once multi-call noise is no longer masking the real
+  per-call accuracy. Then remove the temporary debug output
   (`AskResult.debug`) once all three tools are confirmed working end to
   end.
 - **M3 — Graceful degradation + instrumentation.** Availability check +
