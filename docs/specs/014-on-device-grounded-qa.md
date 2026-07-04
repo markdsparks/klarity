@@ -1,7 +1,6 @@
 # Spec 014 — On-Device Grounded Follow-Up Q&A
 
-**Status:** approved (2026-07-04) — M0 feasibility spike in progress; M1–M3
-do not start until M0 reports back (see Decisions below)
+**Status:** M0 complete (2026-07-04) — **GO.** Proceeding to M1.
 **Phase:** new capability class (conversational interface onto evidence the app already has)
 **Surface:** a new "Ask about this" affordance inside the existing evidence
 sheets (`ExplainerSheet`, `VerdictExplainerSheet` — spec 013), a new
@@ -233,3 +232,34 @@ split spec 010 used (JS-side resolution vs. native capture).
   the product already on screen. No standalone chat surface for v1.
 - **Q4 — M0 gates everything:** confirmed. M1–M3 do not start until M0
   reports back a clear go/no-go, same discipline as spec 010's OCR spike.
+
+## M0 result & decision (2026-07-04)
+
+**GO.** All three checks passed on real hardware (Mark's iPhone 17 Pro Max,
+iOS 26.5.1):
+
+- **New Architecture:** satisfied automatically — RN 0.85.3 removed the
+  legacy bridge entirely in April 2026; every app on 0.85+ runs on New
+  Architecture with no opt-out. No work needed.
+- **Hardware/OS:** Apple Intelligence enabled and available on-device;
+  `apple.isAvailable()` returned `true`.
+- **Model responds:** `generateText({ model: apple(), prompt })` round-tripped
+  in 1939ms and returned exactly the instructed reply ("It is working.") with
+  no drift, refusal, or extra commentary — a good sign for tool-calling
+  reliability too, since that depends on the model following structured
+  instructions precisely.
+
+**One real gotcha worth recording so it isn't re-discovered:** the package's
+own README says "Vercel AI SDK v5," but `@react-native-ai/apple@0.12.0`
+actually depends on `@ai-sdk/provider@^3.0.5`, which only pairs with
+`ai@6.x` (`ai@5.x` ships provider v2; `ai@7.x` has already moved to provider
+v4). Install `ai@^6` specifically, not whatever the README says, and not
+`ai@latest`.
+
+**Kept from the spike:** the dependency installs (`@react-native-ai/apple`,
+`ai@^6`, `zod`) and the regenerated `ios/` project stay — M1 doesn't need
+them yet (it's pure TypeScript), but M2 will, and the version-pairing above
+was real investigative work not worth re-deriving. The throwaway manual test
+screen (`qa-smoke-test.tsx`) and its temporary You-tab entry are removed —
+their job (prove the path works) is done, and they have zero automated
+value going forward.
