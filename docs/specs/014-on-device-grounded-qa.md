@@ -220,10 +220,24 @@ split spec 010 used (JS-side resolution vs. native capture).
   `VerdictExplainerSheet`. **Verified:** unavailable-path unit tests
   (`ask.test.ts`) and the web preview (renders zero trace of the affordance,
   no console errors, no crash — the exact fallback this milestone exists to
-  prove). **Not yet verified:** the real on-device inference call end to
-  end through this exact wiring — M0's smoke test proved the model responds
-  at all; this milestone still needs one on-device pass asking a real
-  question (e.g. "what if I add flax seed?") through the actual UI.
+  prove).
+
+  **Real gotcha found on the first on-device pass, worth recording so it
+  isn't re-discovered:** passing `tools` to `generateText()` the standard
+  Vercel AI SDK way (works for most providers) silently fails with Apple's
+  provider — it returned the generic "couldn't get an answer" fallback every
+  time. Apple's provider binds tools at **construction**, not per-call:
+  `createAppleProvider({ availableTools })` → `provider.languageModel()` →
+  `await model.prepare()` → *then* `generateText({ model, ... })` with no
+  `tools` argument at all. Confirmed against `@react-native-ai/apple`'s own
+  example app (`appleSetupAdapter.ts`), which uses exactly this shape. Fixed
+  in `ask.ts`. Also fixed in the same pass: the keyboard covered the
+  "Ask about this" input on-device (the sheets are plain `Modal`s with no
+  keyboard handling) — wrapped both `ExplainerSheet` and
+  `VerdictExplainerSheet` in `KeyboardAvoidingView`.
+
+  **Still not verified:** the real on-device inference call end to end
+  through the corrected wiring — this needs one more on-device pass.
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**
   Still open: spec 009 logging, safety telemetry

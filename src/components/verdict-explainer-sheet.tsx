@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getLadderExplainer, type AdditiveLink, type LadderAxis, type LadderLevel } from '@/data/verdict-ladder';
@@ -54,6 +54,7 @@ export function VerdictExplainerSheet({
       transparent
       animationType="slide"
       onRequestClose={onClose}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         {explainer && color && input ? (
           <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]} onPress={() => {}}>
@@ -109,11 +110,13 @@ export function VerdictExplainerSheet({
           </Pressable>
         ) : <View />}
       </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
   backdrop: { flex: 1, backgroundColor: 'rgba(14,17,22,0.45)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: '#ffffff',

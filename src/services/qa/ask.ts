@@ -63,7 +63,7 @@ export async function isQAAvailable(): Promise<boolean> {
 
 export async function askAboutProduct(question: string, context: AskContext): Promise<AskResult> {
   try {
-    const [{ apple }, { generateText, tool }, { z }] = await Promise.all([
+    const [{ createAppleProvider }, { generateText, tool }, { z }] = await Promise.all([
       import('@react-native-ai/apple'),
       import('ai'),
       import('zod'),
@@ -72,11 +72,12 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
     let usedTool = false;
     const topics = EXPLAIN_RULE_TOPICS as [string, ...string[]];
 
-    const result = await generateText({
-      model: apple(),
-      system: SYSTEM_PROMPT,
-      prompt: question,
-      tools: {
+    // Apple's provider binds tools at construction, not per-call — unlike the
+    // generic Vercel AI SDK pattern of passing `tools` to generateText. This
+    // matches @react-native-ai/apple's own example app (appleSetupAdapter.ts):
+    // createAppleProvider({ availableTools }) -> languageModel() -> prepare().
+    const provider = createAppleProvider({
+      availableTools: {
         simulate_addition: tool({
           description:
             'Simulate adding a common food or ingredient to the product currently ' +
@@ -101,6 +102,15 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
           },
         }),
       },
+    });
+
+    const model = provider.languageModel();
+    await model.prepare();
+
+    const result = await generateText({
+      model,
+      system: SYSTEM_PROMPT,
+      prompt: question,
     });
 
     return { text: result.text, usedTool };
