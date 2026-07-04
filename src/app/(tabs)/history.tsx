@@ -24,10 +24,11 @@ const ADDITIVE_STYLE: Record<AdditiveGlanceKey, { bg: string; fg: string; label:
   unrated:   { bg: '#f1f4f8', fg: '#9fadbf', label: 'Not rated'    },
 };
 
+// Unified behavioral ladder (spec 013). Light pills: green → amber → deep orange.
 const NUTRITION_STYLE: Record<NutritionTone, { bg: string; fg: string; label: string }> = {
-  good: { bg: '#e8f7ef', fg: '#1f9d6b', label: 'Good'     },
-  ok:   { bg: '#fdf3e3', fg: '#c8821a', label: 'Moderate' },
-  warn: { bg: '#fdf3e3', fg: '#e05c5c', label: 'Watch'    },
+  good: { bg: '#e8f7ef', fg: '#1f9d6b', label: 'Everyday'     },
+  ok:   { bg: '#fdf3e3', fg: '#c8821a', label: 'Sometimes'    },
+  warn: { bg: '#fbe7db', fg: '#c2410c', label: 'Occasionally' },
 };
 
 // ── Avatar palette (letter fallback) ─────────────────────────────────────────

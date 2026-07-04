@@ -1,4 +1,4 @@
-import { verdictSentence, type SentenceInput } from '../services/verdict-sentence';
+import { heroTone, verdictSentence, type SentenceInput } from '../services/verdict-sentence';
 import { ADDITIVES } from '../data/additives';
 import type { Additive, Profile } from '../types';
 
@@ -207,6 +207,33 @@ describe('verdictSentence', () => {
         proteinDv: 25,
       }))!;
       expect(s).toMatch(/daily staple for your goal/i);
+    });
+  });
+
+  describe('heroTone — mirrors the sentence\'s own priority order', () => {
+    it('all-clean → good', () => {
+      expect(heroTone(make({}))).toBe('good');
+    });
+
+    it('a sometimes additive → sometimes', () => {
+      expect(heroTone(make({ sometimesAdditives: [phosphoricAcid] }))).toBe('sometimes');
+    });
+
+    it('budget nutrient caveat with otherwise clean product → sometimes', () => {
+      expect(heroTone(make({ budgetNutrient: 'sat fat', nutritionTone: 'good' }))).toBe('sometimes');
+    });
+
+    it('ok nutrition tone with clean additives → sometimes', () => {
+      expect(heroTone(make({ nutritionTone: 'ok' }))).toBe('sometimes');
+    });
+
+    it('warn nutrition → warn, even with sometimes additives present', () => {
+      expect(heroTone(make({ nutritionTone: 'warn', sometimesAdditives: [phosphoricAcid] }))).toBe('warn');
+    });
+
+    it('a contested additive → contested, even with warn nutrition', () => {
+      const contested: Additive = { ...phosphoricAcid, id: 'x', name: 'Test Dye', baseVerdict: 'contested', limitType: undefined };
+      expect(heroTone(make({ contestedDriver: contested, nutritionTone: 'warn' }))).toBe('contested');
     });
   });
 });

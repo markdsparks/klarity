@@ -15,7 +15,9 @@ import { matchByETags } from '@/data/additive-index';
 import { matchByIngredientText } from '@/data/ingredient-text-index';
 import { ADDITIVES } from '@/data/additives';
 import { explainerForLine, getExplainer, type NutritionExplainer } from '@/data/nutrition-explainers';
+import { additiveLadderContext, nutritionToneToLadderLevel } from '@/data/verdict-ladder';
 import { ExplainerSheet } from '@/components/explainer-sheet';
+import { VerdictExplainerSheet, type VerdictExplainerInput } from '@/components/verdict-explainer-sheet';
 import { DEFAULT_PROFILE, useProfile } from '@/hooks/use-profile';
 import { fetchProduct } from '@/services/off';
 import {
@@ -37,7 +39,7 @@ import { classifyOutcome, logFeedback, logOutcome, type FeedbackCategory } from 
 import { FeedbackSheet } from '@/components/feedback-sheet';
 import { fetchUSDANutrition } from '@/services/usda';
 import { resolveVerdict } from '@/services/verdict';
-import { verdictSentence } from '@/services/verdict-sentence';
+import { heroTone, verdictSentence } from '@/services/verdict-sentence';
 import type { BuySignal, ScanHistoryEntry } from '@/types/history';
 import type { OFFProduct } from '@/types/off';
 import type { USDANutrition } from '@/types/usda';
@@ -61,10 +63,30 @@ const GLANCE: Record<GlanceKey, { bg: string; fg: string; label: string }> = {
   unrated:   { bg: 'rgba(159,173,191,0.12)', fg: '#9fadbf', label: 'Not rated'   },
 };
 
+// Unified behavioral ladder (spec 013): both axes speak everyday/sometimes/…,
+// and the three nutrition levels get three distinct colors (was: ok & warn both
+// amber). green → amber → deep orange; purple stays reserved for Contested.
 const NUTRITION_GLANCE: Record<NutritionTone, { bg: string; fg: string; label: string }> = {
-  good: { bg: 'rgba(127,211,170,0.16)', fg: '#7fd3aa', label: 'Good'     },
-  ok:   { bg: 'rgba(240,184,117,0.16)', fg: '#f0b875', label: 'Moderate' },
-  warn: { bg: 'rgba(240,184,117,0.16)', fg: '#f0b875', label: 'Watch'    },
+  good: { bg: 'rgba(127,211,170,0.16)', fg: '#7fd3aa', label: 'Everyday'     },
+  ok:   { bg: 'rgba(240,184,117,0.16)', fg: '#f0b875', label: 'Sometimes'    },
+  warn: { bg: 'rgba(239,143,86,0.18)',  fg: '#ef8f56', label: 'Occasionally' },
+};
+
+// Same ladder as a light pill (nutrition card sits on a white card): green → amber → deep orange.
+const NUTRITION_TAG: Record<NutritionTone, { bg: string; fg: string }> = {
+  good: { bg: '#e8f7ef', fg: '#1f9d6b' },
+  ok:   { bg: '#fdf3e3', fg: '#c8821a' },
+  warn: { bg: '#fbe7db', fg: '#c2410c' },
+};
+
+// Subtle hero color hint (spec 013 follow-up) — a soft tint + left accent bar
+// on the plain-language sentence card, keyed off the same driver that already
+// decides the sentence's wording (heroTone). A hint, not a merged score.
+const HERO_TONE: Record<'good' | 'sometimes' | 'warn' | 'contested', { bg: string; accent: string }> = {
+  good:      { bg: 'rgba(127,211,170,0.09)', accent: '#7fd3aa' },
+  sometimes: { bg: 'rgba(240,184,117,0.10)', accent: '#f0b875' },
+  warn:      { bg: 'rgba(239,143,86,0.12)',  accent: '#ef8f56' },
+  contested: { bg: 'rgba(176,158,232,0.12)', accent: '#b09ee8' },
 };
 
 // Verdict pill colours (light card section)
@@ -112,6 +134,7 @@ export default function ResultScreen() {
   const { profile } = useProfile();
   const [state, setState] = useState<State>({ status: 'loading' });
   const [explainer, setExplainer] = useState<NutritionExplainer | null>(null);
+  const [ladderInput, setLadderInput] = useState<VerdictExplainerInput | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   useEffect(() => {
@@ -295,7 +318,7 @@ export default function ResultScreen() {
 
   // Layer 1 plain-language verdict. Driven by base verdicts (not profile-resolved)
   // so a contested additive keeps contested framing even when values resolve it.
-  const summarySentence = verdictSentence({
+  const sentenceInput = {
     contestedDriver: matchedAdditives.find(a => a.baseVerdict === 'contested') ?? null,
     sometimesAdditives: matchedAdditives.filter(a => a.baseVerdict === 'sometimes'),
     nutritionTone: nutrition.tone,
@@ -304,9 +327,14 @@ export default function ResultScreen() {
     nutritionBasis: sn.basis,
     profile,
     proteinDv: sn.proteinDv ?? 0,
-  });
+  };
+  const summarySentence = verdictSentence(sentenceInput);
+  const heroColor = HERO_TONE[heroTone(sentenceInput)];
 
   const sugarHot = sugarBasisDv(sn) >= thresholds.sugar;
+  const additiveContext = additiveLadderContext(
+    glanceKey, additiveResults, regulatoryAdditives.length, unknownAdditives.length,
+  );
 
   return (
     <ScrollView
@@ -341,24 +369,37 @@ export default function ResultScreen() {
 
         {/* Layer 1 — plain-language verdict */}
         {summarySentence ? (
-          <View style={styles.summaryCard}>
+          <View style={[styles.summaryCard, { backgroundColor: heroColor.bg, borderLeftColor: heroColor.accent }]}>
             <Text style={styles.summaryText}>{summarySentence}</Text>
           </View>
         ) : null}
 
-        {/* At-a-glance badges */}
+        {/* At-a-glance badges — the two axes behind the read above. Tappable:
+            each opens the ladder sheet for what that word means + why this product. */}
+        {summarySentence ? <Text style={styles.glanceCaption}>The two axes behind it — tap either for why</Text> : null}
         <View style={styles.glanceRow}>
           <GlanceBadge
             axis="ADDITIVES"
             verdict={additiveGlance.label}
             bg={additiveGlance.bg}
             fg={additiveGlance.fg}
+            onPress={glanceKey === 'unrated' ? undefined : () => setLadderInput({
+              axis: 'additives',
+              level: glanceKey === 'clean' ? 'everyday' : glanceKey,
+              productContext: additiveContext.text,
+              productLink: additiveContext.link,
+            })}
           />
           <GlanceBadge
             axis="NUTRITION"
             verdict={nutritionGlance.label}
             bg={nutritionGlance.bg}
             fg={nutritionGlance.fg}
+            onPress={() => setLadderInput({
+              axis: 'nutrition',
+              level: nutritionToneToLadderLevel(nutrition.tone),
+              productContext: nutrition.summary,
+            })}
           />
         </View>
 
@@ -457,19 +498,19 @@ export default function ResultScreen() {
                 </View>
               )}
             </View>
-            <View style={styles.cardHeaderRight}>
-              {servingText ? <Text style={styles.cardMeta}>{servingText}</Text> : null}
-              <View style={[styles.toneTag, {
-                backgroundColor: nutrition.tone === 'good' ? '#e8f7ef' : '#fdf3e3',
-              }]}>
-                <Text style={[styles.toneTagText, {
-                  color: nutrition.tone === 'good' ? '#1f9d6b' : '#c8821a',
-                }]}>
-                  {nutritionGlance.label}
-                </Text>
-              </View>
-            </View>
+            <Pressable
+              style={({ pressed }) => [styles.toneTag, { backgroundColor: NUTRITION_TAG[nutrition.tone].bg }, pressed && styles.glanceBadgePressed]}
+              onPress={() => setLadderInput({
+                axis: 'nutrition',
+                level: nutritionToneToLadderLevel(nutrition.tone),
+                productContext: nutrition.summary,
+              })}>
+              <Text style={[styles.toneTagText, { color: NUTRITION_TAG[nutrition.tone].fg }]}>
+                {nutritionGlance.label}
+              </Text>
+            </Pressable>
           </View>
+          {servingText ? <Text style={styles.servingCaption}>{servingText}</Text> : null}
           <Text style={styles.nutritionSummary}>{nutrition.summary}</Text>
           {nutrition.contextLines.map(line => {
             const exp = explainerForLine(line);
@@ -529,6 +570,7 @@ export default function ResultScreen() {
       </View>
 
       <ExplainerSheet explainer={explainer} onClose={() => setExplainer(null)} />
+      <VerdictExplainerSheet input={ladderInput} onClose={() => setLadderInput(null)} />
       <FeedbackSheet
         title={feedbackOpen ? 'Something look off?' : null}
         categories={['wrong-verdict', 'wrong-data', 'missing-additive', 'other']}
@@ -545,15 +587,18 @@ export default function ResultScreen() {
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 function GlanceBadge({
-  axis, verdict, bg, fg,
+  axis, verdict, bg, fg, onPress,
 }: {
-  axis: string; verdict: string; bg: string; fg: string;
+  axis: string; verdict: string; bg: string; fg: string; onPress?: () => void;
 }) {
   return (
-    <View style={[styles.glanceBadge, { backgroundColor: bg }]}>
+    <Pressable
+      style={({ pressed }) => [styles.glanceBadge, { backgroundColor: bg }, pressed && onPress && styles.glanceBadgePressed]}
+      disabled={!onPress}
+      onPress={onPress}>
       <Text style={[styles.glanceAxis, { color: fg }]}>{axis}</Text>
       <Text style={[styles.glanceVerdict, { color: fg }]}>{verdict}</Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -692,18 +737,22 @@ const styles = StyleSheet.create({
   productImage:   { width: 72, height: 72, borderRadius: 14, backgroundColor: '#1c2230' },
 
   // Layer 1 plain-language verdict card
+  // Spec 013 — the plain-language read is the hero; the two axis chips below are
+  // the supporting "why," deliberately smaller so there's one thing to read first.
   summaryCard: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+    borderLeftWidth: 3,
   },
-  summaryText: { fontSize: 15, color: '#e8eaed', lineHeight: 22, fontWeight: '500' },
+  summaryText: { fontSize: 17.5, color: '#f2f4f6', lineHeight: 25, fontWeight: '600' },
 
-  glanceRow: { flexDirection: 'row', gap: 10 },
-  glanceBadge: { flex: 1, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14, gap: 3 },
-  glanceAxis:    { fontSize: 10, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', opacity: 0.7 },
-  glanceVerdict: { fontSize: 20, fontWeight: '800', letterSpacing: -0.3 },
+  glanceCaption: { fontSize: 10, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', color: '#8b9199', marginBottom: -2 },
+  glanceRow: { flexDirection: 'row', gap: 8 },
+  glanceBadge: { flex: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, gap: 2 },
+  glanceBadgePressed: { opacity: 0.6 },
+  glanceAxis:    { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase', opacity: 0.7 },
+  glanceVerdict: { fontSize: 15, fontWeight: '700', letterSpacing: -0.2 },
 
   // Frequency context card
   freqCard: {
@@ -745,6 +794,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase', color: '#8896a7' },
   cardMeta:  { fontSize: 12, color: '#b0bcc9' },
+  servingCaption: { fontSize: 12, color: '#b0bcc9', marginBottom: 6 },
   cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   usdaBadge:     { backgroundColor: '#e8f7ef', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   usdaBadgeText: { fontSize: 9, fontWeight: '800', color: '#1f9d6b', letterSpacing: 0.5 },
@@ -831,5 +881,4 @@ const styles = StyleSheet.create({
   nutrientRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   nutrientValue: { fontSize: 13.5, fontWeight: '700' },
   nutrientDv:    { fontSize: 11, fontWeight: '700', opacity: 0.85 },
-  cardHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
 });
