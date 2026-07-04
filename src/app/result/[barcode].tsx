@@ -18,6 +18,7 @@ import { explainerForLine, getExplainer, type NutritionExplainer } from '@/data/
 import { additiveLadderContext, nutritionToneToLadderLevel } from '@/data/verdict-ladder';
 import { ExplainerSheet } from '@/components/explainer-sheet';
 import { VerdictExplainerSheet, type VerdictExplainerInput } from '@/components/verdict-explainer-sheet';
+import type { AskContext } from '@/services/qa/ask';
 import { DEFAULT_PROFILE, useProfile } from '@/hooks/use-profile';
 import { fetchProduct } from '@/services/off';
 import {
@@ -272,9 +273,9 @@ export default function ResultScreen() {
   const brand    = product.brands?.split(',')[0].trim() || '';
   const imageUrl = product.image_front_url ?? product.image_url;
   const sn = computeServingNutrients(product, usdaNutrition, referenceValues(profile));
-  const nutrition = toneNutrition(sn, profile, {
-    matrixDestroyedCategory: isMatrixDestroyedCategory(product.categories_tags),
-  });
+  const matrixDestroyedCategory = isMatrixDestroyedCategory(product.categories_tags);
+  const nutrition = toneNutrition(sn, profile, { matrixDestroyedCategory });
+  const askContext: AskContext = { sn, profile, ctx: { matrixDestroyedCategory } };
   const thresholds = warnThresholds(profile);
   const bloodSugar = profile.conditions.includes('blood_sugar');
   const personalizedRef = isPersonalizedReference(profile);
@@ -388,6 +389,7 @@ export default function ResultScreen() {
               level: glanceKey === 'clean' ? 'everyday' : glanceKey,
               productContext: additiveContext.text,
               productLink: additiveContext.link,
+              askContext,
             })}
           />
           <GlanceBadge
@@ -399,6 +401,7 @@ export default function ResultScreen() {
               axis: 'nutrition',
               level: nutritionToneToLadderLevel(nutrition.tone),
               productContext: nutrition.summary,
+              askContext,
             })}
           />
         </View>
@@ -504,6 +507,7 @@ export default function ResultScreen() {
                 axis: 'nutrition',
                 level: nutritionToneToLadderLevel(nutrition.tone),
                 productContext: nutrition.summary,
+                askContext,
               })}>
               <Text style={[styles.toneTagText, { color: NUTRITION_TAG[nutrition.tone].fg }]}>
                 {nutritionGlance.label}
@@ -569,7 +573,7 @@ export default function ResultScreen() {
         </Pressable>
       </View>
 
-      <ExplainerSheet explainer={explainer} onClose={() => setExplainer(null)} />
+      <ExplainerSheet explainer={explainer} onClose={() => setExplainer(null)} askContext={askContext} />
       <VerdictExplainerSheet input={ladderInput} onClose={() => setLadderInput(null)} />
       <FeedbackSheet
         title={feedbackOpen ? 'Something look off?' : null}

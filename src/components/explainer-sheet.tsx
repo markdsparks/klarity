@@ -3,6 +3,8 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { NutritionExplainer } from '@/data/nutrition-explainers';
+import { AskAboutThis } from '@/components/ask-about-this';
+import type { AskContext } from '@/services/qa/ask';
 
 const TIER_LABEL: Record<string, string> = {
   A: 'Tier A · regulatory consensus / human trial',
@@ -21,9 +23,11 @@ const TIER_COLOR: Record<string, string> = {
 export function ExplainerSheet({
   explainer,
   onClose,
+  askContext,
 }: {
   explainer: NutritionExplainer | null;
   onClose: () => void;
+  askContext?: AskContext;
 }) {
   const insets = useSafeAreaInsets();
   return (
@@ -46,6 +50,8 @@ export function ExplainerSheet({
               <Text style={styles.body}>{explainer.body}</Text>
               <Text style={styles.sourceLabel}>Basis</Text>
               <Text style={styles.source}>{explainer.source}</Text>
+
+              {askContext ? <AskAboutThis context={askContext} /> : null}
             </ScrollView>
             <Pressable style={styles.closeBtn} onPress={onClose}>
               <Text style={styles.closeBtnText}>Got it</Text>

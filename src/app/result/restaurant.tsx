@@ -9,6 +9,7 @@ import { explainerForLine, type NutritionExplainer } from '@/data/nutrition-expl
 import { additiveLadderContext, nutritionToneToLadderLevel } from '@/data/verdict-ladder';
 import { ExplainerSheet } from '@/components/explainer-sheet';
 import { VerdictExplainerSheet, type VerdictExplainerInput } from '@/components/verdict-explainer-sheet';
+import type { AskContext } from '@/services/qa/ask';
 import { OptionSheet, type BuildOption } from '@/components/option-sheet';
 import { getCatalogComponent, getChain, getMenuItem } from '@/data/restaurants';
 import { DEFAULT_PROFILE, useProfile } from '@/hooks/use-profile';
@@ -238,6 +239,7 @@ export default function RestaurantResultScreen() {
   const sn = restaurantServingNutrients(adj.nutrition, referenceValues(profile));
   const nutrition = toneNutrition(sn, profile, { wholeFoodSugarMatrix: item.wholeFoodSugarMatrix });
   const nutritionGlance = NUTRITION_GLANCE[nutrition.tone];
+  const askContext: AskContext = { sn, profile, ctx: { wholeFoodSugarMatrix: item.wholeFoodSugarMatrix } };
 
   const matched = additiveIds.map(id => ADDITIVES[id]).filter(Boolean);
   const sentenceInput = {
@@ -366,6 +368,7 @@ export default function RestaurantResultScreen() {
               level: glanceKey === 'clean' ? 'everyday' : glanceKey,
               productContext: additiveContext.text,
               productLink: additiveContext.link,
+              askContext,
             })}>
             <Text style={[styles.glanceAxis, { color: additiveGlance.fg }]}>ADDITIVES</Text>
             <Text style={[styles.glanceVerdict, { color: additiveGlance.fg }]}>{additiveGlance.label}</Text>
@@ -376,6 +379,7 @@ export default function RestaurantResultScreen() {
               axis: 'nutrition',
               level: nutritionToneToLadderLevel(nutrition.tone),
               productContext: nutrition.summary,
+              askContext,
             })}>
             <Text style={[styles.glanceAxis, { color: nutritionGlance.fg }]}>NUTRITION</Text>
             <Text style={[styles.glanceVerdict, { color: nutritionGlance.fg }]}>{nutritionGlance.label}</Text>
@@ -524,6 +528,7 @@ export default function RestaurantResultScreen() {
                 axis: 'nutrition',
                 level: nutritionToneToLadderLevel(nutrition.tone),
                 productContext: nutrition.summary,
+                askContext,
               })}>
               <Text style={[styles.pillText, { color: NUTRITION_TAG[nutrition.tone].fg }]}>
                 {nutritionGlance.label}
@@ -595,7 +600,7 @@ export default function RestaurantResultScreen() {
         onSelect={sheetProps?.onSelect ?? (() => {})}
         onClose={() => setSheet(null)}
       />
-      <ExplainerSheet explainer={explainer} onClose={() => setExplainer(null)} />
+      <ExplainerSheet explainer={explainer} onClose={() => setExplainer(null)} askContext={askContext} />
       <VerdictExplainerSheet input={ladderInput} onClose={() => setLadderInput(null)} />
     </ScrollView>
   );

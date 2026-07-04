@@ -3,6 +3,8 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getLadderExplainer, type AdditiveLink, type LadderAxis, type LadderLevel } from '@/data/verdict-ladder';
+import { AskAboutThis } from '@/components/ask-about-this';
+import type { AskContext } from '@/services/qa/ask';
 
 // "What does this word mean, and why did THIS product get it?" bottom sheet
 // (spec 013 follow-up). Tapping any ladder badge (the hero glance chips, or
@@ -20,6 +22,7 @@ export interface VerdictExplainerInput {
   level: LadderLevel;
   productContext: string;
   productLink?: AdditiveLink;
+  askContext?: AskContext;
 }
 
 const LEVEL_COLOR: Record<LadderLevel, { bg: string; fg: string }> = {
@@ -97,6 +100,8 @@ export function VerdictExplainerSheet({
 
               <Text style={styles.sectionLabel}>How we calculate this</Text>
               <Text style={styles.method}>{explainer.method}</Text>
+
+              {input.askContext ? <AskAboutThis context={input.askContext} /> : null}
             </ScrollView>
             <Pressable style={styles.closeBtn} onPress={onClose}>
               <Text style={styles.closeBtnText}>Got it</Text>

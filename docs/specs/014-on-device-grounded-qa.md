@@ -1,7 +1,9 @@
 # Spec 014 — On-Device Grounded Follow-Up Q&A
 
-**Status:** M0 + M1 complete (2026-07-04). Proceeding to M2 (native model
-wiring).
+**Status:** M0 + M1 + M2 built (2026-07-04) — code complete, unit-tested, and
+the graceful-fallback path verified in the web preview; the real on-device
+inference call still needs one more phone pass before this is considered
+fully proven (see M2 entry below).
 **Phase:** new capability class (conversational interface onto evidence the app already has)
 **Surface:** a new "Ask about this" affordance inside the existing evidence
 sheets (`ExplainerSheet`, `VerdictExplainerSheet` — spec 013), a new
@@ -208,9 +210,23 @@ split spec 010 used (JS-side resolution vs. native capture).
 - **M2 — On-device model + tool-calling wire-up.** The native module, the
   "Ask about this" entry point, wiring the model's tool-calling to M1's
   functions, the scope-boundary system prompt, the decline-don't-fabricate
-  guardrail.
+  guardrail. **Done (2026-07-04):** `src/services/qa/ask.ts`
+  (`isQAAvailable`/`askAboutProduct`, wiring `generateText` + `tool()` from
+  `ai@6` to `apple()` from `@react-native-ai/apple`, both `simulate_addition`
+  and `explain_rule` as tools, the scope-boundary system prompt); the
+  availability check and the graceful-fallback behavior pulled forward from
+  M3 (see below) since the entry point can't ship without it; `AskAboutThis`
+  (`src/components/ask-about-this.tsx`) mounted in both `ExplainerSheet` and
+  `VerdictExplainerSheet`. **Verified:** unavailable-path unit tests
+  (`ask.test.ts`) and the web preview (renders zero trace of the affordance,
+  no console errors, no crash — the exact fallback this milestone exists to
+  prove). **Not yet verified:** the real on-device inference call end to
+  end through this exact wiring — M0's smoke test proved the model responds
+  at all; this milestone still needs one on-device pass asking a real
+  question (e.g. "what if I add flax seed?") through the actual UI.
 - **M3 — Graceful degradation + instrumentation.** Availability check +
-  clean fallback on unsupported devices, spec 009 logging, safety telemetry
+  clean fallback on unsupported devices — **done, folded into M2 above.**
+  Still open: spec 009 logging, safety telemetry
   for any non-tool-call response.
 
 ## Open questions (need Mark's call)
