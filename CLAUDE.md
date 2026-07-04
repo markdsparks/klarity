@@ -220,6 +220,37 @@ npm run web          # Browser (limited camera)
 
 ## Build & deploy
 
+**Default (ADR-003): local Xcode build → EAS submit.** EAS's free-tier cloud
+*build* quota got exhausted mid-cycle; `eas submit` (the upload step) isn't
+quota-gated, so only the compile step moved local. Same Xcode toolchain
+`npm run ios` already needs — no eject, no new paid dependency.
+
+```bash
+npm run build:local    # prebuild + pod install + xcodebuild archive + export → ios/build/export/Klarity.ipa
+npm run submit:local   # eas submit --path, uploads the local .ipa to App Store Connect
+```
+
+See `scripts/build-local-ios.sh` / `scripts/ios-export-options.plist` for the
+exact steps, and [ADR-003](docs/decisions/003-local-xcode-build-default.md)
+for why and when to revisit (EAS quota resets 2026-08-01).
+
+**One-time prerequisite:** Xcode must be signed into the Apple ID for team
+`22PRZ6YK2P` (Xcode → Settings → Accounts → "+") — a manual step only Mark can
+do; never script/automate entering Apple ID credentials or 2FA. After that,
+`-allowProvisioningUpdates` auto-fetches whatever certs/profiles it needs (the
+archive step may sign with a Development cert first; the export step re-signs
+with a proper Distribution cert/profile — expected, not a bug). If CocoaPods
+isn't installed: `brew install cocoapods` (needs a UTF-8 locale — the script
+sets `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8` for the `pod install` step).
+
+**Known side effect:** `expo prebuild` rewrites `npm run ios`/`android` from
+`expo start --ios`/`--android` (fast, Expo-Go-based simulator loop) to
+`expo run:ios`/`expo run:android` (slow native rebuild every time). The build
+script doesn't touch `package.json`, but if you ever run `expo prebuild`
+directly, check those two scripts didn't get rewritten and revert if so.
+
+### EAS cloud build (available again after 2026-08-01, or on a paid plan)
+
 ```bash
 npm run build:preview   # queue EAS cloud build (~12 min)
 npm run submit:ios      # push latest build to TestFlight

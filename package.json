@@ -52,6 +52,8 @@
     "lint": "expo lint",
     "test": "jest --watchAll=false",
     "test:watch": "jest",
+    "build:local": "bash scripts/build-local-ios.sh",
+    "submit:local": "eas submit --platform ios --profile preview --path ios/build/export/Klarity.ipa --non-interactive",
     "build:preview": "eas build --platform ios --profile preview",
     "build:sim": "eas build --platform ios --profile development",
     "build:device": "eas build --platform ios --profile development-device",
