@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 import { EXPLAIN_RULE_TOPICS, explainRule } from '@/services/qa/explain-rule';
-import { simulateAddition } from '@/services/qa/simulate-addition';
+import { simulateAddition, suggestAdditions } from '@/services/qa/simulate-addition';
 import type { ServingNutrients } from '@/services/nutrition';
 import type { Profile } from '@/types/index';
 
@@ -100,9 +100,11 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
     const tools = {
       simulate_addition: tool({
         description:
-          'Simulate adding a common food or ingredient to the product currently ' +
-          "on screen, and report whether the nutrition verdict changes. Use this " +
-          'for any "what if I add X" question.',
+          'Simulate adding ONE SPECIFIC, NAMED food or ingredient to the product ' +
+          'currently on screen, and report whether the nutrition verdict changes. ' +
+          'Use this ONLY when the user names a specific ingredient — e.g. "what if ' +
+          'I add flax seed?". If the user asks generically what they could add or ' +
+          'do, with no specific ingredient named, use suggest_additions instead.',
         inputSchema: z.object({
           ingredient: z.string().describe('the plain ingredient name, e.g. "flax seed"'),
         }),
@@ -114,6 +116,22 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
           // mechanism when there is one; fall back to the plain note (e.g.
           // "not in the common-additions list yet") otherwise.
           groundedText = r.mechanism ?? r.note;
+          return r;
+        },
+      }),
+      suggest_additions: tool({
+        description:
+          'When the user asks generically what they could add or do to improve ' +
+          'this product\'s nutrition verdict — WITHOUT naming a specific ' +
+          'ingredient, e.g. "what could I add to fix this?" or "how do I cross ' +
+          'the threshold?" — call this to get a ranked list of common additions ' +
+          'that would actually help. Takes no parameters. Do not invent an ' +
+          'ingredient name to call simulate_addition with instead.',
+        inputSchema: z.object({}),
+        execute: async () => {
+          usedTool = true;
+          const r = suggestAdditions(context.sn, context.profile, context.ctx);
+          groundedText = r.summary;
           return r;
         },
       }),

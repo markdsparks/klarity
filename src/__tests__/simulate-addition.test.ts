@@ -1,4 +1,4 @@
-import { simulateAddition } from '../services/qa/simulate-addition';
+import { simulateAddition, suggestAdditions } from '../services/qa/simulate-addition';
 import { toneNutrition, type ServingNutrients } from '../services/nutrition';
 import type { Profile } from '../types';
 
@@ -83,5 +83,50 @@ describe('simulateAddition', () => {
   it('always includes the approximate-values caveat when a match is found', () => {
     const result = simulateAddition(sugaryLowFiberSn, baseProfile, 'almonds');
     expect(result.note).toMatch(/approximate/i);
+  });
+});
+
+describe('suggestAdditions', () => {
+  // Real gap this guards against: a generic "what could I add to fix this?"
+  // question has no ingredient name for simulateAddition to look up, so the
+  // model has nothing valid to pass it and either hallucinates a parameter
+  // or (correctly, but unhelpfully) reports "not found." This ranks the
+  // whole common-additions table instead of requiring one named ingredient.
+
+  it('not applicable when sugar is not actually flagged on this product', () => {
+    const clean: ServingNutrients = { source: 'off', factor: 1, calories: 100, sugar: 2, sugarDv: 4, fiber: 1, fiberDv: 4 };
+    const result = suggestAdditions(clean, baseProfile);
+    expect(result.applicable).toBe(false);
+    expect(result.suggestions).toEqual([]);
+    expect(result.summary).toMatch(/isn't currently flagged/i);
+  });
+
+  it('the "already past threshold" case is covered by the sugar-flag check itself', () => {
+    // If fiber/protein were already >= the offset threshold, toneNutrition's
+    // own sugarOffset (nutrition.ts) would already have softened the sugar
+    // flag — so "sugar not flagged" and "fiber/protein already sufficient"
+    // can never be independently true. Confirms there's no separate gap here.
+    const alreadyFiberRich: ServingNutrients = { ...sugaryLowFiberSn, fiber: 10, fiberDv: 36 };
+    const result = suggestAdditions(alreadyFiberRich, baseProfile);
+    expect(result.applicable).toBe(false);
+    expect(result.summary).toMatch(/isn't currently flagged/i);
+  });
+
+  it('ranks common additions by least amount needed, capped to a short list', () => {
+    const result = suggestAdditions(sugaryLowFiberSn, baseProfile);
+    expect(result.applicable).toBe(true);
+    expect(result.suggestions.length).toBeGreaterThan(0);
+    expect(result.suggestions.length).toBeLessThanOrEqual(4);
+    // Whey protein powder needs the least (24g protein/scoop against an 8g
+    // gap) — it must lead the ranking.
+    expect(result.suggestions[0].name).toBe('Whey protein powder');
+    expect(result.summary).toMatch(/20%/);
+    expect(result.summary).toMatch(/whey protein powder/i);
+    expect(result.summary).toMatch(/approximate/i);
+  });
+
+  it('excludes additions that contribute neither fiber nor protein (e.g. olive oil)', () => {
+    const result = suggestAdditions(sugaryLowFiberSn, baseProfile);
+    expect(result.suggestions.some(s => s.name === 'Olive oil')).toBe(false);
   });
 });

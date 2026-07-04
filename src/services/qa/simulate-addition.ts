@@ -1,5 +1,6 @@
-import { findCommonAddition, type CommonAddition } from '@/data/common-additions';
+import { COMMON_ADDITIONS, findCommonAddition, type CommonAddition } from '@/data/common-additions';
 import { FIBER_PROTEIN_SUGAR_OFFSET_DV, referenceValues, toneNutrition, type ServingNutrients } from '@/services/nutrition';
+import { joinNouns } from '@/services/verdict-sentence';
 import type { NutritionTone, Profile } from '@/types/index';
 
 // Spec 014 M1 — the deterministic "what if I add X" recompute. This is not a
@@ -41,6 +42,18 @@ function formatAmount(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
+// How many multiples of one serving of a fiber/protein contribution would
+// close the gap to the offset threshold — shared by fiberProteinMechanism
+// (one named addition) and suggestAdditions (ranking all of them). Returns
+// null when the addition doesn't contribute this nutrient at all, 0 when
+// the baseline is already past the threshold (nothing needed).
+function multiplierToThreshold(baselineGrams: number, refGrams: number, perServingGrams: number | undefined): number | null {
+  if (perServingGrams == null || perServingGrams <= 0) return null;
+  const thresholdGrams = (FIBER_PROTEIN_SUGAR_OFFSET_DV / 100) * refGrams;
+  const stillNeeded = thresholdGrams - baselineGrams;
+  return stillNeeded <= 0 ? 0 : roundUpToHalf(stillNeeded / perServingGrams);
+}
+
 // The one verdict-changing mechanism common additions can actually trigger
 // (see nutrition.ts's fiberQualifies/proteinQualifies) — fiber or protein
 // crossing FIBER_PROTEIN_SUGAR_OFFSET_DV softens a high-sugar flag. Returns
@@ -64,16 +77,13 @@ function fiberProteinMechanism(
     return `${label} would go from ${beforeDv}% to ${afterDv}% of daily value — crossing the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% mark that softens a high-sugar flag.`;
   }
   if (afterDv < FIBER_PROTEIN_SUGAR_OFFSET_DV) {
-    const addedPerServing = addition.perServing[nutrientKey];
     // Lead with the actionable recommendation, not the diagnostic detail — a
     // small on-device model summarizing a multi-sentence tool result tends to
     // keep the FIRST fact and drop trailing ones. The amount needed is the
     // one thing this whole tool exists to answer; it must not be the part
     // that gets truncated away.
-    if (addedPerServing != null && addedPerServing > 0) {
-      const thresholdGrams = (FIBER_PROTEIN_SUGAR_OFFSET_DV / 100) * refGrams;
-      const stillNeededGrams = thresholdGrams - (beforeGrams ?? 0);
-      const multiplier = roundUpToHalf(stillNeededGrams / addedPerServing);
+    const multiplier = multiplierToThreshold(beforeGrams ?? 0, refGrams, addition.perServing[nutrientKey]);
+    if (multiplier != null && multiplier > 0) {
       const amount = formatAmount(multiplier * addition.unitQuantity);
       return (
         `You'd need about ${amount} ${addition.unitLabel} of ${addition.name.toLowerCase()} — not ` +
@@ -152,5 +162,79 @@ export function simulateAddition(
     changed: after.tone !== before.tone,
     mechanism,
     note: 'Approximate — based on a typical serving, not this specific brand.',
+  };
+}
+
+// Spec 014 — a genuine gap `simulateAddition` can't cover: a generic "what
+// could I add to fix this?" question, with no specific ingredient named.
+// Ranks every common addition by how little of it would close the gap to
+// FIBER_PROTEIN_SUGAR_OFFSET_DV, using the exact same math as
+// fiberProteinMechanism — this is a ranking over the same table, not a new
+// nutrition rule. `summary` is the deterministic, displayable answer (same
+// non-negotiable principle as `mechanism`/`note` above): the model's job is
+// only to decide THIS tool applies, never to phrase the recommendation.
+export interface SuggestedAddition {
+  name: string;
+  amount: string; // e.g. "1.5 tbsp"
+}
+
+export interface SuggestAdditionsResult {
+  // False when there's no sugar flag here. Note: fiber/protein already being
+  // past the threshold can't happen when sugar IS flagged — toneNutrition's
+  // own sugarOffset (nutrition.ts) applies that exact same threshold check
+  // and would have already softened the flag, so sugarFlagged would be false
+  // first. One condition, not two, by construction.
+  applicable: boolean;
+  suggestions: SuggestedAddition[];
+  summary: string;
+}
+
+export function suggestAdditions(
+  sn: ServingNutrients,
+  profile: Profile,
+  ctx?: { wholeFoodSugarMatrix?: boolean; matrixDestroyedCategory?: boolean },
+): SuggestAdditionsResult {
+  const assessment = toneNutrition(sn, profile, ctx);
+  const sugarFlagged = assessment.highNutrients.some(h => h.includes('sugar'));
+  if (!sugarFlagged) {
+    return {
+      applicable: false,
+      suggestions: [],
+      summary: "This product isn't currently flagged for high sugar, so there's no threshold to cross here.",
+    };
+  }
+
+  const refs = referenceValues(profile);
+  const ranked = COMMON_ADDITIONS
+    .map(addition => {
+      const fiberMultiplier = multiplierToThreshold(sn.fiber ?? 0, refs.fiber, addition.perServing.fiber);
+      const proteinMultiplier = multiplierToThreshold(sn.protein ?? 0, refs.protein, addition.perServing.protein);
+      const best = [fiberMultiplier, proteinMultiplier]
+        .filter((m): m is number => m != null)
+        .sort((a, b) => a - b)[0];
+      if (best == null) return null;
+      return { name: addition.name, amount: `${formatAmount(best * addition.unitQuantity)} ${addition.unitLabel}`, sortKey: best };
+    })
+    .filter((x): x is { name: string; amount: string; sortKey: number } => x != null)
+    .sort((a, b) => a.sortKey - b.sortKey)
+    .slice(0, 4)
+    .map(({ name, amount }) => ({ name, amount }));
+
+  if (ranked.length === 0) {
+    return {
+      applicable: true,
+      suggestions: [],
+      summary: "None of the common additions in our list would meaningfully close this gap.",
+    };
+  }
+
+  const list = joinNouns(ranked.map(r => `${r.amount} of ${r.name.toLowerCase()}`));
+  return {
+    applicable: true,
+    suggestions: ranked,
+    summary:
+      `Adding about ${list} would each get fiber or protein over the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% ` +
+      `daily-value mark that softens a high-sugar flag here — ranked by least amount needed. Approximate, ` +
+      `based on typical serving values.`,
   };
 }

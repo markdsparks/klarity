@@ -322,10 +322,46 @@ split spec 010 used (JS-side resolution vs. native capture).
   no longer instructs the model on how to phrase a result it will never be
   shown relaying.
 
-  **Still open:** confirm this on-device (one more pass) — it should now be
-  structurally impossible for the answer to lose the recommendation, since
-  the model's paraphrase is no longer in the path at all. Then remove the
-  temporary debug output (`AskResult.debug`) once confirmed.
+  **7th on-device pass confirmed the architecture correction worked** for
+  the exact case it was built for — but it also surfaced a real gap: asked
+  the more open-ended "What could I do to cross the threshold?" (no specific
+  ingredient named), the model called `simulate_addition` with
+  `ingredient: "sugar"` — a plausible-sounding but invented parameter, since
+  the question doesn't name an addable ingredient at all. The tool correctly
+  reported "sugar" isn't in the common-additions list (honest, grounded, not
+  fabricated), but that's not a useful answer to what was actually asked.
+
+  **Before patching further, paused to research whether the underlying
+  approach is sound** rather than keep iterating blind. A 2025 survey of
+  small on-device agentic models (arXiv 2510.03847 — explicitly includes
+  Apple's on-device 3B model) confirms the exact split observed here: SLMs
+  are reliable at *schema-constrained* decisions (which tool, which
+  parameters) but not at *open-ended generation* (summarizing/paraphrasing a
+  result) — validating the M2 architecture correction above as the
+  documented mitigation, not a workaround. Full synthesis and sources given
+  to Mark in-conversation; not duplicated here.
+
+  **Added a third tool, `suggest_additions`,** for exactly the class of
+  question that exposed the gap: no ingredient named, asking generically
+  what would help. Ranks every entry in `COMMON_ADDITIONS` by the least
+  amount needed to cross `FIBER_PROTEIN_SUGAR_OFFSET_DV` (reusing the same
+  `multiplierToThreshold` math `fiberProteinMechanism` already uses — a
+  ranking over the existing table, not a new rule), returns the top 4, and
+  — same non-negotiable principle — produces its own deterministic
+  `summary` text rather than leaving the model to phrase the
+  recommendation. `simulate_addition`'s description now explicitly
+  disambiguates "named ingredient → use me" vs. "no ingredient named → use
+  suggest_additions," since explicit, non-overlapping tool schemas are
+  exactly what the research says improves small-model tool *selection*
+  reliability specifically. This extends spec Q1 ("exactly two tools")
+  beyond what was originally approved — a natural extension surfaced by
+  real testing, not scope creep for its own sake.
+
+  **Still open:** confirm `suggest_additions` fires correctly on-device for
+  this exact question, and that `simulate_addition` no longer gets called
+  with an invented ingredient once the disambiguating description is in
+  place. Then remove the temporary debug output (`AskResult.debug`) once
+  both are confirmed.
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**
   Still open: spec 009 logging, safety telemetry
@@ -352,6 +388,13 @@ split spec 010 used (JS-side resolution vs. native capture).
 
 - **Q1 — v1 tool scope:** approved as recommended — exactly two tools,
   `simulate_addition` and `explain_rule`, nothing broader for v1.
+  **Revised during on-device testing (2026-07-04, 7th pass):** a third tool,
+  `suggest_additions`, added for generic "what could I add?" questions with
+  no ingredient named — `simulate_addition` alone can't answer these without
+  the model inventing a parameter. Same principle as the original two (a
+  deterministic ranking over `COMMON_ADDITIONS`, own `summary` text, no
+  model-phrased output) — a natural extension surfaced by real usage, not a
+  reopening of the "keep it narrow" intent.
 - **Q2 — Offline vs. network:** approved as recommended — small pre-bundled
   common-additions table first; live USDA generic-food lookup is a
   fast-follow once the table proves the pattern.
