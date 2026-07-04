@@ -1,6 +1,8 @@
 # Spec 009 — Real-World Instrumentation & Feedback Loop
 
-**Status:** draft — awaiting approval
+**Status:** shipped (2026-07-03) — M1 (#36), M2/M3 (#37). Infrastructure is
+live; real-world usage/review of the collected data has not happened yet (see
+CLAUDE.md Phase 5).
 **Phase:** 5 (validation) — first thing that measures instead of assuming
 **Surface:** `src/services/history.ts` (outcome tagging), a new
 `src/services/diagnostics.ts`, result screens (`[barcode].tsx`,
@@ -145,15 +147,19 @@ prioritization:
   the flagged-items list.
 - **M3 — Export.** JSON share-sheet export for cross-device review.
 
-## Open questions (need Mark's call)
+## Open questions — resolved as shipped
 
-- **Q1 — v1 scope:** M1 (outcome logging + view) as the first standalone ship
-  (recommended — starts the data flywheel immediately; feedback + export
-  follow), or bundle M1+M2 so the family can flag from day one?
-- **Q2 — Local-only confirmed:** per-device local storage + manual JSON export,
-  no backend/sync in this spec (recommended — privacy-first, no new deps)?
-- **Q3 — Diagnostics entry point:** a section in the You tab (recommended) vs. a
-  hidden/long-press dev affordance? (You-tab is discoverable for the whole
-  family; still unobtrusive.)
-- **Q4 — Feedback granularity:** tap-categories + optional short note
-  (recommended) vs. free-text only vs. categories only?
+- **Q1 — v1 scope:** resolved as recommended — M1 shipped standalone first (#36),
+  M2/M3 followed in one PR (#37).
+- **Q2 — Local-only confirmed:** resolved as recommended — local storage + manual
+  JSON export, no backend/sync.
+- **Q3 — Diagnostics entry point:** resolved as recommended — "How Klarity's
+  doing" row in the You tab, links to `/diagnostics`.
+- **Q4 — Feedback granularity:** resolved as recommended — tap-categories with
+  an optional short note (`src/components/feedback-sheet.tsx`).
+
+## Still genuinely open (not a spec question — a usage question)
+
+The infrastructure above is live, but as of this writing nobody has exported
+and read the collected data yet. The instrumentation only pays off once
+someone actually looks at it — see CLAUDE.md Phase 5.
