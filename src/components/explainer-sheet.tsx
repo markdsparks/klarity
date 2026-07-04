@@ -1,5 +1,5 @@
 import React from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { NutritionExplainer } from '@/data/nutrition-explainers';
@@ -39,9 +39,13 @@ export function ExplainerSheet({
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         {explainer ? (
-          <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]} onPress={() => {}}>
+          // Tapping the sheet body (not the backdrop) only hides the keyboard,
+          // it doesn't close the sheet — the "Ask about this" box has no
+          // return-key path to dismiss without submitting a question, so this
+          // is the only way to put the keyboard away without asking something.
+          <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]} onPress={() => Keyboard.dismiss()}>
             <View style={styles.grabber} />
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <View style={[styles.tierPill, { backgroundColor: `${TIER_COLOR[explainer.tier]}1a` }]}>
                 <Text style={[styles.tierText, { color: TIER_COLOR[explainer.tier] }]}>
                   {TIER_LABEL[explainer.tier] ?? `Tier ${explainer.tier}`}
