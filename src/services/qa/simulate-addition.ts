@@ -65,15 +65,24 @@ function fiberProteinMechanism(
   }
   if (afterDv < FIBER_PROTEIN_SUGAR_OFFSET_DV) {
     const addedPerServing = addition.perServing[nutrientKey];
-    let howMuchMore = '';
+    // Lead with the actionable recommendation, not the diagnostic detail — a
+    // small on-device model summarizing a multi-sentence tool result tends to
+    // keep the FIRST fact and drop trailing ones. The amount needed is the
+    // one thing this whole tool exists to answer; it must not be the part
+    // that gets truncated away.
     if (addedPerServing != null && addedPerServing > 0) {
       const thresholdGrams = (FIBER_PROTEIN_SUGAR_OFFSET_DV / 100) * refGrams;
       const stillNeededGrams = thresholdGrams - (beforeGrams ?? 0);
       const multiplier = roundUpToHalf(stillNeededGrams / addedPerServing);
       const amount = formatAmount(multiplier * addition.unitQuantity);
-      howMuchMore = ` About ${amount} ${addition.unitLabel} of ${addition.name.toLowerCase()} (instead of ${addition.commonServing.split(' (')[0]}) would get you there.`;
+      return (
+        `You'd need about ${amount} ${addition.unitLabel} of ${addition.name.toLowerCase()} — not ` +
+        `${addition.commonServing.split(' (')[0]} — to cross the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% ` +
+        `${label.toLowerCase()} mark that softens a high-sugar flag. At ${addition.commonServing.split(' (')[0]}, ` +
+        `${label.toLowerCase()} only reaches ${afterDv}% of daily value (from ${beforeDv}%).`
+      );
     }
-    return `${label} would go from ${beforeDv}% to ${afterDv}% of daily value — still short of the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% needed to soften a sugar flag.${howMuchMore}`;
+    return `${label} would go from ${beforeDv}% to ${afterDv}% of daily value — still short of the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% needed to soften a sugar flag.`;
   }
   return null; // already over the threshold before adding — nothing new to report
 }

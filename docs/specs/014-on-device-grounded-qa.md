@@ -281,9 +281,25 @@ split spec 010 used (JS-side resolution vs. native capture).
   ground flaxseed (instead of 1 tbsp) would get you there."* Rounds up to
   the nearest half-unit — a "definitely enough" answer, not false precision.
 
-  **Still open:** confirm the extended `mechanism` field actually produces
-  the right answer on-device (one more pass), then remove the temporary
-  debug output (`AskResult.debug`) once that's confirmed.
+  **5th on-device pass — tool-calling and topic accuracy both confirmed
+  working** (`tools=[simulate_addition]` fired; the model correctly
+  discussed fiber, not sugar — the exact bug from pass 4 is gone), **but
+  the model paraphrased away the "how much more" sentence entirely,**
+  answering only "...fiber content to 5%... still short of the 20%
+  needed..." with no amount recommended. Root cause: a small on-device
+  model summarizing a multi-sentence tool result tends to keep the first
+  fact and drop trailing ones — the actionable recommendation was the LAST
+  sentence in the template. **Fixed by leading with it instead:** the
+  mechanism string now opens with "You'd need about N unit of X — not
+  (current serving) — to cross the threshold..." and only then gives the
+  diagnostic before/after context. Also strengthened `SYSTEM_PROMPT`: "If a
+  tool result gives a specific quantity or amount, you MUST include that
+  exact number in your answer." Test updated to assert the amount leads the
+  string, not just that it's present somewhere.
+
+  **Still open:** confirm the reordered `mechanism` field survives the
+  model's paraphrase this time (one more on-device pass), then remove the
+  temporary debug output (`AskResult.debug`) once that's confirmed.
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**
   Still open: spec 009 logging, safety telemetry

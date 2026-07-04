@@ -48,18 +48,24 @@ describe('simulateAddition', () => {
     expect(result.mechanism).toMatch(/fiber.*11%.*28%.*crossing.*20%/i);
   });
 
-  it('real bug this guards against: flax seed alone is not enough fiber to cross the threshold — the mechanism must say so, not just "no change"', () => {
+  it('real bug this guards against: flax seed alone is not enough fiber to cross the threshold — the mechanism must lead with the actionable amount, not bury it', () => {
     // 3g fiber + flax seed's 2g -> 5g -> 18% DV, short of the 20% needed.
     // A model that only sees before/after tone (both 'warn') could wrongly
     // conclude "flax seed does nothing" instead of "close, but not enough."
+    // On-device testing showed a second failure mode too: a small model
+    // paraphrasing a multi-sentence result tends to drop the LAST sentence —
+    // so the actionable "how much more" must come first, not as a trailing
+    // addendum, or it gets summarized away.
     const result = simulateAddition(sugaryLowFiberSn, baseProfile, 'flax seed');
     expect(result.found).toBe(true);
     expect(result.changed).toBe(false);
-    expect(result.mechanism).toMatch(/fiber.*11%.*18%.*short of.*20%/i);
-    // The actual answer to "how much would I need" — not just "not enough":
+    // The actual answer to "how much would I need" leads the sentence:
     // threshold is 5.6g (20% of 28g), baseline 3g, flax gives 2g/tbsp ->
     // 1.3 tbsp needed, rounded up to a clean 1.5.
-    expect(result.mechanism).toMatch(/about 1\.5 tbsp of ground flaxseed \(instead of 1 tbsp\) would get you there/i);
+    expect(result.mechanism).toMatch(/^you'd need about 1\.5 tbsp of ground flaxseed/i);
+    expect(result.mechanism).toMatch(/not 1 tbsp/i);
+    expect(result.mechanism).toMatch(/cross the 20% fiber mark/i);
+    expect(result.mechanism).toMatch(/only reaches 18% of daily value \(from 11%\)/i);
   });
 
   it('an addition that does not change the tone still reports both snapshots, changed: false', () => {

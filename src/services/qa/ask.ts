@@ -41,7 +41,10 @@ const SYSTEM_PROMPT =
   "claim that didn't come from a tool result. If no available tool can answer " +
   "the question, say plainly that you don't have grounded data for it — do not " +
   'guess. Never give medical, drug-interaction, diagnostic, or treatment advice; ' +
-  'point those questions to a doctor instead. Keep answers to 2–3 sentences.';
+  'point those questions to a doctor instead. Keep answers to 2–3 sentences. ' +
+  'If a tool result gives a specific quantity or amount, you MUST include that ' +
+  'exact number in your answer — it is the most important part and the ' +
+  'question cannot be answered without it.';
 
 let cachedAvailability: boolean | null = null;
 
