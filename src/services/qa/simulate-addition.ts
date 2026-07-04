@@ -1,5 +1,5 @@
 import { findCommonAddition, type CommonAddition } from '@/data/common-additions';
-import { referenceValues, toneNutrition, type ServingNutrients } from '@/services/nutrition';
+import { FIBER_PROTEIN_SUGAR_OFFSET_DV, referenceValues, toneNutrition, type ServingNutrients } from '@/services/nutrition';
 import type { NutritionTone, Profile } from '@/types/index';
 
 // Spec 014 M1 — the deterministic "what if I add X" recompute. This is not a
@@ -20,7 +20,31 @@ export interface SimulateAdditionResult {
   before: ToneSnapshot;
   after?: ToneSnapshot;
   changed?: boolean;
+  // Pre-written, deterministic — the model relays this verbatim rather than
+  // inferring its own explanation from the before/after tone alone. Without
+  // this, a model can technically-correctly answer about the WRONG nutrient
+  // (e.g. "flax seed doesn't change sugar" — true, but not the question;
+  // the mechanism is whether added FIBER crosses the threshold that softens
+  // the sugar flag, not whether sugar itself moves).
+  mechanism?: string;
   note: string;
+}
+
+// The one verdict-changing mechanism common additions can actually trigger
+// (see nutrition.ts's fiberQualifies/proteinQualifies) — fiber or protein
+// crossing FIBER_PROTEIN_SUGAR_OFFSET_DV softens a high-sugar flag. Returns
+// null when the addition doesn't touch fiber/protein at all (e.g. olive oil),
+// since there's nothing to explain about a mechanism that wasn't in play.
+function fiberProteinMechanism(beforeDv: number | undefined, afterDv: number | undefined, nutrient: 'fiber' | 'protein'): string | null {
+  if (beforeDv == null || afterDv == null || afterDv <= beforeDv) return null;
+  const crossed = afterDv >= FIBER_PROTEIN_SUGAR_OFFSET_DV && beforeDv < FIBER_PROTEIN_SUGAR_OFFSET_DV;
+  if (crossed) {
+    return `${nutrient === 'fiber' ? 'Fiber' : 'Protein'} would go from ${beforeDv}% to ${afterDv}% of daily value — crossing the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% mark that softens a high-sugar flag.`;
+  }
+  if (afterDv < FIBER_PROTEIN_SUGAR_OFFSET_DV) {
+    return `${nutrient === 'fiber' ? 'Fiber' : 'Protein'} would go from ${beforeDv}% to ${afterDv}% of daily value — still short of the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% needed to soften a sugar flag.`;
+  }
+  return null; // already over the threshold before adding — nothing new to report
 }
 
 // Adds a common addition's nutrients to sn and recomputes every %DV it
@@ -73,6 +97,11 @@ export function simulateAddition(
   const after = toneNutrition(merged, profile, ctx);
   const afterSnapshot: ToneSnapshot = { tone: after.tone, summary: after.summary };
 
+  const mechanism =
+    fiberProteinMechanism(sn.fiberDv, merged.fiberDv, 'fiber') ??
+    fiberProteinMechanism(sn.proteinDv, merged.proteinDv, 'protein') ??
+    undefined;
+
   return {
     found: true,
     additionName: addition.name,
@@ -80,6 +109,7 @@ export function simulateAddition(
     before: beforeSnapshot,
     after: afterSnapshot,
     changed: after.tone !== before.tone,
+    mechanism,
     note: 'Approximate — based on a typical serving, not this specific brand.',
   };
 }

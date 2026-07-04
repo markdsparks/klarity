@@ -45,16 +45,29 @@ describe('simulateAddition', () => {
     expect(result.before.tone).toBe('warn');
     expect(result.after?.tone).not.toBe('warn');
     expect(result.changed).toBe(true);
+    expect(result.mechanism).toMatch(/fiber.*11%.*28%.*crossing.*20%/i);
+  });
+
+  it('real bug this guards against: flax seed alone is not enough fiber to cross the threshold — the mechanism must say so, not just "no change"', () => {
+    // 3g fiber + flax seed's 2g -> 5g -> 18% DV, short of the 20% needed.
+    // A model that only sees before/after tone (both 'warn') could wrongly
+    // conclude "flax seed does nothing" instead of "close, but not enough."
+    const result = simulateAddition(sugaryLowFiberSn, baseProfile, 'flax seed');
+    expect(result.found).toBe(true);
+    expect(result.changed).toBe(false);
+    expect(result.mechanism).toMatch(/fiber.*11%.*18%.*short of.*20%/i);
   });
 
   it('an addition that does not change the tone still reports both snapshots, changed: false', () => {
     // Olive oil adds fat only — doesn't touch fiber or sugar, so the sugar
-    // flag driving 'warn' here should be untouched.
+    // flag driving 'warn' here should be untouched, and there's no fiber/
+    // protein mechanism to report at all.
     const result = simulateAddition(sugaryLowFiberSn, baseProfile, 'olive oil');
     expect(result.found).toBe(true);
     expect(result.before.tone).toBe('warn');
     expect(result.after?.tone).toBe('warn');
     expect(result.changed).toBe(false);
+    expect(result.mechanism).toBeUndefined();
   });
 
   it('always includes the approximate-values caveat when a match is found', () => {

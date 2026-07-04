@@ -246,11 +246,34 @@ split spec 010 used (JS-side resolution vs. native capture).
   wrapped both `ExplainerSheet` and `VerdictExplainerSheet` in
   `KeyboardAvoidingView`.
 
-  **Still not verified:** the real on-device inference call actually
-  resolving via a tool end to end through the corrected wiring — this needs
-  one more on-device pass. Temporary debug output (`AskResult.debug`,
-  visible in the answer box) stays until that's confirmed, then gets
-  removed.
+  **Tool-calling confirmed working on the 4th on-device pass** — the debug
+  fields did their job: `tools=[simulate_addition]` fired, and the fix from
+  attempt 3 held. But the answer itself exposed a real product bug, not a
+  wiring one: asked "what if I add flax seed?" on a high-sugar orange juice,
+  the model correctly called `simulate_addition`, correctly got back
+  `changed: false`, and answered "Adding flax seed does not change its sugar
+  content" — **technically true, but not the question that was asked.**
+  Flax seed doesn't touch sugar at all; the real mechanism is whether the
+  *fiber* it adds crosses the threshold that softens a sugar flag (it
+  didn't — flax's ~2g fiber only reaches 18% DV against fiber's 20%
+  threshold here). Leaving that reasoning to the model, even with a
+  correctly-called tool, produced a technically-correct-but-useless answer.
+
+  **Fixed by moving the explanation into the tool result, not the prompt:**
+  `simulate_addition` (`simulate-addition.ts`) now returns a pre-written,
+  deterministic `mechanism` string whenever an addition touches fiber or
+  protein — "Fiber would go from 11% to 18% of daily value — still short of
+  the 20% needed to soften a sugar flag," or the crossing version when it
+  does clear the bar. The model's job shrinks to relaying that sentence, not
+  synthesizing one from raw before/after numbers. `FIBER_PROTEIN_SUGAR_OFFSET_DV`
+  is now a named export from `nutrition.ts` (was an inline `20` in two
+  places) so this can never drift from the real threshold. Locked in with a
+  test built from the exact real-world case that exposed this
+  (`simulate-addition.test.ts`).
+
+  **Still open:** confirm the corrected `mechanism` field actually produces
+  the right answer on-device (one more pass), then remove the temporary
+  debug output (`AskResult.debug`) once that's confirmed.
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**
   Still open: spec 009 logging, safety telemetry

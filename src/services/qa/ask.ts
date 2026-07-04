@@ -88,7 +88,10 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
         description:
           'Simulate adding a common food or ingredient to the product currently ' +
           "on screen, and report whether the nutrition verdict changes. Use this " +
-          "for any \"what if I add X\" question.",
+          'for any "what if I add X" question. The result may include a ' +
+          "'mechanism' field with the precise, pre-computed reason the verdict " +
+          "did or didn't change — when present, relay that reason directly " +
+          'instead of inventing your own explanation from the raw numbers.',
         inputSchema: z.object({
           ingredient: z.string().describe('the plain ingredient name, e.g. "flax seed"'),
         }),

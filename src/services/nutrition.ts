@@ -14,6 +14,11 @@ export const FDA_DV = {
 
 export type DailyValues = typeof FDA_DV;
 
+// Fiber or protein clearing this %DV softens a sugar flag (see fiber_protein_sugar
+// explainer). Named + exported so spec 014's simulate_addition tool can explain
+// the mechanism precisely instead of leaving the model to infer it.
+export const FIBER_PROTEIN_SUGAR_OFFSET_DV = 20;
+
 // Sex/age-specific reference intakes (IOM DRIs). Only fiber and protein among the
 // nutrients we display differ enough by sex/age to personalize; everything else
 // stays on the generic FDA DV. 'unspecified'/absent sex → generic FDA behavior.
@@ -339,8 +344,8 @@ export function toneNutrition(
   // ── Verdict-moving offsets (extend the fiber↔sugar precedent) ──
   // Fiber and/or protein slow glucose absorption and add satiety — a high-sugar
   // food with strong fiber or protein is nutritionally different from sugar alone.
-  const fiberQualifies = fiberDv >= 20;
-  const proteinQualifies = proteinDv >= 20;
+  const fiberQualifies = fiberDv >= FIBER_PROTEIN_SUGAR_OFFSET_DV;
+  const proteinQualifies = proteinDv >= FIBER_PROTEIN_SUGAR_OFFSET_DV;
   const sugarOffset = sugarToneDvBasis >= t.sugar && (fiberQualifies || proteinQualifies);
 
   // Na:K ratio predicts BP/CVD better than sodium alone — high sodium paired with
