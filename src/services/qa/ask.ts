@@ -29,6 +29,9 @@ export interface AskContext {
 export interface AskResult {
   text: string;
   usedTool: boolean;
+  // Temporary — spec 014 M2 is still pinning down the first on-device pass.
+  // Remove once a real question reliably resolves via a tool call.
+  debug?: string;
 }
 
 const SYSTEM_PROMPT =
@@ -113,8 +116,12 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
       prompt: question,
     });
 
-    return { text: result.text, usedTool };
-  } catch {
-    return { text: "Sorry, I couldn't get an answer just now.", usedTool: false };
+    const toolNames = result.toolCalls.map(c => c.toolName);
+    const debug = `finish=${result.finishReason} tools=[${toolNames.join(',')}] steps=${result.steps.length}`;
+
+    return { text: result.text, usedTool, debug };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { text: "Sorry, I couldn't get an answer just now.", usedTool: false, debug: `error: ${message}` };
   }
 }

@@ -16,7 +16,7 @@ type State =
   | { phase: 'hidden' }
   | { phase: 'idle' }
   | { phase: 'asking' }
-  | { phase: 'answered'; text: string }
+  | { phase: 'answered'; text: string; debug?: string }
   | { phase: 'error' };
 
 export function AskAboutThis({ context }: { context: AskContext }) {
@@ -39,7 +39,7 @@ export function AskAboutThis({ context }: { context: AskContext }) {
     setState({ phase: 'asking' });
     try {
       const result = await askAboutProduct(q, context);
-      setState({ phase: 'answered', text: result.text });
+      setState({ phase: 'answered', text: result.text, debug: result.debug });
     } catch {
       setState({ phase: 'error' });
     }
@@ -72,6 +72,8 @@ export function AskAboutThis({ context }: { context: AskContext }) {
       {state.phase === 'answered' && (
         <View style={styles.answerBox}>
           <Text style={styles.answerText}>{state.text}</Text>
+          {/* Temporary — spec 014 M2 on-device debugging, remove once verified */}
+          {state.debug ? <Text style={styles.debugText}>DEBUG: {state.debug}</Text> : null}
         </View>
       )}
       {state.phase === 'error' && (
@@ -97,5 +99,6 @@ const styles = StyleSheet.create({
   askBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   answerBox: { backgroundColor: '#f0faf5', borderRadius: 12, borderWidth: 1, borderColor: '#c3e6d5', padding: 14 },
   answerText: { fontSize: 14, lineHeight: 20, color: '#1a1f29' },
+  debugText: { fontSize: 10.5, color: '#9aa4b2', marginTop: 8, fontFamily: 'Menlo' },
   errorText: { fontSize: 12.5, color: '#c04a4a' },
 });
