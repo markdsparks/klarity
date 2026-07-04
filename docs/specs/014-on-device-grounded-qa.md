@@ -393,9 +393,31 @@ split spec 010 used (JS-side resolution vs. native capture).
   honest decline, not a fabricated explanation. Growing that coverage is a
   content decision (write more explainers), not urgent code work.
 
-  **Still open:** confirm `explain_rule` on-device, then remove the
-  temporary debug output (`AskResult.debug`) once all three tools are
-  confirmed working end to end.
+  **10th on-device pass — `explain_rule` fired correctly (right tool), but
+  picked the wrong topic.** Asked "why is high sugar to calories bad?", the
+  model called `explain_rule` with `topic: 'sugar_basis_added'` ("Scored on
+  added sugar") instead of `sugar_pct_calories` ("Sugar as a share of
+  calories") — a real answer, grounded, just the wrong one. Root cause: the
+  tool schema was a bare `z.enum` of ~12 snake_case ids with zero
+  description of what each one covers — nothing to disambiguate two
+  similar-looking `sugar_...` ids from the id string alone. This is a
+  different failure mode than the earlier ones: tool *selection* worked
+  (matches the research — SLMs are reliable at picking *which* tool);
+  *parameter* selection among many similarly-named enum values is its own
+  sub-problem that needs the same explicitness treatment.
+
+  **Fixed:** `topicGuide()` (`explain-rule.ts`) builds an "id: title" index
+  straight from `NUTRITION_EXPLAINERS` — e.g. "sugar_pct_calories: Sugar as
+  a share of calories; sugar_basis_added: Scored on added sugar" — embedded
+  directly in the tool's description, so the model has real semantic
+  signal to match against instead of guessing from bare ids. Generated, not
+  hand-maintained, so it can't drift out of sync as topics are added.
+  Locked in with a test built from the exact confused pair.
+
+  **Still open:** confirm the disambiguated topic guide actually fixes this
+  question on-device, then remove the temporary debug output
+  (`AskResult.debug`) once all three tools are confirmed working end to
+  end.
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**
   Still open: spec 009 logging, safety telemetry

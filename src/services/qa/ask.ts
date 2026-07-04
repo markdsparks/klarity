@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-import { EXPLAIN_RULE_TOPICS, explainRule } from '@/services/qa/explain-rule';
+import { EXPLAIN_RULE_TOPICS, explainRule, topicGuide } from '@/services/qa/explain-rule';
 import { simulateAddition, suggestAdditions } from '@/services/qa/simulate-addition';
 import type { ServingNutrients } from '@/services/nutrition';
 import type { Profile } from '@/types/index';
@@ -138,7 +138,8 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
       explain_rule: tool({
         description:
           'Look up the existing, vetted explanation for a specific nutrition rule ' +
-          'already used by this app, by topic id.',
+          'already used by this app. Pick the topic id whose description best ' +
+          `matches the question. Available topics — ${topicGuide()}.`,
         inputSchema: z.object({ topic: z.enum(topics) }),
         execute: async ({ topic }: { topic: string }) => {
           usedTool = true;

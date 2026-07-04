@@ -9,6 +9,17 @@ import { NUTRITION_EXPLAINERS, getExplainer } from '@/data/nutrition-explainers'
 
 export const EXPLAIN_RULE_TOPICS = Object.keys(NUTRITION_EXPLAINERS);
 
+// A bare enum of snake_case ids gives a small model nothing to disambiguate
+// near-identical-looking topics by (sugar_basis_added vs. sugar_pct_calories
+// are both "sugar_..." strings with no semantic signal in the id alone) — on
+// device this picked the wrong one for "why is high sugar vs. calories bad?"
+// This builds "id: title" pairs straight from NUTRITION_EXPLAINERS so the
+// tool's description can give the model an actual index to match against,
+// and it can never drift out of sync with the real topic list.
+export function topicGuide(): string {
+  return EXPLAIN_RULE_TOPICS.map(id => `${id}: ${NUTRITION_EXPLAINERS[id].title}`).join('; ');
+}
+
 export interface RuleExplanation {
   title: string;
   body: string;
