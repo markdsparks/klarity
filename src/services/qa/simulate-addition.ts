@@ -30,19 +30,50 @@ export interface SimulateAdditionResult {
   note: string;
 }
 
+// Round up to the nearest half-unit — a "definitely enough" recommendation
+// rather than a falsely precise fraction (everything here is already labeled
+// approximate).
+function roundUpToHalf(n: number): number {
+  return Math.ceil(n * 2) / 2;
+}
+
+function formatAmount(n: number): string {
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+}
+
 // The one verdict-changing mechanism common additions can actually trigger
 // (see nutrition.ts's fiberQualifies/proteinQualifies) — fiber or protein
 // crossing FIBER_PROTEIN_SUGAR_OFFSET_DV softens a high-sugar flag. Returns
 // null when the addition doesn't touch fiber/protein at all (e.g. olive oil),
 // since there's nothing to explain about a mechanism that wasn't in play.
-function fiberProteinMechanism(beforeDv: number | undefined, afterDv: number | undefined, nutrient: 'fiber' | 'protein'): string | null {
+// When still short of the threshold, computes exactly how much more of the
+// SAME addition would close the gap — the actionable answer, not just "not
+// enough" — from the addition's own per-serving contribution, no new lookup.
+function fiberProteinMechanism(
+  beforeGrams: number | undefined,
+  beforeDv: number | undefined,
+  afterDv: number | undefined,
+  refGrams: number,
+  addition: CommonAddition,
+  nutrientKey: 'fiber' | 'protein',
+): string | null {
   if (beforeDv == null || afterDv == null || afterDv <= beforeDv) return null;
-  const crossed = afterDv >= FIBER_PROTEIN_SUGAR_OFFSET_DV && beforeDv < FIBER_PROTEIN_SUGAR_OFFSET_DV;
-  if (crossed) {
-    return `${nutrient === 'fiber' ? 'Fiber' : 'Protein'} would go from ${beforeDv}% to ${afterDv}% of daily value — crossing the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% mark that softens a high-sugar flag.`;
+  const label = nutrientKey === 'fiber' ? 'Fiber' : 'Protein';
+
+  if (afterDv >= FIBER_PROTEIN_SUGAR_OFFSET_DV && beforeDv < FIBER_PROTEIN_SUGAR_OFFSET_DV) {
+    return `${label} would go from ${beforeDv}% to ${afterDv}% of daily value — crossing the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% mark that softens a high-sugar flag.`;
   }
   if (afterDv < FIBER_PROTEIN_SUGAR_OFFSET_DV) {
-    return `${nutrient === 'fiber' ? 'Fiber' : 'Protein'} would go from ${beforeDv}% to ${afterDv}% of daily value — still short of the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% needed to soften a sugar flag.`;
+    const addedPerServing = addition.perServing[nutrientKey];
+    let howMuchMore = '';
+    if (addedPerServing != null && addedPerServing > 0) {
+      const thresholdGrams = (FIBER_PROTEIN_SUGAR_OFFSET_DV / 100) * refGrams;
+      const stillNeededGrams = thresholdGrams - (beforeGrams ?? 0);
+      const multiplier = roundUpToHalf(stillNeededGrams / addedPerServing);
+      const amount = formatAmount(multiplier * addition.unitQuantity);
+      howMuchMore = ` About ${amount} ${addition.unitLabel} of ${addition.name.toLowerCase()} (instead of ${addition.commonServing.split(' (')[0]}) would get you there.`;
+    }
+    return `${label} would go from ${beforeDv}% to ${afterDv}% of daily value — still short of the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% needed to soften a sugar flag.${howMuchMore}`;
   }
   return null; // already over the threshold before adding — nothing new to report
 }
@@ -97,9 +128,10 @@ export function simulateAddition(
   const after = toneNutrition(merged, profile, ctx);
   const afterSnapshot: ToneSnapshot = { tone: after.tone, summary: after.summary };
 
+  const refs = referenceValues(profile);
   const mechanism =
-    fiberProteinMechanism(sn.fiberDv, merged.fiberDv, 'fiber') ??
-    fiberProteinMechanism(sn.proteinDv, merged.proteinDv, 'protein') ??
+    fiberProteinMechanism(sn.fiber, sn.fiberDv, merged.fiberDv, refs.fiber, addition, 'fiber') ??
+    fiberProteinMechanism(sn.protein, sn.proteinDv, merged.proteinDv, refs.protein, addition, 'protein') ??
     undefined;
 
   return {

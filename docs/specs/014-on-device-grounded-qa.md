@@ -271,7 +271,17 @@ split spec 010 used (JS-side resolution vs. native capture).
   test built from the exact real-world case that exposed this
   (`simulate-addition.test.ts`).
 
-  **Still open:** confirm the corrected `mechanism` field actually produces
+  **Extended per Mark's follow-up while testing:** "still short of 20%" is a
+  true but incomplete answer — the actually useful one is *how much more*.
+  `CommonAddition` now carries `unitQuantity`/`unitLabel` (e.g. `1`/`"tbsp"`)
+  alongside the existing display string, so `fiberProteinMechanism` can
+  compute the exact gap in grams (threshold − baseline, from the same
+  `FIBER_PROTEIN_SUGAR_OFFSET_DV` and the addition's own per-serving
+  contribution — no new data source) and state it: *"About 1.5 tbsp of
+  ground flaxseed (instead of 1 tbsp) would get you there."* Rounds up to
+  the nearest half-unit — a "definitely enough" answer, not false precision.
+
+  **Still open:** confirm the extended `mechanism` field actually produces
   the right answer on-device (one more pass), then remove the temporary
   debug output (`AskResult.debug`) once that's confirmed.
 - **M3 — Graceful degradation + instrumentation.** Availability check +

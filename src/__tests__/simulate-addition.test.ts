@@ -56,6 +56,10 @@ describe('simulateAddition', () => {
     expect(result.found).toBe(true);
     expect(result.changed).toBe(false);
     expect(result.mechanism).toMatch(/fiber.*11%.*18%.*short of.*20%/i);
+    // The actual answer to "how much would I need" — not just "not enough":
+    // threshold is 5.6g (20% of 28g), baseline 3g, flax gives 2g/tbsp ->
+    // 1.3 tbsp needed, rounded up to a clean 1.5.
+    expect(result.mechanism).toMatch(/about 1\.5 tbsp of ground flaxseed \(instead of 1 tbsp\) would get you there/i);
   });
 
   it('an addition that does not change the tone still reports both snapshots, changed: false', () => {
