@@ -445,12 +445,52 @@ split spec 010 used (JS-side resolution vs. native capture).
   on-device pass should show exactly what the model tried and confirm only
   the first result reaches the screen.
 
-  **Still open:** confirm `setGroundedText`'s first-call-wins behavior
-  on-device, and separately, whether the topic guide from pass 10 needs
-  further work once multi-call noise is no longer masking the real
-  per-call accuracy. Then remove the temporary debug output
-  (`AskResult.debug`) once all three tools are confirmed working end to
-  end.
+  **12th on-device pass — a new failure class: raw prompt-size overflow.**
+  Same follow-up question ("why does sugar as a share of calories matter?")
+  came back `error: Exceeded model context window size` — not a wrong tool,
+  not a wrong parameter, not a multi-call race. The model never got to
+  respond at all. Root cause: every fix from passes 1–11 *added* text
+  (tool descriptions, `topicGuide()`, the strengthened system prompt) and
+  none of them were ever measured against the on-device model's actual
+  (much smaller than cloud) context budget. Measured the fixed overhead
+  paid on every single call, before the user's question or any tool
+  result: `SYSTEM_PROMPT` (629 chars) + `simulate_addition` description
+  (426 chars) + `suggest_additions` description (474 chars) +
+  `explain_rule`'s description including `topicGuide()`'s 12-topic,
+  593-char list (830 chars total) ≈ **2,359 characters** — before
+  accounting for JSON-schema serialization overhead on top of that (each
+  tool's parameter schema, plus the `topic` enum's 12 raw ids, are also
+  sent to the model, separately from the prose in `topicGuide()`).
+
+  **Fixed, without deleting the pass-10 disambiguation fix:** added a new
+  `hint` field to `NutritionExplainer` (`nutrition-explainers.ts`) —
+  required, deliberately short (a handful of words, <60 chars, enforced by
+  a test), authored once per topic specifically for this prompt-budget
+  constraint, sitting next to `title`/`body` so it can't drift out of sync
+  the way a derived-and-truncated string could. `topicGuide()` now joins
+  `id: hint` pairs instead of `id: title` pairs. Also trimmed
+  `SYSTEM_PROMPT` and both other tool descriptions to their essential
+  instructions, cutting filler phrasing that wasn't pulling weight. Net
+  result: the same four strings dropped from ~2,359 to ~1,554 characters
+  (~34% smaller) while every topic keeps a distinct, disambiguating hint —
+  the two topics confused in pass 10 (`sugar_pct_calories` vs.
+  `sugar_basis_added`) are still worded distinctly and locked in by test.
+  A regression test caps `topicGuide()` under 800 characters so this can't
+  silently regress the same way again as more topics or tools are added.
+
+  **The lesson, generalized:** tool-selection accuracy and parameter
+  disambiguation (passes 1–10) and prompt-size budget (pass 12) are
+  independent constraints — fixing one can quietly break the other, and
+  neither shows up in the other's testing. Any future addition to
+  `SYSTEM_PROMPT` or a tool description should be sanity-checked against
+  total character count, not just re-tested for correctness in isolation.
+
+  **Still open:** confirm on-device that (a) the context-window error is
+  actually resolved, and (b) the pass-10 topic-disambiguation fix now
+  works cleanly — the 11th pass's multi-call bug and this pass's overflow
+  both preempted ever properly evaluating it. Then remove the temporary
+  debug output (`AskResult.debug`) once all three tools are confirmed
+  working end to end.
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**
   Still open: spec 009 logging, safety telemetry

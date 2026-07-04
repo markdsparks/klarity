@@ -13,11 +13,18 @@ export const EXPLAIN_RULE_TOPICS = Object.keys(NUTRITION_EXPLAINERS);
 // near-identical-looking topics by (sugar_basis_added vs. sugar_pct_calories
 // are both "sugar_..." strings with no semantic signal in the id alone) — on
 // device this picked the wrong one for "why is high sugar vs. calories bad?"
-// This builds "id: title" pairs straight from NUTRITION_EXPLAINERS so the
+// This builds "id: hint" pairs straight from NUTRITION_EXPLAINERS so the
 // tool's description can give the model an actual index to match against,
 // and it can never drift out of sync with the real topic list.
+//
+// Uses `hint`, not the longer `title` — the on-device model's context window
+// is small enough that title-length text across 12+ topics, stacked on top
+// of the system prompt and the other two tools' descriptions, triggered an
+// "exceeded model context window" failure outright. `hint` exists
+// specifically to keep this hard prompt-budget constraint from creeping back
+// as topics are added.
 export function topicGuide(): string {
-  return EXPLAIN_RULE_TOPICS.map(id => `${id}: ${NUTRITION_EXPLAINERS[id].title}`).join('; ');
+  return EXPLAIN_RULE_TOPICS.map(id => `${id}: ${NUTRITION_EXPLAINERS[id].hint}`).join('; ');
 }
 
 export interface RuleExplanation {

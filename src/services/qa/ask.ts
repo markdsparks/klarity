@@ -54,15 +54,18 @@ export interface AskResult {
 // text is shown verbatim (see the file-level note above), so this no longer
 // needs to instruct the model on how to relay a result, only on when to
 // call a tool at all versus admit it can't help.
+//
+// Kept deliberately short: this string, plus all three tool descriptions
+// below, share one small on-device context window. An earlier, more verbose
+// version of this prompt (combined with a verbose topicGuide()) triggered an
+// outright "exceeded model context window" failure on-device — a distinct
+// failure mode from wrong-tool/wrong-parameter bugs, and one that doesn't
+// show up until the cumulative prompt text is actually measured.
 const SYSTEM_PROMPT =
-  "You are Klarity's on-product assistant. The user is looking at one specific " +
-  'food product and its computed nutrition/additive verdict. You may ONLY ' +
-  "answer using the tools provided. Call AT MOST ONE tool, exactly once — " +
-  "pick the single best match and commit to it, never call the same or a " +
-  "different tool again to try another guess. If no available tool can " +
-  "answer the question, say plainly and briefly that you don't have grounded " +
-  "data for it — do not guess, and never give medical, drug-interaction, " +
-  'diagnostic, or treatment advice; point those questions to a doctor instead.';
+  "You are Klarity's on-product assistant for the food on screen. Answer " +
+  'ONLY by calling a tool — exactly one, once. If no tool fits, briefly say ' +
+  "you don't have grounded data for that; never guess, and never give " +
+  'medical or treatment advice — point to a doctor instead.';
 
 let cachedAvailability: boolean | null = null;
 
@@ -115,11 +118,10 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
     const tools = {
       simulate_addition: tool({
         description:
-          'Simulate adding ONE SPECIFIC, NAMED food or ingredient to the product ' +
-          'currently on screen, and report whether the nutrition verdict changes. ' +
-          'Use this ONLY when the user names a specific ingredient — e.g. "what if ' +
-          'I add flax seed?". If the user asks generically what they could add or ' +
-          'do, with no specific ingredient named, use suggest_additions instead.',
+          'Simulates adding ONE NAMED ingredient (e.g. "flax seed") to the ' +
+          'product on screen and reports if the verdict changes. Only for a ' +
+          'named ingredient — for generic "what could I add" questions, use ' +
+          'suggest_additions instead.',
         inputSchema: z.object({
           ingredient: z.string().describe('the plain ingredient name, e.g. "flax seed"'),
         }),
@@ -137,12 +139,10 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
       }),
       suggest_additions: tool({
         description:
-          'When the user asks generically what they could add or do to improve ' +
-          'this product\'s nutrition verdict — WITHOUT naming a specific ' +
-          'ingredient, e.g. "what could I add to fix this?" or "how do I cross ' +
-          'the threshold?" — call this to get a ranked list of common additions ' +
-          'that would actually help. Takes no parameters. Do not invent an ' +
-          'ingredient name to call simulate_addition with instead.',
+          'Use when the user asks generically what to add or do to improve ' +
+          'the verdict, WITHOUT naming an ingredient (e.g. "what could I add?"). ' +
+          'Returns a ranked list of helpful additions. No parameters — do not ' +
+          'invent an ingredient name to call simulate_addition instead.',
         inputSchema: z.object({}),
         execute: async () => {
           usedTool = true;
@@ -153,9 +153,9 @@ export async function askAboutProduct(question: string, context: AskContext): Pr
       }),
       explain_rule: tool({
         description:
-          'Look up the existing, vetted explanation for a specific nutrition rule ' +
-          'already used by this app. Pick the topic id whose description best ' +
-          `matches the question. Available topics — ${topicGuide()}.`,
+          "Looks up this app's own explanation for a nutrition rule already " +
+          `in use. Pick the topic whose hint best matches the question. ` +
+          `Topics: ${topicGuide()}.`,
         inputSchema: z.object({ topic: z.enum(topics) }),
         execute: async ({ topic }: { topic: string }) => {
           usedTool = true;

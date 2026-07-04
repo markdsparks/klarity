@@ -1,10 +1,15 @@
 import { NUTRITION_EXPLAINERS, explainerForLine, getExplainer } from '../data/nutrition-explainers';
 
 describe('nutrition explainers', () => {
-  it('every explainer has a title, body, tier, and source', () => {
+  it('every explainer has a title, hint, body, tier, and source', () => {
     for (const [id, e] of Object.entries(NUTRITION_EXPLAINERS)) {
       expect(e.id).toBe(id);
       expect(e.title.length).toBeGreaterThan(0);
+      // hint must stay short — it's embedded per-topic in the on-device QA
+      // tool's description (explain-rule.ts topicGuide()), which shares a
+      // small context window with the system prompt and two other tools.
+      expect(e.hint.length).toBeGreaterThan(0);
+      expect(e.hint.length).toBeLessThan(60);
       expect(e.body.length).toBeGreaterThan(40);
       expect(['A', 'B', 'C', 'D']).toContain(e.tier);
       expect(e.source.length).toBeGreaterThan(0);

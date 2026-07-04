@@ -12,6 +12,13 @@ import type { EvidenceTier } from '../types';
 export interface NutritionExplainer {
   id: string;
   title: string;
+  // Deliberately short (a handful of words) — this is what the on-device QA
+  // tool's description embeds per topic (see explain-rule.ts topicGuide()).
+  // The on-device model has a much smaller context window than cloud models;
+  // `title` alone is too verbose across 12+ topics to fit the tool-selection
+  // prompt budget. Required (not derived from title) so it can't silently
+  // regress to something too long as topics are added.
+  hint: string;
   tier: EvidenceTier;
   body: string;       // plain-language "why this matters"
   source: string;     // authority behind the rule
@@ -21,6 +28,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   fiber_protein_sugar: {
     id: 'fiber_protein_sugar',
     title: 'Why fiber and protein soften a sugar flag',
+    hint: 'fiber/protein ease a sugar flag',
     tier: 'A',
     body:
       'Sugar eaten alone hits your bloodstream fast. The same sugar alongside fiber or protein ' +
@@ -34,6 +42,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   fiber_carb_ratio: {
     id: 'fiber_carb_ratio',
     title: 'The 1:10 fiber-to-carb rule',
+    hint: '1:10 fiber-to-carb ratio (whole grain)',
     tier: 'B',
     body:
       'A quick way to judge carbohydrate quality: at least 1 gram of fiber for every 10 grams of ' +
@@ -45,6 +54,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   sodium_potassium: {
     id: 'sodium_potassium',
     title: 'Why potassium balances sodium',
+    hint: 'potassium offsets a sodium flag',
     tier: 'A',
     body:
       'For blood pressure, the ratio of sodium to potassium predicts outcomes better than sodium ' +
@@ -57,6 +67,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   satfat_budget: {
     id: 'satfat_budget',
     title: 'Saturated fat is a daily budget',
+    hint: 'sat fat is a daily budget, not one serving',
     tier: 'A',
     body:
       'Saturated fat health guidance is about your total for the day (roughly 20 g, about 10% of ' +
@@ -70,6 +81,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   sugar_pct_calories: {
     id: 'sugar_pct_calories',
     title: 'Sugar as a share of calories',
+    hint: 'sugar as % of calories, not grams (WHO)',
     tier: 'A',
     body:
       'The WHO guideline is that free sugars stay under 10% of the calories you eat — a share, not ' +
@@ -81,6 +93,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   whole_food_sugar_matrix: {
     id: 'whole_food_sugar_matrix',
     title: 'Why the form of sugar matters more than the source',
+    hint: 'whole-fruit sugar exemption',
     tier: 'A',
     body:
       'A sugar molecule from fruit is chemically identical to sugar added to soda — the body can\'t tell ' +
@@ -95,6 +108,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   sugar_basis_added: {
     id: 'sugar_basis_added',
     title: 'Scored on added sugar',
+    hint: 'scored using labeled added sugar',
     tier: 'A',
     body:
       'Health guidance on sugar targets added sugars, not the sugar naturally in fruit or plain dairy. ' +
@@ -106,6 +120,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   sugar_basis_total_only: {
     id: 'sugar_basis_total_only',
     title: 'Sugar we couldn\'t fully classify',
+    hint: 'added sugar unknown, used total sugar',
     tier: 'A',
     body:
       'This item\'s data doesn\'t separate added sugar from the sugar naturally in the food. Rather than ' +
@@ -118,6 +133,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   added_sugar: {
     id: 'added_sugar',
     title: 'Added sugar vs. total sugar',
+    hint: 'added sugar counts, not natural sugar',
     tier: 'A',
     body:
       'Health guidance targets added sugars, not the natural sugars in fruit or plain dairy. When ' +
@@ -130,6 +146,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   unsaturated_fat: {
     id: 'unsaturated_fat',
     title: 'Why "mostly unsaturated" matters',
+    hint: 'high fat, but mostly unsaturated',
     tier: 'A',
     body:
       'Total fat on its own says little about health — the type is what counts. Unsaturated fats ' +
@@ -141,6 +158,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   trans_trace: {
     id: 'trans_trace',
     title: 'Trace trans fat',
+    hint: 'tiny natural trans fat trace, below the flag',
     tier: 'A',
     body:
       'There is no safe level of industrial trans fat, but labels are allowed to round down to 0 ' +
@@ -152,6 +170,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   personalized_reference: {
     id: 'personalized_reference',
     title: 'Your personalized reference',
+    hint: 'personalized fiber/protein target',
     tier: 'A',
     body:
       'The Daily Values printed on labels use one generic reference. Fiber and protein needs ' +
