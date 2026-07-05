@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
-import { StyleSheet } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import {
   BottomSheetModal,
   BottomSheetScrollView,
@@ -30,6 +30,19 @@ import {
 // is built here as a plain pinned View instead, using an explicit snap
 // point rather than dynamic content-sizing so there's a fixed height budget
 // to lay the ScrollView + footer out within.
+//
+// One thing the native sheet does NOT handle automatically, on-device
+// testing found: a focused TextInput getting covered by the keyboard.
+// @expo/ui's docs say "native sheets handle keyboard behavior automatically"
+// — true for genuine SwiftUI text fields, but our TextInput (ask-about-this)
+// is RN content bridged into the sheet as one opaque native view, invisible
+// to SwiftUI's own focus/scroll-into-view machinery. Needs RN's own
+// KeyboardAvoidingView after all — but NOT the same broken combination
+// flagged in ADR-004's research (KeyboardAvoidingView inside RN's own
+// Modal, which renders in a separate native window). This sheet isn't an
+// RN Modal at all — it's a single RNHostView bridged into a native SwiftUI
+// sheet — a different combination that hasn't been shown to have that
+// problem.
 //
 // External API deliberately mirrors the old Modal-based sheets
 // (`visible` + `onClose`) rather than exposing the library's ref/present()
@@ -72,10 +85,12 @@ export const BottomSheetBase = forwardRef<BottomSheetBaseHandle, {
       onDismiss={onClose}
       backgroundStyle={styles.background}>
       <BottomSheetView style={styles.flexFill}>
-        <BottomSheetScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          {children}
-        </BottomSheetScrollView>
-        {footer ? <BottomSheetView style={styles.footerWrap}>{footer}</BottomSheetView> : null}
+        <KeyboardAvoidingView style={styles.flexFill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <BottomSheetScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+            {children}
+          </BottomSheetScrollView>
+          {footer ? <BottomSheetView style={styles.footerWrap}>{footer}</BottomSheetView> : null}
+        </KeyboardAvoidingView>
       </BottomSheetView>
     </BottomSheetModal>
   );
