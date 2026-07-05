@@ -7,6 +7,7 @@ import {
   FlatList,
   Keyboard,
   Pressable,
+  ScrollView,
   SectionList,
   StyleSheet,
   Text,
@@ -263,7 +264,11 @@ function SearchOverlay({
         <View style={styles.backBtnSpacer} />
       </View>
 
-      {/* Search input — directly below header, no manual offset needed */}
+      {/* Search input — directly below header, no manual offset needed.
+          Deliberately no autoFocus: the idle state below offers zero-typing
+          chain browsing, and the keyboard popping up immediately covered
+          those chips before the user had said they wanted to type anything.
+          Tapping the field still brings the keyboard up when they do. */}
       <View style={styles.searchInputWrap}>
         <TextInput
           style={styles.searchInput}
@@ -271,16 +276,26 @@ function SearchOverlay({
           placeholderTextColor="#9fadbf"
           value={query}
           onChangeText={onChangeText}
-          autoFocus
           returnKeyType="search"
           onSubmitEditing={() => query.trim() && runQuery(query, forceOFF)}
           clearButtonMode="while-editing"
         />
       </View>
 
-      {/* States */}
+      {/* States. Every searchEmpty state renders through a ScrollView, not a
+          plain View, purely for keyboardShouldPersistTaps + onScrollBeginDrag
+          — the keyboard can still be up here (e.g. typed, got zero results,
+          wants to dismiss to read the message or tap a chain chip) and a
+          plain View has no way to dismiss it short of the input's own return
+          key. Same pattern as the bottom sheets (ADR-005) — a tap on
+          non-interactive content dismisses, a tap on a real Pressable (the
+          chain chips) still fires normally. */}
       {state.status === 'idle' && (
-        <View style={styles.searchEmpty}>
+        <ScrollView
+          style={styles.searchEmptyScroll}
+          contentContainerStyle={styles.searchEmptyContent}
+          keyboardShouldPersistTaps="handled"
+          onScrollBeginDrag={() => Keyboard.dismiss()}>
           <Text style={styles.searchEmptyText}>Type a product name to search</Text>
           <Text style={styles.browseLabel}>or browse a menu</Text>
           <View style={styles.chainChips}>
@@ -293,7 +308,7 @@ function SearchOverlay({
               </Pressable>
             ))}
           </View>
-        </View>
+        </ScrollView>
       )}
 
       {/* Chain suggestion — rides above OFF results (or their absence), never replaced */}
@@ -309,15 +324,23 @@ function SearchOverlay({
       )}
 
       {state.status === 'error' && (
-        <View style={styles.searchEmpty}>
+        <ScrollView
+          style={styles.searchEmptyScroll}
+          contentContainerStyle={styles.searchEmptyContent}
+          keyboardShouldPersistTaps="handled"
+          onScrollBeginDrag={() => Keyboard.dismiss()}>
           <Text style={styles.searchEmptyText}>Search failed — check your connection</Text>
-        </View>
+        </ScrollView>
       )}
 
       {state.status === 'done' && state.results.length === 0 && (
-        <View style={styles.searchEmpty}>
+        <ScrollView
+          style={styles.searchEmptyScroll}
+          contentContainerStyle={styles.searchEmptyContent}
+          keyboardShouldPersistTaps="handled"
+          onScrollBeginDrag={() => Keyboard.dismiss()}>
           <Text style={styles.searchEmptyText}>No products found for "{query}"</Text>
-        </View>
+        </ScrollView>
       )}
 
       {state.status === 'menu' && (
@@ -679,8 +702,26 @@ const styles = StyleSheet.create({
     color: '#1a1f29',
   },
 
+  // Used directly as a plain View's style (the loading spinner state, which
+  // has no keyboard-dismiss need). The ScrollView variants below use
+  // searchEmptyScroll for their own `style` instead — RN Web enforces (and
+  // native RN expects) that a ScrollView's alignItems/justifyContent live in
+  // contentContainerStyle, not its outer style, so this can't be reused as
+  // that outer style directly.
   searchEmpty: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 80,
+  },
+  searchEmptyScroll: {
+    flex: 1,
+  },
+  // contentContainerStyle for the ScrollView variants of searchEmpty above —
+  // flexGrow (not flex) is what lets short content still center vertically
+  // inside a ScrollView's content container.
+  searchEmptyContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingBottom: 80,
