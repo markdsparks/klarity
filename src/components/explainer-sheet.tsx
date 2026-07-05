@@ -20,7 +20,7 @@ const TIER_COLOR: Record<string, string> = {
 // Bottom-sheet "why this matters" for a nutrition context line. Mirrors the
 // additive evidence-trail pattern: plain-language explanation, the evidence
 // tier, and the authority behind the rule (spec 003/004 follow-up). Renders
-// through BottomSheetBase (ADR-004) rather than a hand-rolled Modal.
+// through BottomSheetBase (ADR-005) rather than a hand-rolled Modal.
 export function ExplainerSheet({
   explainer,
   onClose,

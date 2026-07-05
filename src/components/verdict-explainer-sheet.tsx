@@ -11,7 +11,7 @@ import type { AskContext } from '@/services/qa/ask';
 // the nutrition-card tone tag) opens this: the generic meaning of the word on
 // that axis's ladder, how we calculate it, the full ladder for context, and a
 // product-specific line composed by the caller from data already on screen.
-// Renders through BottomSheetBase (ADR-004) rather than a hand-rolled Modal.
+// Renders through BottomSheetBase (ADR-005) rather than a hand-rolled Modal.
 //
 // When the caller identifies one specific additive as the driver, `link`
 // renders as a real tappable row that closes the sheet and jumps straight to

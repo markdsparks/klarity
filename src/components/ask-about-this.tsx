@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { BottomSheetTextInput } from '@expo/ui/community/bottom-sheet';
 
 import { askAboutProduct, isQAAvailable, type AskContext } from '@/services/qa/ask';
 
@@ -20,10 +20,14 @@ import { askAboutProduct, isQAAvailable, type AskContext } from '@/services/qa/a
 // tool-selection reliability the whole architecture depends on) that's a
 // separate feature decision, not a UI tweak. This just lets the box be reused.
 //
-// Uses BottomSheetTextInput (ADR-004), not a plain TextInput — it only works
-// mounted inside a BottomSheetBase-hosted sheet (both current call sites are),
-// since it coordinates focus/blur with the sheet's own keyboard handling
-// internally. A plain TextInput here caused the keyboard-related bugs ADR-004
+// Uses BottomSheetTextInput (ADR-005), imported from @expo/ui's community
+// bottom-sheet module rather than react-native directly — that module
+// re-exports RN's own TextInput unchanged, since the native sheet it's
+// mounted in (SwiftUI/Compose, not a JS gesture library) already handles
+// keyboard avoidance itself. Importing from the sheet's own module rather
+// than react-native keeps this in step if that stops being a plain
+// pass-through later. A plain, directly-imported TextInput inside the
+// earlier hand-rolled Modal sheet caused the keyboard-related bugs ADR-005
 // fixes: no way to dismiss without submitting, unreliable scroll-gesture
 // start, and Ask-button presses sometimes swallowed by keyboard dismissal.
 

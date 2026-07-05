@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { BottomSheetTextInput } from '@expo/ui/community/bottom-sheet';
 
 import { BottomSheetBase } from '@/components/bottom-sheet-base';
 import type { FeedbackCategory } from '@/services/diagnostics';
@@ -8,7 +8,7 @@ import type { FeedbackCategory } from '@/services/diagnostics';
 // One-tap feedback capture (spec 009 M2). Tap a category, optionally add a
 // note, submit. Local only — the human signal that raw outcome stats can't
 // give ("this verdict felt wrong"). Renders through BottomSheetBase
-// (ADR-004) rather than a hand-rolled Modal.
+// (ADR-005) rather than a hand-rolled Modal.
 
 const CATEGORY_LABEL: Record<FeedbackCategory, string> = {
   'wrong-verdict': 'The verdict felt wrong',

@@ -1,26 +1,35 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { StyleSheet } from 'react-native';
 import {
-  BottomSheetBackdrop,
-  BottomSheetFooter,
   BottomSheetModal,
   BottomSheetScrollView,
-  type BottomSheetBackdropProps,
-  type BottomSheetFooterProps,
-} from '@gorhom/bottom-sheet';
+  BottomSheetView,
+  type BottomSheetMethods,
+} from '@expo/ui/community/bottom-sheet';
 
-// The one bottom-sheet shell in the app (ADR-004). Every sheet used to
-// hand-roll Modal + Pressable backdrop + a second, nested Pressable around
-// its ScrollView (a no-op, existing only to stop a tap on the sheet from
-// bubbling up and closing it) + KeyboardAvoidingView. That pattern is a
-// documented source of gesture conflicts — a Pressable and a ScrollView
-// nested together both try to claim the same touch — and it's what caused
-// the on-device bugs found testing spec 014 M2 (unreliable scroll-gesture
-// start, Ask button presses swallowed by keyboard dismissal).
-// @gorhom/bottom-sheet solves exactly this class of problem (gesture
-// arbitration + keyboard interaction), so it exists here once instead of
-// once per sheet.
+// The one bottom-sheet shell in the app (ADR-005, supersedes ADR-004). Every
+// sheet used to hand-roll Modal + Pressable backdrop + a second, nested
+// Pressable around its ScrollView + KeyboardAvoidingView — a documented
+// source of gesture conflicts (a Pressable and ScrollView nested together
+// both try to claim the same touch), which caused real on-device bugs
+// (unreliable scroll-gesture start, Ask button presses swallowed by keyboard
+// dismissal). The first fix (@gorhom/bottom-sheet, ADR-004) solved that class
+// of bug architecturally but turned out not to reliably open at all in Expo
+// Go — a documented limitation of that library (works for "basic cases" in
+// Expo Go, needs a dev client for everything else), which is Klarity's
+// default day-to-day testing loop.
+//
+// This uses @expo/ui's community bottom-sheet instead — a drop-in,
+// gorhom-API-compatible wrapper around REAL native sheets (SwiftUI on iOS,
+// Material3 ModalBottomSheet on Android), explicitly built to work in Expo
+// Go. It sidesteps the entire gesture/keyboard bug class rather than
+// re-solving it in JS: native sheets coordinate their own scroll gesture and
+// keyboard avoidance, so there's no custom pan-responder logic to get subtly
+// wrong. Tradeoff: no custom backdrop or footer component (native sheets
+// don't expose those hooks) — the "always visible without scrolling" footer
+// is built here as a plain pinned View instead, using an explicit snap
+// point rather than dynamic content-sizing so there's a fixed height budget
+// to lay the ScrollView + footer out within.
 //
 // External API deliberately mirrors the old Modal-based sheets
 // (`visible` + `onClose`) rather than exposing the library's ref/present()
@@ -38,19 +47,14 @@ export const BottomSheetBase = forwardRef<BottomSheetBaseHandle, {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  // Rendered pinned to the bottom, below the scrollable content (the "Got
-  // it" / "Cancel" / "Done" actions) — always reachable without scrolling,
-  // matching every sheet's previous behavior of keeping its dismiss/submit
-  // action outside the ScrollView.
+  // Pinned below the scrollable content (the "Got it" / "Cancel" / "Done"
+  // actions) — always reachable without scrolling, matching every sheet's
+  // previous behavior of keeping its dismiss/submit action outside the
+  // ScrollView.
   footer?: React.ReactNode;
 }>(function BottomSheetBase({ visible, onClose, children, footer }, ref) {
-  const sheetRef = useRef<BottomSheetModal>(null);
-  const insets = useSafeAreaInsets();
+  const sheetRef = useRef<BottomSheetMethods>(null);
 
-  // BottomSheetModal mounts on present() and unmounts on dismiss() (unlike
-  // the base BottomSheet, which stays mounted and just moves between snap
-  // points) — the right fit here since every sheet's content is already
-  // conditionally rendered based on `visible`.
   useEffect(() => {
     if (visible) sheetRef.current?.present();
     else sheetRef.current?.dismiss();
@@ -60,49 +64,26 @@ export const BottomSheetBase = forwardRef<BottomSheetBaseHandle, {
     dismiss: () => sheetRef.current?.dismiss(),
   }));
 
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" opacity={0.45} />
-    ),
-    []
-  );
-
-  const renderFooter = useCallback(
-    (props: BottomSheetFooterProps) =>
-      footer ? (
-        <BottomSheetFooter {...props} bottomInset={insets.bottom}>
-          <View style={styles.footerWrap}>{footer}</View>
-        </BottomSheetFooter>
-      ) : null,
-    [footer, insets.bottom]
-  );
-
   return (
     <BottomSheetModal
       ref={sheetRef}
-      onDismiss={onClose}
-      enableDynamicSizing
+      snapPoints={['85%']}
       enablePanDownToClose
-      keyboardBehavior="interactive"
-      keyboardBlurBehavior="restore"
-      android_keyboardInputMode="adjustResize"
-      backdropComponent={renderBackdrop}
-      footerComponent={footer ? renderFooter : undefined}
-      handleIndicatorStyle={styles.grabber}
+      onDismiss={onClose}
       backgroundStyle={styles.background}>
-      <BottomSheetScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={footer ? styles.contentWithFooter : styles.content}>
-        {children}
-      </BottomSheetScrollView>
+      <BottomSheetView style={styles.flexFill}>
+        <BottomSheetScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          {children}
+        </BottomSheetScrollView>
+        {footer ? <BottomSheetView style={styles.footerWrap}>{footer}</BottomSheetView> : null}
+      </BottomSheetView>
     </BottomSheetModal>
   );
 });
 
 const styles = StyleSheet.create({
-  grabber: { backgroundColor: '#d7dce3', width: 40, height: 4 },
-  background: { backgroundColor: '#ffffff', borderTopLeftRadius: 24, borderTopRightRadius: 24 },
-  content: { paddingHorizontal: 22, paddingTop: 4, paddingBottom: 20 },
-  contentWithFooter: { paddingHorizontal: 22, paddingTop: 4, paddingBottom: 90 },
-  footerWrap: { paddingHorizontal: 22, paddingTop: 10, backgroundColor: '#ffffff' },
+  flexFill: { flex: 1 },
+  background: { backgroundColor: '#ffffff' },
+  content: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 20 },
+  footerWrap: { paddingHorizontal: 22, paddingTop: 10, paddingBottom: 8, backgroundColor: '#ffffff' },
 });

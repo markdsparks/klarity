@@ -1,7 +1,12 @@
 # ADR-004 — Adopt @gorhom/bottom-sheet for all bottom sheets
 
 **Date:** 2026-07-05
-**Status:** Accepted
+**Status:** Superseded by [ADR-005](005-expo-ui-bottom-sheet.md) the same day —
+on-device testing in Expo Go (Klarity's default day-to-day loop) found the
+sheets didn't reliably open at all, not just the gesture/keyboard bugs this
+was meant to fix. Root cause and everything below is still accurate
+diagnosis of the ORIGINAL hand-rolled Modal pattern's problems; only the
+choice of replacement library was wrong.
 
 ## Context
 

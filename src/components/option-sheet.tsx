@@ -8,7 +8,7 @@ import type { VerdictKey } from '@/types/index';
 // delta AND its additive consequence — evidence-guided ordering at the moment
 // of decision (Q3). One component serves both slot pickers (single-select,
 // closes on pick) and add-ons (multi-select, stays open). Renders through
-// BottomSheetBase (ADR-004) rather than a hand-rolled Modal.
+// BottomSheetBase (ADR-005) rather than a hand-rolled Modal.
 
 export interface BuildOption {
   id: string;                 // catalog id, or 'none'
