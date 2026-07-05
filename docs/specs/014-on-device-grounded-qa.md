@@ -1,9 +1,19 @@
 # Spec 014 — On-Device Grounded Follow-Up Q&A
 
-**Status:** M0 + M1 + M2 built (2026-07-04) — code complete, unit-tested, and
-the graceful-fallback path verified in the web preview; the real on-device
-inference call still needs one more phone pass before this is considered
-fully proven (see M2 entry below).
+**Status:** M0 + M1 + M2 shipped (2026-07-05). Code complete, unit-tested
+(354 tests passing, TypeScript strict clean), temporary debug scaffolding
+removed. The 14 on-device passes below found and fixed every wiring bug
+this architecture is prone to; the two bug classes from the last three
+passes (multi-call answer race, tool-result-payload context overflow) now
+have permanent headless regression coverage (`ask-tool-wiring.test.ts`),
+closing the gap that previously required a physical device to catch a
+regression here. **What still needs Mark's device, and only his device:**
+a 15th real on-device pass to confirm the pass-13 context-overflow fix and
+the pass-10 topic-disambiguation fix both hold together in the one scenario
+that exercised them together (the "why does sugar as a share of calories
+matter?" follow-up question) — the on-device model itself cannot be
+run headless, so this one confirmation is irreducibly manual. See "15th
+on-device pass" below for the exact repro steps.
 **Phase:** new capability class (conversational interface onto evidence the app already has)
 **Surface:** a new "Ask about this" affordance inside the existing evidence
 sheets (`ExplainerSheet`, `VerdictExplainerSheet` — spec 013), a new
@@ -635,6 +645,49 @@ split spec 010 used (JS-side resolution vs. native capture).
   a name changes. Now reads "2 potatoes, 3.5 bananas, 2 avocados, and 2
   cups of black beans (cooked)" — plain plurals for whole items, "of
   {name}" retained only where the unit alone would be ambiguous.
+
+  **Branch wrap-up (2026-07-05) — closing the gap between "fixed" and
+  "provably won't regress."** Passes 11 and 13 each fixed a real bug
+  (the multi-call answer race, the tool-result-payload context overflow)
+  but neither fix had automated coverage — re-catching either regression
+  required another on-device pass, the most expensive verification tier
+  this project has. Both bugs live entirely in `ask.ts`'s own code (which
+  tool call wins, how much of each tool's result gets handed back), not in
+  the model's behavior — so `ask.ts` was refactored to pull that logic into
+  a new exported `buildToolSet()`, a plain function with zero dependency on
+  `ai` or `@react-native-ai/apple`. `zod` (no native code, no load-time side
+  effects, unlike the other two) is now a static import for the same
+  reason. `ask-tool-wiring.test.ts` exercises `buildToolSet()` directly:
+  locks in first-call-wins when a tool fires more than once in a turn, and
+  that every tool's `execute` returns only its minimal ack shape
+  (`{ found }` / `{ found, changed }` / `{ applicable, count }`), never the
+  full result payload. This is real regression coverage for both bugs, not
+  a substitute for on-device confirmation — see the "Still open" note above
+  for the one thing only a device can confirm.
+
+  Also stripped in this pass: `AskResult.debug` (the temporary
+  `finish=... steps=... calls=[...]` field used to diagnose passes 1–14)
+  and its rendering in `ask-about-this.tsx`. Full test suite (354 tests) and
+  `tsc --noEmit` both clean after the refactor; the web preview was
+  re-verified (`ExplainerSheet` opens cleanly, zero console errors, "Ask
+  about this" correctly absent on a non-iOS platform, no gap left where the
+  debug text used to render).
+
+  **What this pass could NOT do, and why:** confirm the pass-13
+  context-overflow fix and the pass-10/11 topic-disambiguation-and-locking
+  fix actually hold on real Apple Intelligence hardware. Every fix above is
+  verified at the level of "the code now does what we intend," which is as
+  far as headless testing can go for a feature whose entire premise is "a
+  ~3B on-device model's behavior is not fully predictable from reading the
+  code" (see the arXiv 2510.03847 finding cited in the 7th-pass section).
+  **Mark: the 15th on-device pass** — ask the follow-up question "why does
+  sugar as a share of calories matter?" via the stateless "ask another
+  question" box (the exact repro from the 11th/12th/13th passes), on a
+  product already flagged for sugar. Confirm (a) no "exceeded model context
+  window" error, and (b) the answer matches `sugar_pct_calories`'s content
+  (share-of-calories framing), not a different topic. If either fails, the
+  debug field is gone now — re-add a temporary log inside `askAboutProduct`
+  (e.g. log `result.toolCalls` before returning) rather than guessing.
 
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**

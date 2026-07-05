@@ -36,7 +36,7 @@ type State =
   | { phase: 'hidden' }
   | { phase: 'idle' }
   | { phase: 'asking'; question: string }
-  | { phase: 'answered'; question: string; text: string; debug?: string }
+  | { phase: 'answered'; question: string; text: string }
   | { phase: 'error'; question: string };
 
 export function AskAboutThis({ context }: { context: AskContext }) {
@@ -61,7 +61,7 @@ export function AskAboutThis({ context }: { context: AskContext }) {
     setState({ phase: 'asking', question: q });
     try {
       const result = await askAboutProduct(q, context);
-      setState({ phase: 'answered', question: q, text: result.text, debug: result.debug });
+      setState({ phase: 'answered', question: q, text: result.text });
     } catch {
       setState({ phase: 'error', question: q });
     }
@@ -103,8 +103,6 @@ export function AskAboutThis({ context }: { context: AskContext }) {
       {state.phase === 'answered' && (
         <View style={styles.answerBox}>
           <Text style={styles.answerText}>{state.text}</Text>
-          {/* Temporary — spec 014 M2 on-device debugging, remove once verified */}
-          {state.debug ? <Text style={styles.debugText}>DEBUG: {state.debug}</Text> : null}
         </View>
       )}
       {state.phase === 'error' && (
@@ -131,6 +129,5 @@ const styles = StyleSheet.create({
   askedText: { fontSize: 12, color: '#9aa4b2', fontStyle: 'italic' },
   answerBox: { backgroundColor: '#f0faf5', borderRadius: 12, borderWidth: 1, borderColor: '#c3e6d5', padding: 14 },
   answerText: { fontSize: 14, lineHeight: 20, color: '#1a1f29' },
-  debugText: { fontSize: 10.5, color: '#9aa4b2', marginTop: 8, fontFamily: 'Menlo' },
   errorText: { fontSize: 12.5, color: '#c04a4a' },
 });
