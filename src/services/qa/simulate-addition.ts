@@ -42,6 +42,24 @@ function formatAmount(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
+// The single place every mechanism string and suggestAdditions summary
+// builds an "N units [of food]" phrase — deliberately centralized so a
+// wording fix here fixes it everywhere, rather than living as three copies
+// of the same template. Real bug this replaced: each call site built its
+// own "{amount} {unitLabel} of {name}" string, which read redundantly for
+// piece-counted additions where the unit IS the food ("2 potato of baked
+// potato", "3.5 banana of banana") — doubly so once these strings started
+// being shown to users verbatim instead of being paraphrased by the model.
+// `wholeItem` and `unitLabelPlural` are authored per addition (not guessed
+// from string overlap between unitLabel and name), so this can't misfire
+// on some future addition whose name happens to overlap its unit for an
+// unrelated reason.
+function describeAmount(addition: CommonAddition, amount: number): string {
+  const formatted = formatAmount(amount);
+  const unit = amount === 1 ? addition.unitLabel : (addition.unitLabelPlural ?? addition.unitLabel);
+  return addition.wholeItem ? `${formatted} ${unit}` : `${formatted} ${unit} of ${addition.name.toLowerCase()}`;
+}
+
 // How many multiples of one serving of a nutrient contribution would close
 // the gap from `baselineGrams` to `thresholdGrams` — shared by every offset
 // mechanism below (fiber/protein crossing a %DV mark, potassium matching
@@ -89,9 +107,9 @@ function fiberProteinMechanism(
     const thresholdGrams = (FIBER_PROTEIN_SUGAR_OFFSET_DV / 100) * refGrams;
     const multiplier = multiplierToThreshold(beforeGrams ?? 0, thresholdGrams, addition.perServing[nutrientKey]);
     if (multiplier != null && multiplier > 0) {
-      const amount = formatAmount(multiplier * addition.unitQuantity);
+      const amount = describeAmount(addition, multiplier * addition.unitQuantity);
       return (
-        `You'd need about ${amount} ${addition.unitLabel} of ${addition.name.toLowerCase()} — not ` +
+        `You'd need about ${amount} — not ` +
         `${addition.commonServing.split(' (')[0]} — to cross the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% ` +
         `${label.toLowerCase()} mark that softens a high-sugar flag. At ${addition.commonServing.split(' (')[0]}, ` +
         `${label.toLowerCase()} only reaches ${afterDv}% of daily value (from ${beforeDv}%).`
@@ -137,9 +155,9 @@ function sodiumPotassiumMechanism(
   // fiberProteinMechanism on why this must be the first fact, not the last.
   const multiplier = multiplierToThreshold(beforeK, sodiumGrams, addition.perServing.potassium);
   if (multiplier != null && multiplier > 0) {
-    const amount = formatAmount(multiplier * addition.unitQuantity);
+    const amount = describeAmount(addition, multiplier * addition.unitQuantity);
     return (
-      `You'd need about ${amount} ${addition.unitLabel} of ${addition.name.toLowerCase()} — not ` +
+      `You'd need about ${amount} — not ` +
       `${addition.commonServing.split(' (')[0]} — for potassium to at least match this product's ` +
       `${sodiumMg} mg of sodium, which is what softens a high-sodium flag. At ` +
       `${addition.commonServing.split(' (')[0]}, potassium only reaches about ${afterMg} mg (from ${beforeMg} mg).`
@@ -240,7 +258,7 @@ export function simulateAddition(
 // phrase the recommendation.
 export interface SuggestedAddition {
   name: string;
-  amount: string; // e.g. "1.5 tbsp"
+  amount: string; // full descriptive phrase from describeAmount(), e.g. "1.5 tbsp of ground flaxseed" or "2 potatoes"
 }
 
 export interface SuggestAdditionsResult {
@@ -263,7 +281,7 @@ function rankAdditions(multiplierFor: (addition: CommonAddition) => number | nul
     .map(addition => {
       const multiplier = multiplierFor(addition);
       if (multiplier == null) return null;
-      return { name: addition.name, amount: `${formatAmount(multiplier * addition.unitQuantity)} ${addition.unitLabel}`, sortKey: multiplier };
+      return { name: addition.name, amount: describeAmount(addition, multiplier * addition.unitQuantity), sortKey: multiplier };
     })
     .filter((x): x is { name: string; amount: string; sortKey: number } => x != null)
     .sort((a, b) => a.sortKey - b.sortKey)
@@ -302,7 +320,9 @@ export function suggestAdditions(
     });
     if (ranked.length > 0) {
       suggestions = suggestions.concat(ranked);
-      const list = joinNouns(ranked.map(r => `${r.amount} of ${r.name.toLowerCase()}`));
+      // r.amount is already the full phrase (describeAmount, via
+      // rankAdditions) — no separate "of {name}" append needed here.
+      const list = joinNouns(ranked.map(r => r.amount));
       summaries.push(
         `For the sugar flag: adding about ${list} would each get fiber or protein over the ` +
         `${FIBER_PROTEIN_SUGAR_OFFSET_DV}% daily-value mark that softens it — ranked by least amount needed.`
@@ -315,7 +335,7 @@ export function suggestAdditions(
     const ranked = rankAdditions(addition => multiplierToThreshold(sn.potassium ?? 0, sodiumThreshold, addition.perServing.potassium));
     if (ranked.length > 0) {
       suggestions = suggestions.concat(ranked);
-      const list = joinNouns(ranked.map(r => `${r.amount} of ${r.name.toLowerCase()}`));
+      const list = joinNouns(ranked.map(r => r.amount));
       summaries.push(
         `For the sodium flag: adding about ${list} would each bring potassium up to at least match ` +
         `this product's sodium — ranked by least amount needed.`

@@ -128,8 +128,12 @@ describe('simulateAddition', () => {
       const result = simulateAddition(highSodiumNoPotassiumSn, baseProfile, 'baked potato');
       expect(result.found).toBe(true);
       expect(result.changed).toBe(false); // one potato's 926mg doesn't reach 1400mg sodium
-      expect(result.mechanism).toMatch(/^you'd need about 2 potato/i);
-      expect(result.mechanism).toMatch(/not 1 medium/i);
+      // Exact match, not just a prefix — locks in that a piece-counted
+      // addition (potato IS the unit) reads as a plain plural ("2 potatoes"),
+      // not the redundant "2 potato of baked potato (with skin)" this
+      // mechanism produced before describeAmount() existed.
+      expect(result.mechanism).toMatch(/^you'd need about 2 potatoes — not 1 medium/i);
+      expect(result.mechanism).not.toMatch(/potato of/i);
       expect(result.mechanism).toMatch(/match this product's 1400 mg of sodium/i);
       expect(result.mechanism).toMatch(/only reaches about 926 mg \(from 0 mg\)/i);
     });
@@ -150,6 +154,16 @@ describe('simulateAddition', () => {
       const result = simulateAddition(highSodiumNoPotassiumSn, baseProfile, 'olive oil');
       expect(result.found).toBe(true);
       expect(result.mechanism).toBeUndefined();
+    });
+
+    it('a measured (non-whole-item) addition still names the food and pluralizes its unit', () => {
+      // Contrast with the potato/banana cases above: black beans is
+      // cup-measured, not a piece-counted whole item, so "of {name}" is
+      // still needed to stay unambiguous, and "cup" must pluralize to
+      // "cups" when the amount isn't 1.
+      const result = simulateAddition(highSodiumNoPotassiumSn, baseProfile, 'black beans');
+      expect(result.found).toBe(true);
+      expect(result.mechanism).toMatch(/^you'd need about 2 cups of black beans \(cooked\)/i);
     });
   });
 });

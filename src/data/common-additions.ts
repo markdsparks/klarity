@@ -23,6 +23,17 @@ export interface CommonAddition {
   unitQuantity: number;   // the "1" (or "1/4", "1/2") in commonServing, e.g. 1 or 0.25
   unitLabel: string;      // e.g. "tbsp", "cup", "scoop" — lets simulate-addition.ts
                            // scale to "how much more" without parsing commonServing
+  // Plural form of unitLabel, used whenever the computed amount isn't 1 (e.g.
+  // "cups", "potatoes"). Optional because abbreviations (tbsp, oz) are the
+  // same word either way — only spelled-out units need this authored.
+  unitLabelPlural?: string;
+  // True when unitLabel names the food itself (banana, potato, avocado) —
+  // simulate-addition.ts's describeAmount() uses this to skip the redundant
+  // "of {name}" suffix that measured units (tbsp, cup, scoop) need to stay
+  // unambiguous. An authored flag, not a string-similarity guess, so it
+  // can't misfire on a future addition whose name happens to overlap its
+  // unit for an unrelated reason.
+  wholeItem?: boolean;
   aliases: string[];      // free-text terms to match against (lowercase)
   perServing: {
     calories?: number;
@@ -72,7 +83,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'rolled_oats',
     name: 'Rolled oats (dry)',
     commonServing: '1/4 cup (~20 g)',
-    unitQuantity: 0.25, unitLabel: 'cup',
+    unitQuantity: 0.25, unitLabel: 'cup', unitLabelPlural: 'cups',
     aliases: ['rolled oats', 'oats', 'oatmeal'],
     perServing: { calories: 75, totalFat: 1.4, fiber: 3, protein: 3.4 },
   },
@@ -120,7 +131,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'avocado_quarter',
     name: 'Avocado',
     commonServing: '1/4 medium (~50 g)',
-    unitQuantity: 0.25, unitLabel: 'avocado',
+    unitQuantity: 0.25, unitLabel: 'avocado', unitLabelPlural: 'avocados', wholeItem: true,
     aliases: ['avocado'],
     perServing: { calories: 80, totalFat: 7.5, fiber: 3.4, protein: 1, potassium: 0.18 },
   },
@@ -128,7 +139,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'black_beans',
     name: 'Black beans (cooked)',
     commonServing: '1/4 cup (~57 g)',
-    unitQuantity: 0.25, unitLabel: 'cup',
+    unitQuantity: 0.25, unitLabel: 'cup', unitLabelPlural: 'cups',
     aliases: ['black beans', 'black bean'],
     perServing: { calories: 55, fiber: 3.7, protein: 4, potassium: 0.18 },
   },
@@ -136,7 +147,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'chickpeas',
     name: 'Chickpeas (cooked)',
     commonServing: '1/4 cup (~41 g)',
-    unitQuantity: 0.25, unitLabel: 'cup',
+    unitQuantity: 0.25, unitLabel: 'cup', unitLabelPlural: 'cups',
     aliases: ['chickpea', 'chickpeas', 'garbanzo beans', 'garbanzo'],
     perServing: { calories: 60, fiber: 3, protein: 4, potassium: 0.12 },
   },
@@ -144,7 +155,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'greek_yogurt_plain',
     name: 'Greek yogurt (plain)',
     commonServing: '1/2 cup (~123 g)',
-    unitQuantity: 0.5, unitLabel: 'cup',
+    unitQuantity: 0.5, unitLabel: 'cup', unitLabelPlural: 'cups',
     aliases: ['greek yogurt', 'plain greek yogurt'],
     perServing: { calories: 75, protein: 11, potassium: 0.155 },
   },
@@ -152,7 +163,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'whey_protein',
     name: 'Whey protein powder',
     commonServing: '1 scoop (~30 g)',
-    unitQuantity: 1, unitLabel: 'scoop',
+    unitQuantity: 1, unitLabel: 'scoop', unitLabelPlural: 'scoops',
     aliases: ['protein powder', 'whey protein', 'whey'],
     perServing: { calories: 120, protein: 24 },
   },
@@ -160,7 +171,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'banana',
     name: 'Banana',
     commonServing: '1 medium (~118 g)',
-    unitQuantity: 1, unitLabel: 'banana',
+    unitQuantity: 1, unitLabel: 'banana', unitLabelPlural: 'bananas', wholeItem: true,
     aliases: ['banana', 'bananas'],
     perServing: { calories: 105, fiber: 3.1, protein: 1.3, sugar: 14, potassium: 0.422 },
   },
@@ -168,7 +179,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'baked_potato',
     name: 'Baked potato (with skin)',
     commonServing: '1 medium (~173 g)',
-    unitQuantity: 1, unitLabel: 'potato',
+    unitQuantity: 1, unitLabel: 'potato', unitLabelPlural: 'potatoes', wholeItem: true,
     aliases: ['baked potato', 'potato', 'potatoes'],
     perServing: { calories: 161, fiber: 3.6, protein: 4.3, sugar: 2, potassium: 0.926 },
   },

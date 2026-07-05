@@ -607,6 +607,35 @@ split spec 010 used (JS-side resolution vs. native capture).
   touched the right nutrient, or the same masking bug reappears for the
   next mechanism added after this one.
 
+  **Immediate follow-up — the generalized answer worked, but read
+  awkwardly.** The sodium/potassium ranking correctly returned "2 potato of
+  baked potato (with skin), 3.5 banana of banana, 2.1 avocado of avocado,
+  and 2.1 cup of black beans (cooked)" — functionally right, but the
+  redundant "X of X" phrasing for piece-counted foods reads like a bug to a
+  user, which matters more now than it used to: these strings are shown
+  verbatim (the model no longer paraphrases tool results — see the 13th
+  pass), so rough edges that an LLM might once have smoothed over are now
+  fully exposed. Mark explicitly flagged this as a repeat "not
+  whack-a-mole, build toward something architecturally sound that scales"
+  instruction rather than a one-off string tweak.
+
+  Root cause: `unitLabel` served two different jobs depending on the
+  addition — a measuring unit distinct from the food (tbsp, cup, scoop),
+  or the food's own name spelled as a count (banana, potato, avocado) —
+  and every phrase-building call site used the same "{amount} {unitLabel}
+  of {name}" template regardless, which only reads naturally for the
+  first case. Fixed with two new authored fields on `CommonAddition` —
+  `unitLabelPlural` and `wholeItem` — and one shared `describeAmount()`
+  function (`simulate-addition.ts`) that every mechanism string and the
+  `suggestAdditions` summary now calls, instead of each building its own
+  copy of the same template. `wholeItem` is an explicit authored flag, not
+  a string-similarity guess between `unitLabel` and `name` — deliberately,
+  so it can't misfire on some future addition whose name happens to
+  overlap its unit for an unrelated reason, and doesn't silently break if
+  a name changes. Now reads "2 potatoes, 3.5 bananas, 2 avocados, and 2
+  cups of black beans (cooked)" — plain plurals for whole items, "of
+  {name}" retained only where the unit alone would be ambiguous.
+
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**
   Still open: spec 009 logging, safety telemetry
