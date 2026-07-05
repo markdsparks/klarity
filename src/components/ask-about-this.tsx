@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 
 import { askAboutProduct, isQAAvailable, type AskContext } from '@/services/qa/ask';
 
@@ -18,6 +19,13 @@ import { askAboutProduct, isQAAvailable, type AskContext } from '@/services/qa/a
 // how much history to feed a 3B on-device model without hurting the exact
 // tool-selection reliability the whole architecture depends on) that's a
 // separate feature decision, not a UI tweak. This just lets the box be reused.
+//
+// Uses BottomSheetTextInput (ADR-004), not a plain TextInput — it only works
+// mounted inside a BottomSheetBase-hosted sheet (both current call sites are),
+// since it coordinates focus/blur with the sheet's own keyboard handling
+// internally. A plain TextInput here caused the keyboard-related bugs ADR-004
+// fixes: no way to dismiss without submitting, unreliable scroll-gesture
+// start, and Ask-button presses sometimes swallowed by keyboard dismissal.
 
 type State =
   | { phase: 'checking' }
@@ -64,7 +72,7 @@ export function AskAboutThis({ context }: { context: AskContext }) {
     <View style={styles.wrap}>
       <Text style={styles.sectionLabel}>Ask about this</Text>
       <View style={styles.inputRow}>
-        <TextInput
+        <BottomSheetTextInput
           style={styles.input}
           value={question}
           onChangeText={setQuestion}

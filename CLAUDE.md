@@ -27,6 +27,7 @@ Primary user: Mark's family — replacing Yuka for real grocery shopping. Make i
 | Language | **TypeScript** (strict) | Required for AI-native development — catches shape errors before they ship |
 | Navigation | **Expo Router** (file-based, in `src/app/`) | Already wired; use it, don't fight it |
 | Styling | **StyleSheet** (React Native built-in) | No extra dependency for MVP; NativeWind later if needed |
+| Bottom sheets | **@gorhom/bottom-sheet** (see ADR-004), via shared `BottomSheetBase` | Hand-rolled Modal+Pressable+ScrollView sheets had a real, researched gesture/keyboard bug class; this is the one way to build a sheet now |
 | Barcode scanning | **expo-camera** `CameraView` with `onBarcodeScanned` | Managed workflow, no ejection needed |
 | Product lookup | **Open Food Facts API** (openfoodfacts.org) | 4.5M products, free, no key, 924k US products |
 | Evidence data | Inlined TypeScript in `src/data/additives.ts` for MVP → DB later | Start simple |

@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
-import { Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getLadderExplainer, type AdditiveLink, type LadderAxis, type LadderLevel } from '@/data/verdict-ladder';
 import { AskAboutThis } from '@/components/ask-about-this';
+import { BottomSheetBase } from '@/components/bottom-sheet-base';
 import type { AskContext } from '@/services/qa/ask';
 
 // "What does this word mean, and why did THIS product get it?" bottom sheet
@@ -11,6 +11,7 @@ import type { AskContext } from '@/services/qa/ask';
 // the nutrition-card tone tag) opens this: the generic meaning of the word on
 // that axis's ladder, how we calculate it, the full ladder for context, and a
 // product-specific line composed by the caller from data already on screen.
+// Renders through BottomSheetBase (ADR-004) rather than a hand-rolled Modal.
 //
 // When the caller identifies one specific additive as the driver, `link`
 // renders as a real tappable row that closes the sheet and jumps straight to
@@ -39,7 +40,6 @@ export function VerdictExplainerSheet({
   input: VerdictExplainerInput | null;
   onClose: () => void;
 }) {
-  const insets = useSafeAreaInsets();
   const explainer = input ? getLadderExplainer(input.axis, input.level) : null;
   const color = input ? LEVEL_COLOR[input.level] : null;
 
@@ -49,97 +49,66 @@ export function VerdictExplainerSheet({
   }
 
   return (
-    <Modal
+    <BottomSheetBase
       visible={explainer != null}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        {explainer && color && input ? (
-          // A no-op onPress here only exists to stop a tap on the sheet body
-          // from bubbling to the backdrop's onClose above — it must NOT do
-          // anything else. An earlier version called Keyboard.dismiss() from
-          // here, which put a second tap-handling layer around the
-          // ScrollView below and made its native scroll-gesture recognition
-          // and keyboardShouldPersistTaps handling unreliable (quirky
-          // scroll-start, and taps on the Ask button sometimes just
-          // dismissing the keyboard instead of firing). Keyboard dismissal
-          // now happens via the ScrollView's own mechanisms only — see
-          // keyboardShouldPersistTaps and onScrollBeginDrag below — which
-          // don't compete with its gestures because they're part of them.
-          <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]} onPress={() => {}}>
-            <View style={styles.grabber} />
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              onScrollBeginDrag={() => Keyboard.dismiss()}>
-              <View style={[styles.levelPill, { backgroundColor: color.bg }]}>
-                <Text style={[styles.levelPillText, { color: color.fg }]}>{explainer.title}</Text>
+      onClose={onClose}
+      footer={
+        <Pressable style={styles.closeBtn} onPress={onClose}>
+          <Text style={styles.closeBtnText}>Got it</Text>
+        </Pressable>
+      }>
+      {explainer && color && input ? (
+        <>
+          <View style={[styles.levelPill, { backgroundColor: color.bg }]}>
+            <Text style={[styles.levelPillText, { color: color.fg }]}>{explainer.title}</Text>
+          </View>
+
+          <Text style={styles.body}>{explainer.body}</Text>
+
+          <Text style={styles.sectionLabel}>For this product</Text>
+          <Text style={styles.productText}>{input.productContext}</Text>
+          {input.productLink ? (
+            <Pressable
+              style={({ pressed }) => [styles.productLinkRow, pressed && styles.productLinkRowPressed]}
+              onPress={() => openLink(input.productLink!)}>
+              <Text style={styles.productLinkName} numberOfLines={1}>{input.productLink.name}</Text>
+              <View style={[styles.productLinkPill, { backgroundColor: LEVEL_COLOR[input.productLink.verdict].bg }]}>
+                <Text style={[styles.productLinkPillText, { color: LEVEL_COLOR[input.productLink.verdict].fg }]}>
+                  {input.productLink.verdict === 'contested' ? 'Contested' : 'Sometimes'}
+                </Text>
               </View>
-
-              <Text style={styles.body}>{explainer.body}</Text>
-
-              <Text style={styles.sectionLabel}>For this product</Text>
-              <Text style={styles.productText}>{input.productContext}</Text>
-              {input.productLink ? (
-                <Pressable
-                  style={({ pressed }) => [styles.productLinkRow, pressed && styles.productLinkRowPressed]}
-                  onPress={() => openLink(input.productLink!)}>
-                  <Text style={styles.productLinkName} numberOfLines={1}>{input.productLink.name}</Text>
-                  <View style={[styles.productLinkPill, { backgroundColor: LEVEL_COLOR[input.productLink.verdict].bg }]}>
-                    <Text style={[styles.productLinkPillText, { color: LEVEL_COLOR[input.productLink.verdict].fg }]}>
-                      {input.productLink.verdict === 'contested' ? 'Contested' : 'Sometimes'}
-                    </Text>
-                  </View>
-                  <Text style={styles.productLinkChevron}>›</Text>
-                </Pressable>
-              ) : null}
-
-              <Text style={styles.sectionLabel}>The full ladder</Text>
-              <View style={styles.ladder}>
-                {explainer.steps.map(step => {
-                  const active = step.level === explainer.level;
-                  const stepColor = LEVEL_COLOR[step.level];
-                  return (
-                    <View key={step.level} style={[styles.ladderRow, active && styles.ladderRowActive]}>
-                      <View style={[styles.ladderDot, { backgroundColor: stepColor.fg }]} />
-                      <View style={styles.ladderText}>
-                        <Text style={[styles.ladderLabel, active && { color: stepColor.fg }]}>{step.label}</Text>
-                        <Text style={styles.ladderBlurb}>{step.blurb}</Text>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-
-              <Text style={styles.sectionLabel}>How we calculate this</Text>
-              <Text style={styles.method}>{explainer.method}</Text>
-
-              {input.askContext ? <AskAboutThis context={input.askContext} /> : null}
-            </ScrollView>
-            <Pressable style={styles.closeBtn} onPress={onClose}>
-              <Text style={styles.closeBtnText}>Got it</Text>
+              <Text style={styles.productLinkChevron}>›</Text>
             </Pressable>
-          </Pressable>
-        ) : <View />}
-      </Pressable>
-      </KeyboardAvoidingView>
-    </Modal>
+          ) : null}
+
+          <Text style={styles.sectionLabel}>The full ladder</Text>
+          <View style={styles.ladder}>
+            {explainer.steps.map(step => {
+              const active = step.level === explainer.level;
+              const stepColor = LEVEL_COLOR[step.level];
+              return (
+                <View key={step.level} style={[styles.ladderRow, active && styles.ladderRowActive]}>
+                  <View style={[styles.ladderDot, { backgroundColor: stepColor.fg }]} />
+                  <View style={styles.ladderText}>
+                    <Text style={[styles.ladderLabel, active && { color: stepColor.fg }]}>{step.label}</Text>
+                    <Text style={styles.ladderBlurb}>{step.blurb}</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+
+          <Text style={styles.sectionLabel}>How we calculate this</Text>
+          <Text style={styles.method}>{explainer.method}</Text>
+
+          {input.askContext ? <AskAboutThis context={input.askContext} /> : null}
+        </>
+      ) : null}
+    </BottomSheetBase>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  backdrop: { flex: 1, backgroundColor: 'rgba(14,17,22,0.45)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    paddingHorizontal: 22, paddingTop: 12,
-    maxHeight: '85%',
-  },
-  grabber: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#d7dce3', marginBottom: 18 },
-
   levelPill: { alignSelf: 'flex-start', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, marginBottom: 14 },
   levelPillText: { fontSize: 15, fontWeight: '800' },
 
@@ -170,6 +139,6 @@ const styles = StyleSheet.create({
 
   method: { fontSize: 13, lineHeight: 19, color: '#5a6472', fontStyle: 'italic' },
 
-  closeBtn: { marginTop: 20, backgroundColor: '#0e1116', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+  closeBtn: { backgroundColor: '#0e1116', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   closeBtnText: { color: '#ffffff', fontSize: 15, fontWeight: '700' },
 });

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 
+import { BottomSheetBase } from '@/components/bottom-sheet-base';
 import type { FeedbackCategory } from '@/services/diagnostics';
 
 // One-tap feedback capture (spec 009 M2). Tap a category, optionally add a
 // note, submit. Local only — the human signal that raw outcome stats can't
-// give ("this verdict felt wrong"). Reuses the bottom-sheet pattern.
+// give ("this verdict felt wrong"). Renders through BottomSheetBase
+// (ADR-004) rather than a hand-rolled Modal.
 
 const CATEGORY_LABEL: Record<FeedbackCategory, string> = {
   'wrong-verdict': 'The verdict felt wrong',
@@ -29,7 +31,6 @@ export function FeedbackSheet({
   onSubmit: (category: FeedbackCategory, note: string) => void;
   onClose: () => void;
 }) {
-  const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState<FeedbackCategory | null>(null);
   const [note, setNote] = useState('');
 
@@ -41,44 +42,25 @@ export function FeedbackSheet({
     setNote('');
   }
 
-  function submit() {
-    if (!effective) return;
-    onSubmit(effective, note.trim());
+  // Every dismiss path (backdrop tap, swipe-down, submit) resets the form —
+  // routed through BottomSheetBase's single onClose so none of them can miss it.
+  function handleClose() {
     reset();
     onClose();
   }
 
+  function submit() {
+    if (!effective) return;
+    onSubmit(effective, note.trim());
+    handleClose();
+  }
+
   return (
-    <Modal visible={title != null} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={() => { reset(); onClose(); }}>
-        <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]} onPress={() => {}}>
-          <View style={styles.grabber} />
-          <Text style={styles.title}>{title}</Text>
-
-          {categories.length > 1 && (
-            <View style={styles.chips}>
-              {categories.map(c => (
-                <Pressable
-                  key={c}
-                  style={[styles.chip, effective === c && styles.chipOn]}
-                  onPress={() => setSelected(c)}>
-                  <Text style={[styles.chipText, effective === c && styles.chipTextOn]}>
-                    {CATEGORY_LABEL[c]}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          )}
-
-          <TextInput
-            style={styles.note}
-            placeholder={notePlaceholder ?? 'Add a note (optional)'}
-            placeholderTextColor="#9fadbf"
-            value={note}
-            onChangeText={setNote}
-            multiline
-          />
-
+    <BottomSheetBase
+      visible={title != null}
+      onClose={handleClose}
+      footer={
+        <>
           <Pressable
             style={[styles.submit, !effective && styles.submitDisabled]}
             disabled={!effective}
@@ -86,19 +68,38 @@ export function FeedbackSheet({
             <Text style={styles.submitText}>Send feedback</Text>
           </Pressable>
           <Text style={styles.privacy}>Stays on this device — nothing is sent anywhere.</Text>
-        </Pressable>
-      </Pressable>
-    </Modal>
+        </>
+      }>
+      <Text style={styles.title}>{title}</Text>
+
+      {categories.length > 1 && (
+        <View style={styles.chips}>
+          {categories.map(c => (
+            <Pressable
+              key={c}
+              style={[styles.chip, effective === c && styles.chipOn]}
+              onPress={() => setSelected(c)}>
+              <Text style={[styles.chipText, effective === c && styles.chipTextOn]}>
+                {CATEGORY_LABEL[c]}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+
+      <BottomSheetTextInput
+        style={styles.note}
+        placeholder={notePlaceholder ?? 'Add a note (optional)'}
+        placeholderTextColor="#9fadbf"
+        value={note}
+        onChangeText={setNote}
+        multiline
+      />
+    </BottomSheetBase>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(14,17,22,0.45)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    paddingHorizontal: 20, paddingTop: 12,
-  },
-  grabber: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#d7dce3', marginBottom: 16 },
   title: { fontSize: 19, fontWeight: '800', color: '#1b2330', letterSpacing: -0.3, marginBottom: 14 },
 
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
 
-  submit: { marginTop: 14, backgroundColor: '#0e1116', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+  submit: { backgroundColor: '#0e1116', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   submitDisabled: { backgroundColor: '#c3cad4' },
   submitText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   privacy: { fontSize: 11.5, color: '#9fadbf', textAlign: 'center', marginTop: 10 },

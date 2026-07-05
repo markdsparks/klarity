@@ -1,9 +1,9 @@
 import React from 'react';
-import { Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { NutritionExplainer } from '@/data/nutrition-explainers';
 import { AskAboutThis } from '@/components/ask-about-this';
+import { BottomSheetBase } from '@/components/bottom-sheet-base';
 import type { AskContext } from '@/services/qa/ask';
 
 const TIER_LABEL: Record<string, string> = {
@@ -19,7 +19,8 @@ const TIER_COLOR: Record<string, string> = {
 
 // Bottom-sheet "why this matters" for a nutrition context line. Mirrors the
 // additive evidence-trail pattern: plain-language explanation, the evidence
-// tier, and the authority behind the rule (spec 003/004 follow-up).
+// tier, and the authority behind the rule (spec 003/004 follow-up). Renders
+// through BottomSheetBase (ADR-004) rather than a hand-rolled Modal.
 export function ExplainerSheet({
   explainer,
   onClose,
@@ -29,72 +30,41 @@ export function ExplainerSheet({
   onClose: () => void;
   askContext?: AskContext;
 }) {
-  const insets = useSafeAreaInsets();
   return (
-    <Modal
+    <BottomSheetBase
       visible={explainer != null}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        {explainer ? (
-          // A no-op onPress here only exists to stop a tap on the sheet body
-          // from bubbling to the backdrop's onClose above — it must NOT do
-          // anything else. An earlier version called Keyboard.dismiss() from
-          // here, which put a second tap-handling layer around the
-          // ScrollView below and made its native scroll-gesture recognition
-          // and keyboardShouldPersistTaps handling unreliable (quirky
-          // scroll-start, and taps on the Ask button sometimes just
-          // dismissing the keyboard instead of firing). Keyboard dismissal
-          // now happens via the ScrollView's own mechanisms only — see
-          // keyboardShouldPersistTaps and onScrollBeginDrag below — which
-          // don't compete with its gestures because they're part of them.
-          <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]} onPress={() => {}}>
-            <View style={styles.grabber} />
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              onScrollBeginDrag={() => Keyboard.dismiss()}>
-              <View style={[styles.tierPill, { backgroundColor: `${TIER_COLOR[explainer.tier]}1a` }]}>
-                <Text style={[styles.tierText, { color: TIER_COLOR[explainer.tier] }]}>
-                  {TIER_LABEL[explainer.tier] ?? `Tier ${explainer.tier}`}
-                </Text>
-              </View>
-              <Text style={styles.title}>{explainer.title}</Text>
-              <Text style={styles.body}>{explainer.body}</Text>
-              <Text style={styles.sourceLabel}>Basis</Text>
-              <Text style={styles.source}>{explainer.source}</Text>
+      onClose={onClose}
+      footer={
+        <Pressable style={styles.closeBtn} onPress={onClose}>
+          <Text style={styles.closeBtnText}>Got it</Text>
+        </Pressable>
+      }>
+      {explainer ? (
+        <>
+          <View style={[styles.tierPill, { backgroundColor: `${TIER_COLOR[explainer.tier]}1a` }]}>
+            <Text style={[styles.tierText, { color: TIER_COLOR[explainer.tier] }]}>
+              {TIER_LABEL[explainer.tier] ?? `Tier ${explainer.tier}`}
+            </Text>
+          </View>
+          <Text style={styles.title}>{explainer.title}</Text>
+          <Text style={styles.body}>{explainer.body}</Text>
+          <Text style={styles.sourceLabel}>Basis</Text>
+          <Text style={styles.source}>{explainer.source}</Text>
 
-              {askContext ? <AskAboutThis context={askContext} /> : null}
-            </ScrollView>
-            <Pressable style={styles.closeBtn} onPress={onClose}>
-              <Text style={styles.closeBtnText}>Got it</Text>
-            </Pressable>
-          </Pressable>
-        ) : <View />}
-      </Pressable>
-      </KeyboardAvoidingView>
-    </Modal>
+          {askContext ? <AskAboutThis context={askContext} /> : null}
+        </>
+      ) : null}
+    </BottomSheetBase>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  backdrop: { flex: 1, backgroundColor: 'rgba(14,17,22,0.45)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    paddingHorizontal: 22, paddingTop: 12,
-    maxHeight: '80%',
-  },
-  grabber: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#d7dce3', marginBottom: 18 },
   tierPill: { alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, marginBottom: 12 },
   tierText: { fontSize: 12, fontWeight: '700' },
   title: { fontSize: 20, fontWeight: '800', color: '#1b2330', letterSpacing: -0.3, marginBottom: 12 },
   body: { fontSize: 15, lineHeight: 23, color: '#3c4654' },
   sourceLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 1, color: '#9aa4b2', textTransform: 'uppercase', marginTop: 20, marginBottom: 6 },
   source: { fontSize: 13, lineHeight: 19, color: '#5a6472', fontStyle: 'italic' },
-  closeBtn: { marginTop: 18, backgroundColor: '#0e1116', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+  closeBtn: { backgroundColor: '#0e1116', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   closeBtnText: { color: '#ffffff', fontSize: 15, fontWeight: '700' },
 });
