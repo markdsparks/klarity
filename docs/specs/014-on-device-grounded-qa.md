@@ -551,6 +551,62 @@ split spec 010 used (JS-side resolution vs. native capture).
   evaluating it so far. Then remove the temporary debug output
   (`AskResult.debug`) once all three tools are confirmed working end to
   end.
+
+  **14th on-device pass — a real architecture gap, not a tool-calling bug.**
+  Asked "how could I add potassium to mitigate high sodium?" on a
+  sodium-flagged (63% DV) Chick-fil-A sandwich with no sugar problem. The
+  model called `suggest_additions` (right tool family, wrong scope) and got
+  back "This product isn't currently flagged for high sugar, so there's no
+  threshold to cross here" — accurate to that tool's narrow design, useless
+  and confusing as an answer to a legitimate, on-topic question.
+
+  Root cause, confirmed by reading the code rather than guessing: the whole
+  "how much would I need to add" personalized-dose layer
+  (`simulate_addition`/`suggest_additions`) was built in M1 for exactly one
+  mechanism — sugar softened by fiber/protein crossing
+  `FIBER_PROTEIN_SUGAR_OFFSET_DV`. `nutrition.ts` already computes a second,
+  equally real, equally evidence-tier-A mechanism (Na:K ratio — potassium at
+  least matching sodium by weight softens a high-sodium flag, DASH-trial
+  evidence) and exposes it via `explain_rule`'s `sodium_potassium` topic as
+  static text, but the addition-simulation layer had no representation of
+  it at all — no potassium field on any common addition, no mechanism
+  function, no routing. Sodium is arguably the single most common flag for
+  Klarity's actual use case (salty fast food), more so than the
+  sugar/fiber example that originally motivated M1 — this wasn't a rare
+  edge case.
+
+  **Fixed by generalizing, not routing around it** (explicit product
+  decision — Mark chose "generalize now" over "patch tool routing only"
+  when offered the tradeoff): added `potassium` to `CommonAddition`
+  (`common-additions.ts`), with two new entries (banana, baked potato) —
+  the existing beans/avocado/yogurt entries' potassium is real but too
+  modest to close most sodium gaps in a realistic serving count. Added
+  `sodiumPotassiumMechanism()` (`simulate-addition.ts`), mirroring
+  `fiberProteinMechanism()`'s shape but with the threshold passed in grams
+  directly (this product's own sodium content) rather than derived from a
+  %DV, since unlike the sugar/fiber case there's no fixed reference value —
+  refactored the shared `multiplierToThreshold` helper to take the
+  threshold directly so both mechanisms use it. `suggestAdditions` now
+  checks `sugarFlagged` and `sodiumFlagged` independently and reports
+  whichever (or both) apply, via a new `rankAdditions` helper shared
+  between the two ranking passes instead of duplicated map/filter/sort
+  logic.
+
+  **A second, real bug the new sodium tests immediately surfaced:**
+  `fiberProteinMechanism` fired whenever an addition happened to touch
+  fiber/protein at all, with no check that sugar was actually a live
+  concern on the product being asked about. Baked potato contributes both
+  fiber and potassium — on a sodium-only-flagged product, the ungated fiber
+  check fired first in the `??` chain and produced a technically-computed
+  but nonsensical "softens a high-sugar flag" message on a product with no
+  sugar problem, masking the sodium message that was actually relevant.
+  Fixed by gating each mechanism on its own flag being present in
+  `before.highNutrients` before calling it — not "did this nutrient's DV
+  numerically change." This is the general lesson: any mechanism function
+  in this file must check its own flag is live, not just that the addition
+  touched the right nutrient, or the same masking bug reappears for the
+  next mechanism added after this one.
+
 - **M3 — Graceful degradation + instrumentation.** Availability check +
   clean fallback on unsupported devices — **done, folded into M2 above.**
   Still open: spec 009 logging, safety telemetry

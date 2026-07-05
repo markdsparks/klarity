@@ -4,8 +4,17 @@
 // nature (brands vary), and every answer built from this table says so.
 //
 // Units match ServingNutrients' convention: grams for fat/fiber/protein/sugar,
-// GRAMS for sodium too (not mg — see nutrition.ts, sodium is stored in grams
-// and only multiplied by 1000 for display).
+// GRAMS for sodium and potassium too (not mg — see nutrition.ts, both are
+// stored in grams and only multiplied by 1000 for display).
+//
+// potassium (spec 014 M2 follow-up): added to cover the second real "add X to
+// offset a flag" mechanism nutrition.ts already computes — potassium at least
+// matching sodium by weight softens a high-sodium flag (DASH-trial evidence,
+// same tier as the sugar/fiber-protein rule). Only populated for additions
+// with a meaningful contribution; banana and baked potato are the two
+// genuinely useful sources here — the modest amounts in beans/avocado/yogurt
+// are real but too small to close most sodium gaps in a realistic serving
+// count.
 
 export interface CommonAddition {
   id: string;
@@ -22,6 +31,7 @@ export interface CommonAddition {
     protein?: number;
     sugar?: number;
     sodium?: number;      // grams
+    potassium?: number;   // grams
   };
 }
 
@@ -112,7 +122,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     commonServing: '1/4 medium (~50 g)',
     unitQuantity: 0.25, unitLabel: 'avocado',
     aliases: ['avocado'],
-    perServing: { calories: 80, totalFat: 7.5, fiber: 3.4, protein: 1 },
+    perServing: { calories: 80, totalFat: 7.5, fiber: 3.4, protein: 1, potassium: 0.18 },
   },
   {
     id: 'black_beans',
@@ -120,7 +130,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     commonServing: '1/4 cup (~57 g)',
     unitQuantity: 0.25, unitLabel: 'cup',
     aliases: ['black beans', 'black bean'],
-    perServing: { calories: 55, fiber: 3.7, protein: 4 },
+    perServing: { calories: 55, fiber: 3.7, protein: 4, potassium: 0.18 },
   },
   {
     id: 'chickpeas',
@@ -128,7 +138,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     commonServing: '1/4 cup (~41 g)',
     unitQuantity: 0.25, unitLabel: 'cup',
     aliases: ['chickpea', 'chickpeas', 'garbanzo beans', 'garbanzo'],
-    perServing: { calories: 60, fiber: 3, protein: 4 },
+    perServing: { calories: 60, fiber: 3, protein: 4, potassium: 0.12 },
   },
   {
     id: 'greek_yogurt_plain',
@@ -136,7 +146,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     commonServing: '1/2 cup (~123 g)',
     unitQuantity: 0.5, unitLabel: 'cup',
     aliases: ['greek yogurt', 'plain greek yogurt'],
-    perServing: { calories: 75, protein: 11 },
+    perServing: { calories: 75, protein: 11, potassium: 0.155 },
   },
   {
     id: 'whey_protein',
@@ -145,6 +155,22 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     unitQuantity: 1, unitLabel: 'scoop',
     aliases: ['protein powder', 'whey protein', 'whey'],
     perServing: { calories: 120, protein: 24 },
+  },
+  {
+    id: 'banana',
+    name: 'Banana',
+    commonServing: '1 medium (~118 g)',
+    unitQuantity: 1, unitLabel: 'banana',
+    aliases: ['banana', 'bananas'],
+    perServing: { calories: 105, fiber: 3.1, protein: 1.3, sugar: 14, potassium: 0.422 },
+  },
+  {
+    id: 'baked_potato',
+    name: 'Baked potato (with skin)',
+    commonServing: '1 medium (~173 g)',
+    unitQuantity: 1, unitLabel: 'potato',
+    aliases: ['baked potato', 'potato', 'potatoes'],
+    perServing: { calories: 161, fiber: 3.6, protein: 4.3, sugar: 2, potassium: 0.926 },
   },
 ];
 

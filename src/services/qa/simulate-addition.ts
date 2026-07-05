@@ -42,14 +42,18 @@ function formatAmount(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
-// How many multiples of one serving of a fiber/protein contribution would
-// close the gap to the offset threshold — shared by fiberProteinMechanism
-// (one named addition) and suggestAdditions (ranking all of them). Returns
-// null when the addition doesn't contribute this nutrient at all, 0 when
-// the baseline is already past the threshold (nothing needed).
-function multiplierToThreshold(baselineGrams: number, refGrams: number, perServingGrams: number | undefined): number | null {
+// How many multiples of one serving of a nutrient contribution would close
+// the gap from `baselineGrams` to `thresholdGrams` — shared by every offset
+// mechanism below (fiber/protein crossing a %DV mark, potassium matching
+// sodium) and by suggestAdditions (ranking all additions for either
+// mechanism). Threshold is passed in grams directly, not derived here,
+// because it means different things per mechanism: a %DV-derived constant
+// for fiber/protein, but the product's OWN sodium content for potassium —
+// there's no single formula that covers both, so callers compute it.
+// Returns null when the addition doesn't contribute this nutrient at all, 0
+// when the baseline is already past the threshold (nothing needed).
+function multiplierToThreshold(baselineGrams: number, thresholdGrams: number, perServingGrams: number | undefined): number | null {
   if (perServingGrams == null || perServingGrams <= 0) return null;
-  const thresholdGrams = (FIBER_PROTEIN_SUGAR_OFFSET_DV / 100) * refGrams;
   const stillNeeded = thresholdGrams - baselineGrams;
   return stillNeeded <= 0 ? 0 : roundUpToHalf(stillNeeded / perServingGrams);
 }
@@ -82,7 +86,8 @@ function fiberProteinMechanism(
     // keep the FIRST fact and drop trailing ones. The amount needed is the
     // one thing this whole tool exists to answer; it must not be the part
     // that gets truncated away.
-    const multiplier = multiplierToThreshold(beforeGrams ?? 0, refGrams, addition.perServing[nutrientKey]);
+    const thresholdGrams = (FIBER_PROTEIN_SUGAR_OFFSET_DV / 100) * refGrams;
+    const multiplier = multiplierToThreshold(beforeGrams ?? 0, thresholdGrams, addition.perServing[nutrientKey]);
     if (multiplier != null && multiplier > 0) {
       const amount = formatAmount(multiplier * addition.unitQuantity);
       return (
@@ -97,6 +102,52 @@ function fiberProteinMechanism(
   return null; // already over the threshold before adding — nothing new to report
 }
 
+// The second real "add X to offset a flag" mechanism nutrition.ts computes
+// (see nutrition.ts's naK/sodiumOffset) — potassium at least matching sodium
+// by weight softens a high-sodium flag, DASH-trial evidence, same tier as the
+// fiber/protein rule above. Structurally different from that one: the
+// threshold isn't a fixed %DV, it's this product's OWN sodium content, so
+// there's no `refGrams`/DV to derive it from — the caller passes sodium
+// grams straight into multiplierToThreshold.
+function sodiumPotassiumMechanism(
+  beforeSodium: number | undefined,
+  beforePotassium: number | undefined,
+  afterPotassium: number | undefined,
+  addition: CommonAddition,
+): string | null {
+  const sodiumGrams = beforeSodium ?? 0;
+  if (sodiumGrams <= 0) return null; // nothing to offset
+  const beforeK = beforePotassium ?? 0;
+  const afterK = afterPotassium ?? beforeK;
+  if (afterK <= beforeK) return null; // addition doesn't touch potassium
+
+  const beforeOffset = beforeK >= sodiumGrams;
+  const afterOffset = afterK >= sodiumGrams;
+  const beforeMg = formatAmount(beforeK * 1000);
+  const afterMg = formatAmount(afterK * 1000);
+  const sodiumMg = formatAmount(sodiumGrams * 1000);
+
+  if (beforeOffset) return null; // already over the threshold before adding — nothing new to report
+
+  if (afterOffset) {
+    return `Potassium would go from about ${beforeMg} mg to ${afterMg} mg — enough to at least match this product's ${sodiumMg} mg of sodium, which softens a high-sodium flag.`;
+  }
+
+  // Lead with the actionable recommendation — see the note in
+  // fiberProteinMechanism on why this must be the first fact, not the last.
+  const multiplier = multiplierToThreshold(beforeK, sodiumGrams, addition.perServing.potassium);
+  if (multiplier != null && multiplier > 0) {
+    const amount = formatAmount(multiplier * addition.unitQuantity);
+    return (
+      `You'd need about ${amount} ${addition.unitLabel} of ${addition.name.toLowerCase()} — not ` +
+      `${addition.commonServing.split(' (')[0]} — for potassium to at least match this product's ` +
+      `${sodiumMg} mg of sodium, which is what softens a high-sodium flag. At ` +
+      `${addition.commonServing.split(' (')[0]}, potassium only reaches about ${afterMg} mg (from ${beforeMg} mg).`
+    );
+  }
+  return `Potassium would go from about ${beforeMg} mg to ${afterMg} mg — still short of this product's ${sodiumMg} mg of sodium.`;
+}
+
 // Adds a common addition's nutrients to sn and recomputes every %DV it
 // touches — the same dv() math nutrition.ts uses internally, just applied to
 // a hypothetical merged total rather than the product's own label numbers.
@@ -107,21 +158,23 @@ function mergeAddition(sn: ServingNutrients, profile: Profile, addition: CommonA
   const sum = (a?: number, b?: number): number | undefined =>
     a != null || b != null ? (a ?? 0) + (b ?? 0) : undefined;
 
-  const calories = sum(sn.calories, addition.perServing.calories);
-  const totalFat = sum(sn.totalFat, addition.perServing.totalFat);
-  const fiber    = sum(sn.fiber, addition.perServing.fiber);
-  const protein  = sum(sn.protein, addition.perServing.protein);
-  const sugar    = sum(sn.sugar, addition.perServing.sugar);
-  const sodium   = sum(sn.sodium, addition.perServing.sodium);
+  const calories  = sum(sn.calories, addition.perServing.calories);
+  const totalFat  = sum(sn.totalFat, addition.perServing.totalFat);
+  const fiber     = sum(sn.fiber, addition.perServing.fiber);
+  const protein   = sum(sn.protein, addition.perServing.protein);
+  const sugar     = sum(sn.sugar, addition.perServing.sugar);
+  const sodium    = sum(sn.sodium, addition.perServing.sodium);
+  const potassium = sum(sn.potassium, addition.perServing.potassium);
 
   return {
     ...sn,
     calories,
-    totalFat, fatDv: dv(totalFat, refs.totalFat),
-    fiber,    fiberDv: dv(fiber, refs.fiber),
-    protein,  proteinDv: dv(protein, refs.protein),
-    sugar,    sugarDv: dv(sugar, refs.sugar),
-    sodium,   sodiumDv: dv(sodium, refs.sodium),
+    totalFat,   fatDv: dv(totalFat, refs.totalFat),
+    fiber,      fiberDv: dv(fiber, refs.fiber),
+    protein,    proteinDv: dv(protein, refs.protein),
+    sugar,      sugarDv: dv(sugar, refs.sugar),
+    sodium,     sodiumDv: dv(sodium, refs.sodium),
+    potassium,  potassiumDv: dv(potassium, refs.potassium),
   };
 }
 
@@ -148,9 +201,19 @@ export function simulateAddition(
   const afterSnapshot: ToneSnapshot = { tone: after.tone, summary: after.summary };
 
   const refs = referenceValues(profile);
+  // Gate each mechanism on its OWN flag actually being live on this product
+  // — not just "the addition happens to touch this nutrient." Real bug this
+  // guards against: baked potato contributes fiber as well as potassium, so
+  // an ungated fiberProteinMechanism fired on a sodium-only-flagged product
+  // and produced a technically-computed but nonsensical "softens a
+  // high-sugar flag" message on a product with no sugar problem at all,
+  // masking the sodium message that was actually relevant.
+  const sugarFlagged = before.highNutrients.some(h => h.includes('sugar'));
+  const sodiumFlagged = before.highNutrients.some(h => h.includes('sodium'));
   const mechanism =
-    fiberProteinMechanism(sn.fiber, sn.fiberDv, merged.fiberDv, refs.fiber, addition, 'fiber') ??
-    fiberProteinMechanism(sn.protein, sn.proteinDv, merged.proteinDv, refs.protein, addition, 'protein') ??
+    (sugarFlagged ? fiberProteinMechanism(sn.fiber, sn.fiberDv, merged.fiberDv, refs.fiber, addition, 'fiber') : null) ??
+    (sugarFlagged ? fiberProteinMechanism(sn.protein, sn.proteinDv, merged.proteinDv, refs.protein, addition, 'protein') : null) ??
+    (sodiumFlagged ? sodiumPotassiumMechanism(sn.sodium, sn.potassium, merged.potassium, addition) : null) ??
     undefined;
 
   return {
@@ -167,26 +230,45 @@ export function simulateAddition(
 
 // Spec 014 — a genuine gap `simulateAddition` can't cover: a generic "what
 // could I add to fix this?" question, with no specific ingredient named.
-// Ranks every common addition by how little of it would close the gap to
-// FIBER_PROTEIN_SUGAR_OFFSET_DV, using the exact same math as
-// fiberProteinMechanism — this is a ranking over the same table, not a new
-// nutrition rule. `summary` is the deterministic, displayable answer (same
-// non-negotiable principle as `mechanism`/`note` above): the model's job is
-// only to decide THIS tool applies, never to phrase the recommendation.
+// Ranks every common addition by how little of it would close the gap for
+// WHICHEVER offset mechanism actually applies to this product — sugar
+// (softened by fiber/protein) and/or sodium (softened by potassium) are
+// checked independently and both reported if both are flagged, rather than
+// guessing which one the user means. `summary` is the deterministic,
+// displayable answer (same non-negotiable principle as `mechanism`/`note`
+// above): the model's job is only to decide THIS tool applies, never to
+// phrase the recommendation.
 export interface SuggestedAddition {
   name: string;
   amount: string; // e.g. "1.5 tbsp"
 }
 
 export interface SuggestAdditionsResult {
-  // False when there's no sugar flag here. Note: fiber/protein already being
-  // past the threshold can't happen when sugar IS flagged — toneNutrition's
-  // own sugarOffset (nutrition.ts) applies that exact same threshold check
-  // and would have already softened the flag, so sugarFlagged would be false
-  // first. One condition, not two, by construction.
+  // False when neither mechanism's flag is present. Note: a mechanism's own
+  // nutrient already being past its threshold can't happen when that flag IS
+  // active — toneNutrition's own offset checks (nutrition.ts) apply the exact
+  // same threshold and would have already softened the flag first. One
+  // condition per mechanism, not two, by construction.
   applicable: boolean;
   suggestions: SuggestedAddition[];
   summary: string;
+}
+
+// Ranks every common addition by least amount needed to close a gap, given a
+// per-addition multiplier extractor — shared by the sugar and sodium
+// mechanisms below so the map/filter/sort/slice logic isn't duplicated per
+// mechanism.
+function rankAdditions(multiplierFor: (addition: CommonAddition) => number | null): SuggestedAddition[] {
+  return COMMON_ADDITIONS
+    .map(addition => {
+      const multiplier = multiplierFor(addition);
+      if (multiplier == null) return null;
+      return { name: addition.name, amount: `${formatAmount(multiplier * addition.unitQuantity)} ${addition.unitLabel}`, sortKey: multiplier };
+    })
+    .filter((x): x is { name: string; amount: string; sortKey: number } => x != null)
+    .sort((a, b) => a.sortKey - b.sortKey)
+    .slice(0, 4)
+    .map(({ name, amount }) => ({ name, amount }));
 }
 
 export function suggestAdditions(
@@ -196,31 +278,52 @@ export function suggestAdditions(
 ): SuggestAdditionsResult {
   const assessment = toneNutrition(sn, profile, ctx);
   const sugarFlagged = assessment.highNutrients.some(h => h.includes('sugar'));
-  if (!sugarFlagged) {
+  const sodiumFlagged = assessment.highNutrients.some(h => h.includes('sodium'));
+
+  if (!sugarFlagged && !sodiumFlagged) {
     return {
       applicable: false,
       suggestions: [],
-      summary: "This product isn't currently flagged for high sugar, so there's no threshold to cross here.",
+      summary: "This product isn't currently flagged for high sugar or high sodium, so there's no addition-based threshold to cross here.",
     };
   }
 
   const refs = referenceValues(profile);
-  const ranked = COMMON_ADDITIONS
-    .map(addition => {
-      const fiberMultiplier = multiplierToThreshold(sn.fiber ?? 0, refs.fiber, addition.perServing.fiber);
-      const proteinMultiplier = multiplierToThreshold(sn.protein ?? 0, refs.protein, addition.perServing.protein);
-      const best = [fiberMultiplier, proteinMultiplier]
-        .filter((m): m is number => m != null)
-        .sort((a, b) => a - b)[0];
-      if (best == null) return null;
-      return { name: addition.name, amount: `${formatAmount(best * addition.unitQuantity)} ${addition.unitLabel}`, sortKey: best };
-    })
-    .filter((x): x is { name: string; amount: string; sortKey: number } => x != null)
-    .sort((a, b) => a.sortKey - b.sortKey)
-    .slice(0, 4)
-    .map(({ name, amount }) => ({ name, amount }));
+  const summaries: string[] = [];
+  let suggestions: SuggestedAddition[] = [];
 
-  if (ranked.length === 0) {
+  if (sugarFlagged) {
+    const fiberThreshold = (FIBER_PROTEIN_SUGAR_OFFSET_DV / 100) * refs.fiber;
+    const proteinThreshold = (FIBER_PROTEIN_SUGAR_OFFSET_DV / 100) * refs.protein;
+    const ranked = rankAdditions(addition => {
+      const fiberMultiplier = multiplierToThreshold(sn.fiber ?? 0, fiberThreshold, addition.perServing.fiber);
+      const proteinMultiplier = multiplierToThreshold(sn.protein ?? 0, proteinThreshold, addition.perServing.protein);
+      return [fiberMultiplier, proteinMultiplier].filter((m): m is number => m != null).sort((a, b) => a - b)[0] ?? null;
+    });
+    if (ranked.length > 0) {
+      suggestions = suggestions.concat(ranked);
+      const list = joinNouns(ranked.map(r => `${r.amount} of ${r.name.toLowerCase()}`));
+      summaries.push(
+        `For the sugar flag: adding about ${list} would each get fiber or protein over the ` +
+        `${FIBER_PROTEIN_SUGAR_OFFSET_DV}% daily-value mark that softens it — ranked by least amount needed.`
+      );
+    }
+  }
+
+  if (sodiumFlagged) {
+    const sodiumThreshold = sn.sodium ?? 0;
+    const ranked = rankAdditions(addition => multiplierToThreshold(sn.potassium ?? 0, sodiumThreshold, addition.perServing.potassium));
+    if (ranked.length > 0) {
+      suggestions = suggestions.concat(ranked);
+      const list = joinNouns(ranked.map(r => `${r.amount} of ${r.name.toLowerCase()}`));
+      summaries.push(
+        `For the sodium flag: adding about ${list} would each bring potassium up to at least match ` +
+        `this product's sodium — ranked by least amount needed.`
+      );
+    }
+  }
+
+  if (summaries.length === 0) {
     return {
       applicable: true,
       suggestions: [],
@@ -228,13 +331,9 @@ export function suggestAdditions(
     };
   }
 
-  const list = joinNouns(ranked.map(r => `${r.amount} of ${r.name.toLowerCase()}`));
   return {
     applicable: true,
-    suggestions: ranked,
-    summary:
-      `Adding about ${list} would each get fiber or protein over the ${FIBER_PROTEIN_SUGAR_OFFSET_DV}% ` +
-      `daily-value mark that softens a high-sugar flag here — ranked by least amount needed. Approximate, ` +
-      `based on typical serving values.`,
+    suggestions,
+    summary: `${summaries.join(' ')} Approximate, based on typical serving values.`,
   };
 }

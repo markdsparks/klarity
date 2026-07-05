@@ -20,6 +20,34 @@ const sugaryLowFiberSn: ServingNutrients = {
   protein: 2, proteinDv: 4,
 };
 
+// High sodium, no potassium data, everything else modest (keeps nutrientDense
+// false so sodium reads as a genuine flag, not a "budget it" reframe) —
+// mirrors the real Chick-fil-A sandwich case that surfaced this gap: a
+// sodium question got routed to the sugar-only suggestAdditions tool and
+// came back with an irrelevant "not flagged for sugar" non-answer.
+const highSodiumNoPotassiumSn: ServingNutrients = {
+  source: 'off',
+  factor: 1,
+  calories: 440,
+  sodium: 1.4, sodiumDv: 61,
+  sugar: 4, sugarDv: 8,
+  fiber: 1, fiberDv: 4,
+  protein: 3, proteinDv: 6,
+};
+
+// Just past the sodium warn line (22% DV) — low enough that a single
+// potassium-rich addition can fully close the Na:K gap, for the "crosses the
+// threshold" mechanism path (mirrors the fiber/chia-seed crossing case).
+const barelyHighSodiumSn: ServingNutrients = {
+  source: 'off',
+  factor: 1,
+  calories: 300,
+  sodium: 0.5, sodiumDv: 22,
+  sugar: 2, sugarDv: 4,
+  fiber: 1, fiberDv: 4,
+  protein: 3, proteinDv: 6,
+};
+
 describe('simulateAddition', () => {
   it('unknown ingredient — reports not found, still computes the current tone honestly', () => {
     const result = simulateAddition(sugaryLowFiberSn, baseProfile, 'unobtainium powder');
@@ -84,6 +112,46 @@ describe('simulateAddition', () => {
     const result = simulateAddition(sugaryLowFiberSn, baseProfile, 'almonds');
     expect(result.note).toMatch(/approximate/i);
   });
+
+  describe('the sodium/potassium mechanism (spec 014 M2 follow-up)', () => {
+    // Real gap this guards against: nutrition.ts already computes a second
+    // real offset mechanism (potassium at least matching sodium by weight
+    // softens a high-sodium flag) but the addition-simulation layer only
+    // understood the sugar/fiber-protein one — a sodium question against a
+    // named potassium-rich food had nothing to compute against at all.
+
+    it('not enough potassium yet — leads with the actionable amount, same shape as the fiber case', () => {
+      const before = toneNutrition(highSodiumNoPotassiumSn, baseProfile);
+      expect(before.tone).toBe('warn');
+      expect(before.summary).toMatch(/sodium/i);
+
+      const result = simulateAddition(highSodiumNoPotassiumSn, baseProfile, 'baked potato');
+      expect(result.found).toBe(true);
+      expect(result.changed).toBe(false); // one potato's 926mg doesn't reach 1400mg sodium
+      expect(result.mechanism).toMatch(/^you'd need about 2 potato/i);
+      expect(result.mechanism).toMatch(/not 1 medium/i);
+      expect(result.mechanism).toMatch(/match this product's 1400 mg of sodium/i);
+      expect(result.mechanism).toMatch(/only reaches about 926 mg \(from 0 mg\)/i);
+    });
+
+    it('crosses the threshold — potassium fully matches sodium, softening the flag', () => {
+      const before = toneNutrition(barelyHighSodiumSn, baseProfile);
+      expect(before.tone).toBe('warn');
+
+      const result = simulateAddition(barelyHighSodiumSn, baseProfile, 'baked potato');
+      expect(result.found).toBe(true);
+      expect(result.after?.tone).not.toBe('warn');
+      expect(result.changed).toBe(true);
+      expect(result.mechanism).toMatch(/potassium would go from about 0 mg to 926 mg/i);
+      expect(result.mechanism).toMatch(/match this product's 500 mg of sodium/i);
+    });
+
+    it('an addition with no potassium data reports no sodium mechanism', () => {
+      const result = simulateAddition(highSodiumNoPotassiumSn, baseProfile, 'olive oil');
+      expect(result.found).toBe(true);
+      expect(result.mechanism).toBeUndefined();
+    });
+  });
 });
 
 describe('suggestAdditions', () => {
@@ -128,5 +196,42 @@ describe('suggestAdditions', () => {
   it('excludes additions that contribute neither fiber nor protein (e.g. olive oil)', () => {
     const result = suggestAdditions(sugaryLowFiberSn, baseProfile);
     expect(result.suggestions.some(s => s.name === 'Olive oil')).toBe(false);
+  });
+
+  describe('sodium/potassium routing (spec 014 M2 follow-up)', () => {
+    // Real gap this guards against: this tool used to hard-check for a sugar
+    // flag only, so a sodium-flagged product with no sugar problem got a
+    // confusing "not flagged for high sugar" non-answer to a legitimate
+    // sodium question — wrong tool output, not just a wrong tool pick.
+
+    it('routes to the potassium ranking for a sodium-flagged, non-sugary product', () => {
+      const result = suggestAdditions(highSodiumNoPotassiumSn, baseProfile);
+      expect(result.applicable).toBe(true);
+      expect(result.suggestions.length).toBeGreaterThan(0);
+      // Baked potato's 926mg/serving needs the least (a 1400mg gap) — must lead.
+      expect(result.suggestions[0].name).toBe('Baked potato (with skin)');
+      expect(result.summary).toMatch(/for the sodium flag/i);
+      expect(result.summary).toMatch(/potassium/i);
+      expect(result.summary).not.toMatch(/for the sugar flag/i);
+    });
+
+    it('excludes additions with no potassium data (e.g. whey protein)', () => {
+      const result = suggestAdditions(highSodiumNoPotassiumSn, baseProfile);
+      expect(result.suggestions.some(s => s.name === 'Whey protein powder')).toBe(false);
+    });
+
+    it('reports both mechanisms when a product is flagged for sugar AND sodium', () => {
+      const bothFlagged: ServingNutrients = { ...sugaryLowFiberSn, sodium: 1.4, sodiumDv: 61 };
+      const before = toneNutrition(bothFlagged, baseProfile);
+      expect(before.highNutrients).toEqual(expect.arrayContaining(['sugar', 'sodium']));
+
+      const result = suggestAdditions(bothFlagged, baseProfile);
+      expect(result.applicable).toBe(true);
+      expect(result.summary).toMatch(/for the sugar flag/i);
+      expect(result.summary).toMatch(/for the sodium flag/i);
+      // Both mechanisms' top picks should be present, not just one.
+      expect(result.suggestions.some(s => s.name === 'Whey protein powder')).toBe(true);
+      expect(result.suggestions.some(s => s.name === 'Baked potato (with skin)')).toBe(true);
+    });
   });
 });
