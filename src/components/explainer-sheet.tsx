@@ -39,13 +39,23 @@ export function ExplainerSheet({
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         {explainer ? (
-          // Tapping the sheet body (not the backdrop) only hides the keyboard,
-          // it doesn't close the sheet — the "Ask about this" box has no
-          // return-key path to dismiss without submitting a question, so this
-          // is the only way to put the keyboard away without asking something.
-          <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]} onPress={() => Keyboard.dismiss()}>
+          // A no-op onPress here only exists to stop a tap on the sheet body
+          // from bubbling to the backdrop's onClose above — it must NOT do
+          // anything else. An earlier version called Keyboard.dismiss() from
+          // here, which put a second tap-handling layer around the
+          // ScrollView below and made its native scroll-gesture recognition
+          // and keyboardShouldPersistTaps handling unreliable (quirky
+          // scroll-start, and taps on the Ask button sometimes just
+          // dismissing the keyboard instead of firing). Keyboard dismissal
+          // now happens via the ScrollView's own mechanisms only — see
+          // keyboardShouldPersistTaps and onScrollBeginDrag below — which
+          // don't compete with its gestures because they're part of them.
+          <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]} onPress={() => {}}>
             <View style={styles.grabber} />
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              onScrollBeginDrag={() => Keyboard.dismiss()}>
               <View style={[styles.tierPill, { backgroundColor: `${TIER_COLOR[explainer.tier]}1a` }]}>
                 <Text style={[styles.tierText, { color: TIER_COLOR[explainer.tier] }]}>
                   {TIER_LABEL[explainer.tier] ?? `Tier ${explainer.tier}`}
