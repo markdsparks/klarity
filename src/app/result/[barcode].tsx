@@ -39,6 +39,7 @@ import {
 import { classifyOutcome, logFeedback, logOutcome, type FeedbackCategory } from '@/services/diagnostics';
 import { FeedbackSheet } from '@/components/feedback-sheet';
 import { fetchUSDANutrition } from '@/services/usda';
+import { fetchKrogerMatch, type KrogerMatch } from '@/services/kroger';
 import { resolveVerdict } from '@/services/verdict';
 import { heroTone, verdictSentence } from '@/services/verdict-sentence';
 import type { BuySignal, ScanHistoryEntry } from '@/types/history';
@@ -106,6 +107,32 @@ function ordinal(n: number): string {
   return `${n}${suffix}`;
 }
 
+// Spec 021 M3 — OFF is the default identity source whenever it has anything
+// at all; this only fires when it has genuinely nothing for this barcode.
+// USDA and Kroger are both independent barcode lookups already in flight for
+// M1/M2's ingredient-text fallback, so resolving identity from them here
+// costs no extra network call. Kroger's identity is preferred when both
+// resolve (richer, curated retail description + real photos in our own
+// testing) — a first-guess tie-break, not a settled ranking.
+function synthesizeProduct(usda: USDANutrition | null, kroger: KrogerMatch | null): OFFProduct | null {
+  if (kroger?.description) {
+    return {
+      product_name: kroger.description,
+      brands: kroger.brand,
+      ingredients_text: kroger.ingredientStatement,
+      image_front_url: kroger.imageUrl,
+    };
+  }
+  if (usda?.description) {
+    return {
+      product_name: usda.description,
+      brands: usda.brandName ?? usda.brandOwner,
+      ingredients_text: usda.ingredients,
+    };
+  }
+  return null;
+}
+
 // ── State type ─────────────────────────────────────────────────────────────────
 type State =
   | { status: 'loading' }
@@ -134,8 +161,14 @@ export default function ResultScreen() {
   useEffect(() => {
     if (!barcode) return;
     let cancelled = false;
-    Promise.all([fetchProduct(barcode), fetchUSDANutrition(barcode)])
-      .then(async ([product, usdaNutrition]) => {
+    // Spec 021 — all three sources are independent barcode lookups, fetched
+    // together rather than USDA/Kroger only being consulted after OFF fails.
+    // M1/M2 need USDA's and Kroger's own ingredient text regardless of
+    // whether OFF found a record; M3 needs both available to fall back on
+    // when OFF has nothing.
+    Promise.all([fetchProduct(barcode), fetchUSDANutrition(barcode), fetchKrogerMatch(barcode)])
+      .then(async ([offProduct, usdaNutrition, kroger]) => {
+        const product = offProduct ?? synthesizeProduct(usdaNutrition, kroger);
         if (!product) {
           if (!cancelled) setState({ status: 'not_found' });
           void logOutcome({ at: Date.now(), source: 'barcode', outcome: 'not-found', barcode });
@@ -145,10 +178,19 @@ export default function ResultScreen() {
           matchByETags(product.additives_tags ?? []);
         // OFF's own additives_tags parsing sometimes misses ingredients (nutrition
         // filled in, ingredient parser never ran) — scan the raw text as a fallback.
-        const textMatched = matchByIngredientText(
-          product.ingredients_text ?? '', new Set(tagMatched)
+        // Spec 021 — also scan USDA's and Kroger's own ingredient text. Each is a
+        // real, independent source; one having text doesn't mean the others don't
+        // ALSO carry an additive the first missed. Kept as separately-named
+        // passes (not silently flattened) so which source found which additive
+        // stays traceable in the code, even though it isn't surfaced in the UI yet.
+        const offTextMatched = matchByIngredientText(product.ingredients_text ?? '', new Set(tagMatched));
+        const usdaTextMatched = matchByIngredientText(
+          usdaNutrition?.ingredients ?? '', new Set([...tagMatched, ...offTextMatched]),
         );
-        const additiveIds = [...tagMatched, ...textMatched];
+        const krogerTextMatched = matchByIngredientText(
+          kroger?.ingredientStatement ?? '', new Set([...tagMatched, ...offTextMatched, ...usdaTextMatched]),
+        );
+        const additiveIds = [...tagMatched, ...offTextMatched, ...usdaTextMatched, ...krogerTextMatched];
 
         // Paint first — history persistence must never delay the result screen
         if (!cancelled) {
@@ -238,7 +280,7 @@ export default function ResultScreen() {
         </Text>
         <Text style={styles.errorBody}>
           {isNotFound
-            ? "This barcode isn't in Open Food Facts yet."
+            ? "We checked Open Food Facts, USDA, and Kroger and couldn't find this barcode."
             : (state as { status: 'error'; message: string }).message}
         </Text>
         <Pressable style={styles.errorBtn} onPress={() => router.back()}>

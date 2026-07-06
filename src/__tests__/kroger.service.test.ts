@@ -34,7 +34,11 @@ describe('fetchKrogerMatch', () => {
       .mockResolvedValueOnce(okResponse({ data: [{ nutritionInformation: [{ ingredientStatement: 'corn meal, cheese seasoning' }] }] }));
 
     const result = await fetchKrogerMatch('0002840058986');
-    expect(result).toEqual({ matched: true, hasIngredients: true });
+    expect(result).toEqual({
+      matched: true, hasIngredients: true,
+      ingredientStatement: 'corn meal, cheese seasoning',
+      description: undefined, brand: undefined, imageUrl: undefined,
+    });
   });
 
   it('returns matched true, hasIngredients false when the product exists but has no ingredientStatement', async () => {
@@ -44,7 +48,35 @@ describe('fetchKrogerMatch', () => {
       .mockResolvedValueOnce(okResponse({ data: [{}] }));
 
     const result = await fetchKrogerMatch('1');
-    expect(result).toEqual({ matched: true, hasIngredients: false });
+    expect(result).toEqual({
+      matched: true, hasIngredients: false,
+      ingredientStatement: undefined, description: undefined, brand: undefined, imageUrl: undefined,
+    });
+  });
+
+  it('carries description, brand, and the front-perspective large image through when present', async () => {
+    const fetchKrogerMatch = freshFetchKrogerMatch();
+    (globalThis as any).fetch = jest.fn()
+      .mockResolvedValueOnce(okResponse({ access_token: 'tok', expires_in: 1800 }))
+      .mockResolvedValueOnce(okResponse({
+        data: [{
+          description: 'Cheetos® Crunchy Cheese Chips',
+          brand: 'Cheetos',
+          images: [
+            { perspective: 'back', sizes: [{ size: 'large', url: 'https://kroger/back-large.jpg' }] },
+            { perspective: 'front', featured: true, sizes: [
+              { size: 'xlarge', url: 'https://kroger/front-xlarge.jpg' },
+              { size: 'large', url: 'https://kroger/front-large.jpg' },
+            ] },
+          ],
+          nutritionInformation: [{ ingredientStatement: 'corn meal' }],
+        }],
+      }));
+
+    const result = await fetchKrogerMatch('1');
+    expect(result?.description).toBe('Cheetos® Crunchy Cheese Chips');
+    expect(result?.brand).toBe('Cheetos');
+    expect(result?.imageUrl).toBe('https://kroger/front-large.jpg');
   });
 
   it('returns null when Kroger has no record for either the scanned or alternate code', async () => {
@@ -66,7 +98,10 @@ describe('fetchKrogerMatch', () => {
       .mockResolvedValueOnce(okResponse({ data: [{ nutritionInformation: [{ ingredientStatement: 'milk protein' }] }] })); // 0850000429604 -> found
 
     const result = await fetchKrogerMatch('850000429604');
-    expect(result).toEqual({ matched: true, hasIngredients: true });
+    expect(result).toEqual({
+      matched: true, hasIngredients: true,
+      ingredientStatement: 'milk protein', description: undefined, brand: undefined, imageUrl: undefined,
+    });
   });
 
   it('returns null when the token proxy is not configured (unset env var)', async () => {

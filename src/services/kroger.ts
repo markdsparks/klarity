@@ -32,13 +32,40 @@ async function getKrogerToken(): Promise<string | null> {
 export interface KrogerMatch {
   matched: boolean;
   hasIngredients: boolean;
+  // Spec 021 — spec 020 only needed the boolean for the search confidence
+  // gate; the scan-path fallback (M2/M3) needs the actual text and enough
+  // identity to synthesize a product when OFF has nothing (M3).
+  ingredientStatement?: string;
+  description?: string;
+  brand?: string;
+  imageUrl?: string;
 }
 
+interface KrogerImageSize {
+  size?: string;
+  url?: string;
+}
+interface KrogerImage {
+  perspective?: string;
+  featured?: boolean;
+  sizes?: KrogerImageSize[];
+}
 interface KrogerProduct {
+  description?: string;
+  brand?: string;
+  images?: KrogerImage[];
   nutritionInformation?: { ingredientStatement?: string }[];
 }
 interface KrogerProductsResponse {
   data?: KrogerProduct[];
+}
+
+// Prefers the front-perspective photo (what a shopper would recognize on
+// shelf) at a "large" size — same size class used elsewhere in the app.
+function frontImageUrl(product: KrogerProduct): string | undefined {
+  const front = product.images?.find(img => img.perspective === 'front') ?? product.images?.[0];
+  const sizes = front?.sizes ?? [];
+  return (sizes.find(s => s.size === 'large') ?? sizes[0])?.url;
 }
 
 async function lookupByProductId(token: string, code: string): Promise<KrogerMatch | null> {
@@ -49,7 +76,14 @@ async function lookupByProductId(token: string, code: string): Promise<KrogerMat
   const product = data.data?.[0];
   if (!product) return null; // a real "not found" — Kroger returns 200 + empty data, not a 404
   const ingredientStatement = product.nutritionInformation?.[0]?.ingredientStatement;
-  return { matched: true, hasIngredients: !!ingredientStatement?.trim() };
+  return {
+    matched: true,
+    hasIngredients: !!ingredientStatement?.trim(),
+    ingredientStatement,
+    description: product.description,
+    brand: product.brand,
+    imageUrl: frontImageUrl(product),
+  };
 }
 
 // Same UPC-A/EAN-13 twin-code reality off.ts's fetchProduct already handles

@@ -96,6 +96,10 @@ function scalePer100g(match: USDAFood): USDANutrition | null {
     servingSize:      match.servingSize,
     servingSizeUnit:  match.servingSizeUnit,
     householdServing: match.householdServingFullText,
+    ingredients:  match.ingredients,
+    description:  match.description,
+    brandName:    match.brandName,
+    brandOwner:   match.brandOwner,
   };
 }
 
@@ -123,6 +127,10 @@ export async function fetchUSDANutrition(barcode: string): Promise<USDANutrition
       servingSize:      match.servingSize,
       servingSizeUnit:  match.servingSizeUnit,
       householdServing: match.householdServingFullText,
+      ingredients:  match.ingredients,
+      description:  match.description,
+      brandName:    match.brandName,
+      brandOwner:   match.brandOwner,
     };
   }
 

@@ -288,9 +288,33 @@ npm run web          # Browser (limited camera)
       this remains now that both OFF and Kroger completeness gate the
       default view — thin/incomplete records may have been inflating how
       "duplicate-heavy" results looked
-- [ ] Kroger photo/identity fields not yet used in the search result row
-      itself (still OFF-sourced name/brand/photo) — corroboration signal
-      only so far; a natural, smaller fast-follow once this is on-device
+- [ ] Kroger photo/identity fields not yet used in the *search* result row
+      itself (still OFF-sourced name/brand/photo there) — used on the scan
+      screen now (spec 021), not yet in the search list
+
+**Multi-source verdict resolution** (spec 021) — closes the deeper gap
+017–020 didn't touch: those specs only improved search *discoverability*,
+this improves the actual scan verdict's correctness
+- [x] USDA ingredient-text fallback (M1) — USDA's `/foods/search` already
+      returns a full `ingredients` string, previously fetched and discarded
+      unread. Now feeds the same `matchByIngredientText` engine OFF's own
+      text already used, zero new network calls (USDA is already fetched
+      in parallel on the scan screen)
+- [x] Kroger ingredient-text fallback (M2) — same treatment, one new
+      per-scan Kroger call (cheap relative to search's 8-candidate batches)
+- [x] Not-found fallback via USDA/Kroger identity synthesis (M3) — when
+      OFF has nothing, synthesizes a minimal product record from whichever
+      source resolved (Kroger preferred when both do — richer identity +
+      real photos), only falling to "not found" when all three genuinely
+      have nothing. Verified end-to-end in the browser: cross-source
+      additive detection, not-found→resolved via Kroger-only identity, and
+      the honest floor when nothing resolves
+- [ ] Real match-rate/quality on real barcodes — needs Mark's device;
+      simulated end-to-end in the browser, can't confirm actual coverage
+- [ ] Deliberately NOT unified with search's `EnrichmentCheck` model (spec
+      019) — different-shaped problems (ranking 8 candidates vs. resolving
+      one canonical record); revisit only if a fourth source/use case makes
+      the duplication actually painful, same trigger spec 019 itself used
 
 **Phase 5 — Validation & instrumentation** (spec: docs/specs/009 — shipped)
 - [x] Scan-outcome logging + diagnostics view ("How Klarity's doing" in the You
