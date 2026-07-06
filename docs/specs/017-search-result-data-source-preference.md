@@ -124,14 +124,27 @@ When a result has a verified USDA match:
   `enrichSearchResults()` batch-checks every OFF hit via
   `Promise.allSettled` (a rejected/errored check degrades to unverified,
   never fails the batch) and stable-group-sorts verified results ahead of
-  unverified ones. `SearchResultRow` shows `"{brand} · USDA"` (or just
-  `"USDA"` with no brand) using the same muted, non-pill treatment spec 016
-  established for provenance.
+  unverified ones.
+
+  **Badge treatment revised after Mark's on-device pass:** the first cut
+  used the same muted, non-pill text spec 016 established for the detail
+  screen's provenance footnote ("BrandB · USDA"). On-device, Mark asked for
+  something more prominent — a pill next to the product name, not folded
+  into the brand line. This is deliberately NOT the same call as spec 016's
+  demotion: on the detail screen, provenance is a footnote after you've
+  already committed to a product; in the search list, surfacing the
+  trustworthy source *is* the feature (this whole spec started from "prefer
+  it AND make it visible"), so it earns more visual weight here. Reuses the
+  existing blue "informational, not a verdict" pill language (same colors
+  as the additive axis's "Regulatory status" pill) rather than inventing a
+  new color, so it still doesn't read as a green/amber/red judgment.
 
   Verified in the browser with `window.fetch` mocked (this sandbox has no
   live network — confirmed again this session): 3 fake OFF hits, one wired
-  to return a USDA match. The verified result correctly sorted to the top
-  with a "BrandB · USDA" label; the other two rendered unchanged, no
+  to return a USDA match, including a deliberately long product name to
+  check the pill doesn't force awkward wrapping. The verified result sorted
+  to the top with a "USDA" pill aligned next to its name; the other two
+  rendered unchanged, no
   console errors. This confirms the wiring end-to-end at the code level; it
   cannot confirm real-world USDA match rates against actual OFF search
   results — that still needs Mark's device testing per the "Real

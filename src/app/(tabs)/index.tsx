@@ -561,12 +561,22 @@ function SearchResultRow({ product, usdaVerified }: { product: OFFSearchProduct;
         <Text style={[styles.resultAvatarText, { color: color.fg }]}>{initial}</Text>
       </View>
       <View style={styles.resultInfo}>
-        <Text style={styles.resultName} numberOfLines={2}>{product.product_name}</Text>
-        {/* Spec 017 — provenance, not judgment: plain muted text, matching the
-            demoted badge language spec 016 established for the detail screen. */}
-        {(brand || usdaVerified) ? (
-          <Text style={styles.resultBrand}>{[brand, usdaVerified ? 'USDA' : null].filter(Boolean).join(' · ')}</Text>
-        ) : null}
+        <View style={styles.resultNameRow}>
+          <Text style={[styles.resultName, { flexShrink: 1 }]} numberOfLines={2}>{product.product_name}</Text>
+          {/* Spec 017 — deliberately more prominent than the detail screen's
+              demoted provenance text (spec 016): here, surfacing the trusted
+              source IS the feature, front and center while picking a result,
+              not a footnote after committing to one. Reuses the same blue
+              "informational, not a verdict" pill language as the additive
+              axis's "Regulatory status" pill, so it doesn't read as a
+              green/amber/red judgment. */}
+          {usdaVerified && (
+            <View style={styles.usdaPill}>
+              <Text style={styles.usdaPillText}>USDA</Text>
+            </View>
+          )}
+        </View>
+        {brand ? <Text style={styles.resultBrand}>{brand}</Text> : null}
       </View>
       <Text style={styles.chevron}>›</Text>
     </Pressable>
@@ -766,8 +776,11 @@ const styles = StyleSheet.create({
   },
   resultAvatarText: { fontSize: 18, fontWeight: '800' },
   resultInfo: { flex: 1, gap: 3 },
+  resultNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   resultName: { fontSize: 14, fontWeight: '700', color: '#1a1f29', lineHeight: 19 },
   resultBrand: { fontSize: 12, color: '#8896a7', lineHeight: 16 },
+  usdaPill:     { backgroundColor: '#e8f0fe', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  usdaPillText: { fontSize: 9, fontWeight: '800', color: '#3d6bcc', letterSpacing: 0.5 },
   chevron: { color: '#bec9d4', fontSize: 20 },
   separator: {
     height: StyleSheet.hairlineWidth,
