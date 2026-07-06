@@ -16,6 +16,11 @@ export interface EnrichedSearchProduct {
   usdaVerified: boolean;
 }
 
+export interface EnrichedSearchResults {
+  confident: EnrichedSearchProduct[];
+  lowConfidence: EnrichedSearchProduct[];
+}
+
 // A USDA nutrition match is worth as much as OFF's own "has rich nutrient
 // data" signal (the +2 case in hitScore) — real, but not able on its own to
 // overcome a genuinely well-formed OFF record. Real bug this fixes: a thin
@@ -28,26 +33,42 @@ export interface EnrichedSearchProduct {
 // 100% OFF-sourced (name, brand, additives) either way.
 const USDA_MATCH_BONUS = 2;
 
+// M3 — confidence gate for default visibility, deliberately OFF-only (never
+// includes USDA_MATCH_BONUS). Same lesson as the ranking fix, applied to
+// visibility instead of ordering: a USDA nutrition match must not be able to
+// buy a thin/garbage OFF record its way into the default view any more than
+// it should buy it the #1 spot. Every OFF hit already has relevanceScore >= 1
+// (search results are pre-filtered to require a name) — requiring >= 2 reads
+// as "has a name AND at least one corroborating signal" (US-market tag or
+// real nutrient data), not a bare name string with nothing backing it up.
+// First-guess calibration, not a settled number — expect to revisit after
+// real search sessions.
+const CONFIDENT_THRESHOLD = 2;
+
 // Checks every OFF result (all 8 — a real, non-DEMO_KEY USDA key is
 // configured with real per-hour headroom, confirmed before this was built).
 // A failed/rate-limited check degrades that one result to unverified rather
 // than failing the batch — allSettled, not all, mirrors fetchJson's existing
 // "network trouble means no USDA data, never an error" contract.
-export async function enrichSearchResults(results: OFFSearchProduct[]): Promise<EnrichedSearchProduct[]> {
+export async function enrichSearchResults(results: OFFSearchProduct[]): Promise<EnrichedSearchResults> {
   const checks = await Promise.allSettled(results.map(p => findBrandedMatch(p.code)));
 
   const enriched = results.map((product, i) => {
     const check = checks[i];
     const usdaVerified = check.status === 'fulfilled' && check.value != null;
-    const combinedScore = (product.relevanceScore ?? 0) + (usdaVerified ? USDA_MATCH_BONUS : 0);
-    return { product, usdaVerified, combinedScore };
+    const relevanceScore = product.relevanceScore ?? 0;
+    const combinedScore = relevanceScore + (usdaVerified ? USDA_MATCH_BONUS : 0);
+    return { product, usdaVerified, relevanceScore, combinedScore };
   });
 
   // Stable sort by the blended score — ties keep OFF's own original
   // (already-relevance-sorted) order, same as a plain .sort() would for
   // equal keys in a stable-sort engine (V8's Array.sort is stable).
-  return enriched
-    .slice()
-    .sort((a, b) => b.combinedScore - a.combinedScore)
-    .map(({ product, usdaVerified }) => ({ product, usdaVerified }));
+  const byCombinedScore = (a: typeof enriched[number], b: typeof enriched[number]) => b.combinedScore - a.combinedScore;
+  const strip = ({ product, usdaVerified }: typeof enriched[number]): EnrichedSearchProduct => ({ product, usdaVerified });
+
+  return {
+    confident: enriched.filter(e => e.relevanceScore >= CONFIDENT_THRESHOLD).sort(byCombinedScore).map(strip),
+    lowConfidence: enriched.filter(e => e.relevanceScore < CONFIDENT_THRESHOLD).sort(byCombinedScore).map(strip),
+  };
 }

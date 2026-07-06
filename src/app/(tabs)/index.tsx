@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useProfile } from '@/hooks/use-profile';
 import { searchProducts } from '@/services/off';
-import { enrichSearchResults, type EnrichedSearchProduct } from '@/services/product-search';
+import { enrichSearchResults, type EnrichedSearchProduct, type EnrichedSearchResults } from '@/services/product-search';
 import { menuItemGlance, searchRestaurant, type MenuHit } from '@/services/restaurant-search';
 import { CHAINS } from '@/data/restaurants';
 import type { MenuItem, RestaurantChain } from '@/types/restaurant';
@@ -185,7 +185,7 @@ type SearchState =
   | { status: 'idle' }
   | { status: 'loading'; suggestion?: RestaurantChain }
   | { status: 'error'; suggestion?: RestaurantChain }
-  | { status: 'done'; results: EnrichedSearchProduct[]; suggestion?: RestaurantChain }
+  | { status: 'done'; results: EnrichedSearchResults; suggestion?: RestaurantChain }
   | { status: 'menu'; chain: RestaurantChain; hits: MenuHit[]; filtered: boolean };
 
 function SearchOverlay({
@@ -202,10 +202,14 @@ function SearchOverlay({
   // Escape hatch (spec 006 Q2): chain-owned results until the user explicitly
   // asks for packaged goods; reset when the box is cleared.
   const [forceOFF, setForceOFF] = useState(false);
+  // Spec 017 M3 — collapsed by default each new search; tapping "Show N
+  // more, lower-confidence results" reveals them for THIS query's results.
+  const [showLowConfidence, setShowLowConfidence] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function onChangeText(text: string) {
     setQuery(text);
+    setShowLowConfidence(false);
     runQuery(text, forceOFF);
   }
 
@@ -340,7 +344,7 @@ function SearchOverlay({
         </ScrollView>
       )}
 
-      {state.status === 'done' && state.results.length === 0 && (
+      {state.status === 'done' && state.results.confident.length === 0 && state.results.lowConfidence.length === 0 && (
         <ScrollView
           style={styles.searchEmptyScroll}
           contentContainerStyle={styles.searchEmptyContent}
@@ -364,17 +368,74 @@ function SearchOverlay({
         />
       )}
 
-      {state.status === 'done' && state.results.length > 0 && (
-        <FlatList
-          data={state.results}
-          keyExtractor={r => r.product.code}
-          contentContainerStyle={{ paddingBottom: safeBottom + 20 }}
-          keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => <SearchResultRow product={item.product} usdaVerified={item.usdaVerified} />}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
+      {state.status === 'done' && (state.results.confident.length > 0 || state.results.lowConfidence.length > 0) && (
+        <SearchResultsList
+          results={state.results}
+          showLowConfidence={showLowConfidence}
+          onRevealLowConfidence={() => setShowLowConfidence(true)}
+          safeBottom={safeBottom}
         />
       )}
     </View>
+  );
+}
+
+// ── Search results list (spec 017 M3 — confidence tiers) ───────────────────────
+
+// A flat row union lets one FlatList render the confident block, an optional
+// "show N more" toggle OR an auto-revealed low-confidence header, and the
+// low-confidence block itself — without a second list/section-header dance.
+type ResultRow =
+  | { kind: 'result'; item: EnrichedSearchProduct }
+  | { kind: 'toggle'; count: number }
+  | { kind: 'lowConfidenceHeader'; auto: boolean };
+
+function SearchResultsList({
+  results, showLowConfidence, onRevealLowConfidence, safeBottom,
+}: {
+  results: EnrichedSearchResults;
+  showLowConfidence: boolean;
+  onRevealLowConfidence: () => void;
+  safeBottom: number;
+}) {
+  const { confident, lowConfidence } = results;
+  // Never hide the ONLY thing found — if nothing clears the confidence bar,
+  // show the low-confidence results anyway rather than looking like a dead end.
+  const reveal = showLowConfidence || confident.length === 0;
+
+  const rows: ResultRow[] = [
+    ...confident.map((item): ResultRow => ({ kind: 'result', item })),
+    ...(lowConfidence.length === 0 ? [] :
+      reveal
+        ? [{ kind: 'lowConfidenceHeader' as const, auto: confident.length === 0 }, ...lowConfidence.map((item): ResultRow => ({ kind: 'result', item }))]
+        : [{ kind: 'toggle' as const, count: lowConfidence.length }]),
+  ];
+
+  return (
+    <FlatList
+      data={rows}
+      keyExtractor={(r, i) => (r.kind === 'result' ? r.item.product.code : `${r.kind}-${i}`)}
+      contentContainerStyle={{ paddingBottom: safeBottom + 20 }}
+      keyboardShouldPersistTaps="handled"
+      renderItem={({ item: row }) => {
+        if (row.kind === 'toggle') {
+          return (
+            <Pressable style={styles.lowConfidenceToggle} onPress={onRevealLowConfidence}>
+              <Text style={styles.lowConfidenceToggleText}>Show {row.count} more, lower-confidence result{row.count === 1 ? '' : 's'}</Text>
+            </Pressable>
+          );
+        }
+        if (row.kind === 'lowConfidenceHeader') {
+          return (
+            <Text style={styles.lowConfidenceSectionLabel}>
+              {row.auto ? 'NO CONFIDENT MATCHES — SHOWING LOWER-CONFIDENCE RESULTS' : 'LOWER-CONFIDENCE RESULTS'}
+            </Text>
+          );
+        }
+        return <SearchResultRow product={row.item.product} usdaVerified={row.item.usdaVerified} />;
+      }}
+      ItemSeparatorComponent={() => <View style={styles.separator} />}
+    />
   );
 }
 
@@ -782,6 +843,12 @@ const styles = StyleSheet.create({
   usdaPill:     { backgroundColor: '#e8f0fe', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   usdaPillText: { fontSize: 9, fontWeight: '800', color: '#3d6bcc', letterSpacing: 0.5 },
   chevron: { color: '#bec9d4', fontSize: 20 },
+  lowConfidenceToggle: { paddingVertical: 16, paddingHorizontal: 16, alignItems: 'center' },
+  lowConfidenceToggleText: { fontSize: 13.5, fontWeight: '600', color: '#5a6472' },
+  lowConfidenceSectionLabel: {
+    fontSize: 10.5, fontWeight: '800', letterSpacing: 0.6, color: '#9aa4b2',
+    textTransform: 'uppercase', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 6,
+  },
   separator: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#e4eaf2',

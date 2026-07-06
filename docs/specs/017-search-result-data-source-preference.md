@@ -1,9 +1,9 @@
 # Spec 017 — Search Result Data-Source Preference
 
-**Status:** M1 + M2 shipped (2026-07-06). Code complete, unit-tested,
-verified in the web preview against mocked fetch responses (this sandbox
-has no live network — see "Real constraints"). 397 tests passing,
-`tsc --noEmit` clean.
+**Status:** M1 + M2 + M3 shipped (2026-07-06). M2's ranking bug found and
+fixed same day via on-device testing; M3 (hide low-confidence results by
+default) spec'd and built the same session. 401 tests passing,
+`tsc --noEmit` clean, verified in the web preview.
 **Phase:** Data quality (new — the closest sibling is spec 012's serving-size
 resolution, which is about honesty within one product rather than choosing
 between products)
@@ -105,6 +105,17 @@ When a result has a verified USDA match:
   confirm the USDA badge appears where expected and that verified results
   visibly climb toward the top; watch for any rate-limit errors surfacing
   during a realistic search session.
+- Unit (M3): confidence partitioning — a `relevanceScore >= 2` result lands
+  in `confident`; a `relevanceScore < 2` result lands in `lowConfidence`
+  even when USDA-verified (the gate is OFF-only, per the design note
+  above); each group internally sorts by the blended score; an all-thin
+  input still partitions correctly (UI, not the service, decides to
+  auto-expand when `confident` is empty).
+- Device verification (Mark), M3 specifically: confirm the collapsed
+  "Show N more" affordance appears only when it should, expands correctly,
+  and that a genuinely obscure product (if you can find one where every
+  hit is thin) auto-shows its low-confidence results rather than looking
+  like a dead end.
 
 ## Milestones
 
@@ -175,6 +186,68 @@ When a result has a verified USDA match:
   bug's shape mocked (thin "Chunchy"/"Cheeses" record with a lucky USDA
   match vs. a well-formed "Cheetos Crunchy Cheese Flavored Snacks" record
   without one) — the well-formed record now correctly sorts first.
+
+- **M3 — Hide low-confidence results by default (cognitive-load pass).**
+  Same instinct as spec 016: don't force the user to visually sift garbage
+  from good matches — show only the trustworthy ones by default, keep
+  everything else reachable, never silently deleted.
+
+  **The gate is deliberately OFF-only, not the blended score.** This is the
+  same lesson M1/M2 just learned twice: a USDA nutrition match doesn't
+  vouch for the rest of a record (name, brand, additives are 100%
+  OFF-sourced regardless). If the *visibility* gate used the USDA-inclusive
+  `combinedScore`, a thin/garbage record could buy its way into the default
+  view the same way it nearly bought its way to #1 — so confidence is
+  judged on `relevanceScore` alone (OFF's own signal — US-market tag,
+  nutrient richness, has a real name), and the USDA bonus only affects
+  ordering *within* whichever tier a result lands in.
+
+  **Threshold:** every OFF hit already has `relevanceScore >= 1` (search
+  results are pre-filtered to require a name, worth +1 alone). The
+  proposed bar is `relevanceScore >= 2` — plain-language reading: "has a
+  name AND at least one corroborating signal" (a US-market tag or real
+  nutrient data), not just a bare name string with nothing else backing it
+  up. The exact "Chunchy" record (name only, relevanceScore 1) would be
+  gated out by default; "Cheetos Crunchy Cheese Flavored Snacks"
+  (relevanceScore 6) stays visible. This is a first-guess calibration, not
+  a settled number — real search sessions will show whether it's too
+  strict or too loose.
+
+  **The honesty escape hatch, non-negotiable:** a collapsed "Show N more,
+  lower-confidence results" row when any exist — tapping it reveals them,
+  same visual weight as the confident ones once shown, no separate
+  "second-class" styling beyond an explanatory section label. And if
+  *zero* results clear the bar (a genuinely obscure product where every
+  OFF hit is thin), the low-confidence section auto-expands with an honest
+  caption instead of silently rendering "no results" — hiding the *only*
+  thing found would be worse than showing something we're not fully
+  confident in.
+
+  **Known limitation, same one M1/M2 already has:** `relevanceScore` only
+  reflects what OFF's *search* endpoint returns (name, country tag,
+  nutrient count) — it has no visibility into ingredient/additive
+  completeness (that's only fetched on tap-through). A result can clear the
+  confidence bar on name+nutrients and still turn out to have the same
+  "no ingredient data" gap Chunchy had on the detail screen. Not solved
+  here — flagged as the same underlying issue wearing a second hat.
+
+  **Done (2026-07-06):** `enrichSearchResults` now returns
+  `{ confident, lowConfidence }` instead of a flat array — partitioned on
+  `relevanceScore >= CONFIDENT_THRESHOLD` (2), each tier internally sorted
+  by the same blended score M2 uses. New `SearchResultsList` component
+  (`(tabs)/index.tsx`) renders the confident tier by default, a collapsed
+  "Show N more, lower-confidence results" row when any exist, and
+  auto-expands with a "NO CONFIDENT MATCHES — SHOWING LOWER-CONFIDENCE
+  RESULTS" section label when the confident tier is empty — the escape
+  hatch is never optional, only ever collapsed-by-default. `showLowConfidence`
+  resets on every new keystroke-driven search.
+
+  Verified in the browser (mocked fetch, no live network in this sandbox):
+  a 1-confident/2-low-confidence mix showed only the well-formed result
+  plus the collapsed toggle by default, expanding cleanly on tap; an
+  all-thin single-result mix auto-revealed with the honest caption instead
+  of a blank state. No console errors either way. 401 tests passing,
+  `tsc --noEmit` clean.
 
 ## Decisions (2026-07-06)
 
