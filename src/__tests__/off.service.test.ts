@@ -92,6 +92,24 @@ describe('searchProducts', () => {
     expect(result.quantity).toBe('8.5 oz');
   });
 
+  it('carries image_front_url/image_url through when the search hit has them', async () => {
+    mockFetch(makeSearchResponse([
+      { code: '1', product_name: 'Cheetos', brands: 'Cheetos', image_front_url: 'https://example.com/front.jpg', image_url: 'https://example.com/full.jpg' },
+    ]));
+    const [result] = await searchProducts('cheetos');
+    expect(result.image_front_url).toBe('https://example.com/front.jpg');
+    expect(result.image_url).toBe('https://example.com/full.jpg');
+  });
+
+  it('leaves image fields undefined when the search hit has none (no fabricated fallback)', async () => {
+    mockFetch(makeSearchResponse([
+      { code: '1', product_name: 'Cheetos', brands: 'Cheetos' },
+    ]));
+    const [result] = await searchProducts('cheetos');
+    expect(result.image_front_url).toBeUndefined();
+    expect(result.image_url).toBeUndefined();
+  });
+
   it('real bug this guards against: dedupes hits that are identical in name, brand, and quantity, keeping the highest-scoring one', async () => {
     mockFetch(makeSearchResponse([
       // Both are "Cheetos" / "Cheetos" / "8.5 oz" — the exact shape that

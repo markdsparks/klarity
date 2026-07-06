@@ -12,8 +12,13 @@ const FIELDS = [
 // OFF dedicated search service — supports full-text query, returns hits sorted by relevance
 const SEARCH_BASE = 'https://search.openfoodfacts.org/search';
 
-// Extra fields let us score by US presence and data completeness before returning results
-const SEARCH_FIELDS = 'code,product_name,brands,quantity,countries_tags,nutriments';
+// Extra fields let us score by US presence and data completeness before returning results.
+// image_front_url/image_url mirror the main product API's field names exactly
+// (same fallback order used there: prefer image_front_url, fall back to
+// image_url) — if the search index doesn't happen to carry one or both,
+// they're simply absent on the hit and the UI falls back to its letter-avatar,
+// no different from today.
+const SEARCH_FIELDS = 'code,product_name,brands,quantity,countries_tags,nutriments,image_front_url,image_url';
 
 // Scanner-resilience tuning: OFF can be slow or transiently flaky. A request
 // that hangs past the timeout or fails once gets one retry before we surface
@@ -62,6 +67,8 @@ type SearchHit = {
   quantity?: string;
   countries_tags?: string[];
   nutriments?: Record<string, unknown>;
+  image_front_url?: string;
+  image_url?: string;
 };
 
 // Exported for spec 017 — product-search.ts blends this into the
@@ -113,6 +120,8 @@ export async function searchProducts(query: string): Promise<OFFSearchProduct[]>
       product_name: h.product_name ?? '',
       brands: Array.isArray(h.brands) ? h.brands.join(', ') : (h.brands ?? ''),
       quantity: h.quantity,
+      image_front_url: h.image_front_url,
+      image_url: h.image_url,
       additives_tags: [],
       relevanceScore: hitScore(h),
     } as OFFSearchProduct));

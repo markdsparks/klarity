@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -617,14 +618,31 @@ function SearchResultRow({ product, usdaVerified }: { product: OFFSearchProduct;
   const subtitle = [brand, product.quantity?.trim()].filter(Boolean).join(' · ');
   const initial = (product.product_name?.[0] ?? '?').toUpperCase();
   const color = AVATAR_PALETTE[initial.charCodeAt(0) % AVATAR_PALETTE.length];
+  // Real product photos beat a letter+color for telling near-identical
+  // listings apart (packaging usually makes the variant obvious at a
+  // glance) — shown when the search hit has one, falling back to the
+  // existing letter-avatar otherwise (most crowdsourced hits still won't).
+  // Crowdsourced image URLs do occasionally 404 — onError falls back to the
+  // letter-avatar rather than leaving a blank square.
+  const imageUrl = product.image_front_url ?? product.image_url;
+  const [imageFailed, setImageFailed] = useState(false);
 
   return (
     <Pressable
       style={({ pressed }) => [styles.resultRow, pressed && styles.resultRowPressed]}
       onPress={() => router.push(`/result/${encodeURIComponent(product.code)}`)}>
-      <View style={[styles.resultAvatar, { backgroundColor: color.bg }]}>
-        <Text style={[styles.resultAvatarText, { color: color.fg }]}>{initial}</Text>
-      </View>
+      {imageUrl && !imageFailed ? (
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.resultAvatar}
+          contentFit="cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <View style={[styles.resultAvatar, { backgroundColor: color.bg }]}>
+          <Text style={[styles.resultAvatarText, { color: color.fg }]}>{initial}</Text>
+        </View>
+      )}
       <View style={styles.resultInfo}>
         <View style={styles.resultNameRow}>
           <Text style={[styles.resultName, { flexShrink: 1 }]} numberOfLines={2}>{product.product_name}</Text>

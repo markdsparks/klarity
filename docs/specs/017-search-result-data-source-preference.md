@@ -1,10 +1,9 @@
 # Spec 017 — Search Result Data-Source Preference
 
-**Status:** M1–M4 shipped (2026-07-06). M2's ranking bug found and fixed
-same day via on-device testing; M3 (hide low-confidence results) and M4
-(quantity + dedupe — a different problem M1–M3 didn't touch: indistinguishable
-results, not garbage ones) both spec'd and built the same session. 405
-tests passing, `tsc --noEmit` clean, verified in the web preview.
+**Status:** M1–M5 shipped (2026-07-06). M2's ranking bug found and fixed
+same day via on-device testing; M3 (hide low-confidence results), M4
+(quantity + dedupe), and M5 (product photos) all spec'd and built the same
+session. 407 tests passing, `tsc --noEmit` clean, verified in the web preview.
 **Phase:** Data quality (new — the closest sibling is spec 012's serving-size
 resolution, which is about honesty within one product rather than choosing
 between products)
@@ -286,6 +285,37 @@ When a result has a verified USDA match:
   the 2 oz and Flamin' Hot variants correctly stayed separate and
   distinguishable by their now-visible quantity/name. No console errors.
   405 tests passing, `tsc --noEmit` clean.
+
+- **M5 — Real product photos in the results list.** Mark's own follow-on
+  question after M4: packaging usually makes a variant obvious at a glance
+  in a way text doesn't always (a red "Flamin' Hot" bag looks nothing like
+  an orange "Crunchy" one) — a photo can succeed where name/quantity text
+  alone still leaves things ambiguous.
+
+  **Done (2026-07-06):** `SEARCH_FIELDS` (off.ts) now requests
+  `image_front_url`/`image_url` — the exact same field names and fallback
+  order (`image_front_url ?? image_url`) already used on the product detail
+  screen, so this is proven field-naming, not a guess. Carried through
+  `searchProducts`'s mapped result (both fields already existed on
+  `OFFSearchProduct` via the base `OFFProduct` type — no type changes
+  needed). `SearchResultRow` shows the photo in place of the letter-avatar
+  when present, via `expo-image`'s `Image` (same component/pattern as the
+  detail screen). Failed loads (a real risk — crowdsourced image URLs do
+  occasionally 404) fall back to the letter-avatar via `onError`, rather
+  than the detail screen's current behavior of leaving a blank/background-
+  colored square — a small improvement over existing precedent, not just a
+  copy of it.
+
+  **Real limitation, disclosed rather than guessed past:** this sandbox has
+  no live network access, so real OFF image URLs can't be verified to
+  actually load end-to-end here — confirmed the plumbing (field requested →
+  carried through → rendered) and the failure path (`onError` → letter-
+  avatar fallback, tested with a deliberately unreachable URL) work
+  correctly; confirmed via unit tests that the fields carry through
+  correctly and are `undefined` (not fabricated) when a hit has none.
+  Whether OFF's *search* index (a different endpoint from the main product
+  API) actually populates these fields as often as the main API needs
+  Mark's device to confirm. 407 tests passing, `tsc --noEmit` clean.
 
 ## Decisions (2026-07-06)
 
