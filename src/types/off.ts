@@ -38,6 +38,10 @@ export interface OFFResponse {
 // Search result — product + its barcode (code field)
 export interface OFFSearchProduct extends OFFProduct {
   code: string;
+  // OFF's own relevance/quality signal (off.ts's hitScore) — spec 017 blends
+  // this with USDA verification rather than letting a USDA nutrition match
+  // alone override how trustworthy the rest of the (OFF-sourced) record is.
+  relevanceScore?: number;
 }
 
 export interface OFFSearchResponse {

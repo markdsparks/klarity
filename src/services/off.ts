@@ -64,7 +64,14 @@ type SearchHit = {
   nutriments?: Record<string, unknown>;
 };
 
-function hitScore(h: SearchHit): number {
+// Exported for spec 017 — product-search.ts blends this into the
+// USDA-verification bonus rather than discarding it, so a thin/low-quality
+// OFF record can't leapfrog a well-formed one purely by having a barcode
+// USDA also happens to have clean nutrition data for (see spec 017's
+// "Chunchy"/"Cheeses" bug: real Cheetos Crunchy nutrition, but garbage OFF
+// identity data and no ingredients — a USDA nutrition match doesn't vouch
+// for the rest of the record, which stays 100% OFF-sourced regardless).
+export function hitScore(h: SearchHit): number {
   let s = 0;
   if (h.countries_tags?.includes('en:united-states')) s += 3;
   if (h.nutriments && Object.keys(h.nutriments).length > 2) s += 2;
@@ -84,6 +91,7 @@ export async function searchProducts(query: string): Promise<OFFSearchProduct[]>
       product_name: h.product_name ?? '',
       brands: Array.isArray(h.brands) ? h.brands.join(', ') : (h.brands ?? ''),
       additives_tags: [],
+      relevanceScore: hitScore(h),
     } as OFFSearchProduct));
 }
 

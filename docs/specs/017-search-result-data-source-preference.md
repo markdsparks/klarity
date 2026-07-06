@@ -150,13 +150,42 @@ When a result has a verified USDA match:
   results — that still needs Mark's device testing per the "Real
   constraints" section above.
 
+  **Real bug found on Mark's first on-device search, and fixed the same
+  day: the group-boost (Q2's approved design) was wrong.** Searched
+  "cheetos" and got a result named "Chunchy" with brand "Cheeses" and "No
+  additives detected" — a thin, garbage OFF record (bad name, bad brand, no
+  ingredient data) that happened to share a barcode with a real Cheetos
+  Crunchy USDA has clean nutrition data for. The unconditional group-boost
+  put it at #1 purely because of that nutrition-side match, with no check
+  on whether the rest of the record (name, brand, additives — all
+  OFF-sourced, untouched by USDA) was any good. **The root lesson: a USDA
+  nutrition match certifies the numbers, never the rest of the listing.**
+
+  **Fixed by reversing the Q2 decision with real evidence:** exported
+  `hitScore` from `off.ts` (OFF's own relevance/quality signal — country
+  tag, nutrient richness, has a name) and carried it forward on
+  `OFFSearchProduct.relevanceScore` instead of discarding it after the
+  initial sort. `enrichSearchResults` now blends a `USDA_MATCH_BONUS` (2 —
+  the same weight OFF's own nutrient-richness signal carries) into that
+  score rather than doing an absolute group-boost, so a USDA match nudges
+  ranking but can't override a real quality gap. Locked in with a
+  regression test built from the exact scenario (a low-`relevanceScore`
+  verified record vs. a high-`relevanceScore` unverified one — the
+  well-formed record must win). Re-verified in the browser with the exact
+  bug's shape mocked (thin "Chunchy"/"Cheeses" record with a lucky USDA
+  match vs. a well-formed "Cheetos Crunchy Cheese Flavored Snacks" record
+  without one) — the well-formed record now correctly sorts first.
+
 ## Decisions (2026-07-06)
 
 - **Q1 — Check all 8 OFF results, not a smaller cap.** Confirmed a real
   ~1,000 req/hour USDA key is already configured (not `DEMO_KEY`) — real
   headroom makes the smaller-`N` mitigation unnecessary.
-- **Q2 — Approved as recommended.** Stable group-boost: verified results as
-  a block ahead of unverified, each group keeping its internal OFF-relevance
-  order.
-- **Q3 — Approved as recommended.** "USDA" as plain small text next to the
-  brand line, matching the result-detail screen's existing badge language.
+- **Q2 — Approved as recommended, then reversed the same day by real
+  evidence.** The stable group-boost produced a real bug on Mark's first
+  on-device search (see the M1/M2 "Done" note above) — replaced with a
+  blended score (OFF's own `relevanceScore` + a bounded USDA bonus) instead
+  of an absolute override.
+- **Q3 — Approved as recommended, then revised the same day.** Plain small
+  text was the first cut; Mark asked for more prominence on-device, so it's
+  now a pill aligned with the product name (see the M1/M2 "Done" note).
