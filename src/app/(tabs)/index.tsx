@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useProfile } from '@/hooks/use-profile';
 import { searchProducts } from '@/services/off';
+import { enrichSearchResults, type EnrichedSearchProduct } from '@/services/product-search';
 import { menuItemGlance, searchRestaurant, type MenuHit } from '@/services/restaurant-search';
 import { CHAINS } from '@/data/restaurants';
 import type { MenuItem, RestaurantChain } from '@/types/restaurant';
@@ -184,7 +185,7 @@ type SearchState =
   | { status: 'idle' }
   | { status: 'loading'; suggestion?: RestaurantChain }
   | { status: 'error'; suggestion?: RestaurantChain }
-  | { status: 'done'; results: OFFSearchProduct[]; suggestion?: RestaurantChain }
+  | { status: 'done'; results: EnrichedSearchProduct[]; suggestion?: RestaurantChain }
   | { status: 'menu'; chain: RestaurantChain; hits: MenuHit[]; filtered: boolean };
 
 function SearchOverlay({
@@ -237,7 +238,13 @@ function SearchOverlay({
 
   async function runOFFSearch(q: string, suggestion?: RestaurantChain) {
     try {
-      const results = await searchProducts(q);
+      const hits = await searchProducts(q);
+      // Spec 017 — prefer USDA-verified results: OFF's search index is
+      // crowdsourced and can be messy; USDA Branded (already trusted for the
+      // single-product detail path) is cleaner where it has a match. Never
+      // throws (enrichSearchResults degrades a failed check to unverified),
+      // so this can't turn a working OFF search into an error state.
+      const results = await enrichSearchResults(hits);
       setState({ status: 'done', results, suggestion });
     } catch {
       // A dead network must not eat the local suggestion — restaurant data is offline.
@@ -360,10 +367,10 @@ function SearchOverlay({
       {state.status === 'done' && state.results.length > 0 && (
         <FlatList
           data={state.results}
-          keyExtractor={p => p.code}
+          keyExtractor={r => r.product.code}
           contentContainerStyle={{ paddingBottom: safeBottom + 20 }}
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => <SearchResultRow product={item} />}
+          renderItem={({ item }) => <SearchResultRow product={item.product} usdaVerified={item.usdaVerified} />}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       )}
@@ -541,7 +548,7 @@ function MenuItemRow({ hit }: { hit: MenuHit }) {
   );
 }
 
-function SearchResultRow({ product }: { product: OFFSearchProduct }) {
+function SearchResultRow({ product, usdaVerified }: { product: OFFSearchProduct; usdaVerified?: boolean }) {
   const brand = product.brands?.split(',')[0].trim();
   const initial = (product.product_name?.[0] ?? '?').toUpperCase();
   const color = AVATAR_PALETTE[initial.charCodeAt(0) % AVATAR_PALETTE.length];
@@ -555,7 +562,11 @@ function SearchResultRow({ product }: { product: OFFSearchProduct }) {
       </View>
       <View style={styles.resultInfo}>
         <Text style={styles.resultName} numberOfLines={2}>{product.product_name}</Text>
-        {brand ? <Text style={styles.resultBrand}>{brand}</Text> : null}
+        {/* Spec 017 — provenance, not judgment: plain muted text, matching the
+            demoted badge language spec 016 established for the detail screen. */}
+        {(brand || usdaVerified) ? (
+          <Text style={styles.resultBrand}>{[brand, usdaVerified ? 'USDA' : null].filter(Boolean).join(' · ')}</Text>
+        ) : null}
       </View>
       <Text style={styles.chevron}>›</Text>
     </Pressable>
