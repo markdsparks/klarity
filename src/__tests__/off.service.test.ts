@@ -84,6 +84,45 @@ describe('searchProducts', () => {
     expect(await searchProducts('nothing')).toEqual([]);
   });
 
+  it('carries the quantity field through (package size — needed to tell generically-named hits apart)', async () => {
+    mockFetch(makeSearchResponse([
+      { code: '1', product_name: 'Cheetos', brands: 'Cheetos', quantity: '8.5 oz' },
+    ]));
+    const [result] = await searchProducts('cheetos');
+    expect(result.quantity).toBe('8.5 oz');
+  });
+
+  it('real bug this guards against: dedupes hits that are identical in name, brand, and quantity, keeping the highest-scoring one', async () => {
+    mockFetch(makeSearchResponse([
+      // Both are "Cheetos" / "Cheetos" / "8.5 oz" — the exact shape that
+      // made a real search return 8 indistinguishable rows. The second is
+      // scored higher (US tag + rich nutriments) and must be the one kept.
+      { code: '1', product_name: 'Cheetos', brands: 'Cheetos', quantity: '8.5 oz' },
+      { code: '2', product_name: 'Cheetos', brands: 'Cheetos', quantity: '8.5 oz', countries_tags: ['en:united-states'], nutriments: { a: 1, b: 2, c: 3 } },
+    ]));
+    const results = await searchProducts('cheetos');
+    expect(results).toHaveLength(1);
+    expect(results[0].code).toBe('2');
+  });
+
+  it('does NOT dedupe hits that differ only in quantity — different package sizes are genuinely different choices', async () => {
+    mockFetch(makeSearchResponse([
+      { code: '1', product_name: 'Cheetos', brands: 'Cheetos', quantity: '8.5 oz' },
+      { code: '2', product_name: 'Cheetos', brands: 'Cheetos', quantity: '2 oz' },
+    ]));
+    const results = await searchProducts('cheetos');
+    expect(results).toHaveLength(2);
+  });
+
+  it('dedupes correctly regardless of whether brands is an array or a string on either hit', async () => {
+    mockFetch(makeSearchResponse([
+      { code: '1', product_name: 'Cheetos', brands: ['Cheetos'], quantity: '8.5 oz' },
+      { code: '2', product_name: 'Cheetos', brands: 'Cheetos', quantity: '8.5 oz' },
+    ]));
+    const results = await searchProducts('cheetos');
+    expect(results).toHaveLength(1);
+  });
+
   it('throws NETWORK on fetch failure', async () => {
     (globalThis as any).fetch = jest.fn().mockRejectedValue(new Error('failed to connect')) as jest.Mock;
     await expect(searchProducts('test')).rejects.toThrow('NETWORK');

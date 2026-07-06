@@ -611,6 +611,10 @@ function MenuItemRow({ hit }: { hit: MenuHit }) {
 
 function SearchResultRow({ product, usdaVerified }: { product: OFFSearchProduct; usdaVerified?: boolean }) {
   const brand = product.brands?.split(',')[0].trim();
+  // Package size (e.g. "8.5 oz") — OFF's search API already returns this;
+  // without it, generically-named entries ("Cheetos" / "Cheetos") are
+  // indistinguishable from each other in the list.
+  const subtitle = [brand, product.quantity?.trim()].filter(Boolean).join(' · ');
   const initial = (product.product_name?.[0] ?? '?').toUpperCase();
   const color = AVATAR_PALETTE[initial.charCodeAt(0) % AVATAR_PALETTE.length];
 
@@ -637,7 +641,7 @@ function SearchResultRow({ product, usdaVerified }: { product: OFFSearchProduct;
             </View>
           )}
         </View>
-        {brand ? <Text style={styles.resultBrand}>{brand}</Text> : null}
+        {subtitle ? <Text style={styles.resultBrand}>{subtitle}</Text> : null}
       </View>
       <Text style={styles.chevron}>›</Text>
     </Pressable>

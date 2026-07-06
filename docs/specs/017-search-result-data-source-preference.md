@@ -1,9 +1,10 @@
 # Spec 017 — Search Result Data-Source Preference
 
-**Status:** M1 + M2 + M3 shipped (2026-07-06). M2's ranking bug found and
-fixed same day via on-device testing; M3 (hide low-confidence results by
-default) spec'd and built the same session. 401 tests passing,
-`tsc --noEmit` clean, verified in the web preview.
+**Status:** M1–M4 shipped (2026-07-06). M2's ranking bug found and fixed
+same day via on-device testing; M3 (hide low-confidence results) and M4
+(quantity + dedupe — a different problem M1–M3 didn't touch: indistinguishable
+results, not garbage ones) both spec'd and built the same session. 405
+tests passing, `tsc --noEmit` clean, verified in the web preview.
 **Phase:** Data quality (new — the closest sibling is spec 012's serving-size
 resolution, which is about honesty within one product rather than choosing
 between products)
@@ -248,6 +249,43 @@ When a result has a verified USDA match:
   all-thin single-result mix auto-revealed with the honest caption instead
   of a blank state. No console errors either way. 401 tests passing,
   `tsc --noEmit` clean.
+
+- **M4 — Show package size, dedupe true duplicates (a different problem
+  than M1–M3).** Real finding from Mark's first live search after M3
+  shipped: searching "cheetos" returned 8 rows, every one reading exactly
+  "Cheetos" / "Cheetos" — indistinguishable even though M3's confidence
+  gate was working exactly as designed (most legitimately cleared the bar).
+  **Confidence and usefulness are different axes** — a result can be
+  perfectly trustworthy and still tell the user nothing that lets them
+  pick between it and six others that look identical.
+
+  **Root cause, found by reading the code, not guessing:** OFF's search API
+  already returns a `quantity` field (package size, e.g. "8.5 oz") — it was
+  being fetched (`SEARCH_FIELDS` includes it) and then silently discarded;
+  never copied onto the returned object, never rendered. Separately, OFF's
+  crowdsourced index frequently holds several independently-submitted
+  barcodes for the literal same product, and nothing deduped them.
+
+  **Done (2026-07-06):** `quantity` now carried through `searchProducts`'s
+  mapped result and shown in `SearchResultRow` alongside brand (e.g.
+  "Cheetos · 8.5 oz"). A new `dedupeKey` (name + brand + quantity,
+  normalized) collapses hits that are identical across all three —
+  computed on the *raw* OFF hit (handles `brands` as either an array or a
+  string before comparing) and applied *after* sorting by `hitScore` (so
+  the best-scoring hit in a duplicate group survives) but *before* the
+  top-8 cap (so duplicates don't waste a slot a genuinely different product
+  could have filled). Hits that differ only in quantity are deliberately
+  NOT deduped — different package sizes are a real, useful choice, not
+  noise. Locked in with regression tests built from the exact "8x
+  identical Cheetos" shape, plus a check that differing quantities survive
+  as distinct results.
+
+  Verified in the browser: 5 mocked hits (3 true duplicates, 1 different
+  quantity, 1 different variant name) collapsed to 3 genuinely distinct
+  results — the best-scoring duplicate survived (carrying the USDA badge),
+  the 2 oz and Flamin' Hot variants correctly stayed separate and
+  distinguishable by their now-visible quantity/name. No console errors.
+  405 tests passing, `tsc --noEmit` clean.
 
 ## Decisions (2026-07-06)
 

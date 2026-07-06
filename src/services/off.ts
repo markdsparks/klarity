@@ -79,17 +79,40 @@ export function hitScore(h: SearchHit): number {
   return s;
 }
 
+// Real bug this guards against: OFF's crowdsourced search commonly returns
+// several separately-submitted barcodes for the exact same product — "Cheetos"
+// / "Cheetos" repeated 7 times with no way to tell them apart. A dedupe key of
+// name+brand+quantity is real signal an actual person would use to tell two
+// listings apart; when it's identical across hits, showing both isn't a
+// choice, it's noise. Computed on the raw hit (not the mapped result) so
+// brands-as-array vs. brands-as-string doesn't produce false non-duplicates.
+function dedupeKey(h: SearchHit): string {
+  const brand = Array.isArray(h.brands) ? h.brands.join(',') : (h.brands ?? '');
+  return [h.product_name, brand, h.quantity].map(v => (v ?? '').trim().toLowerCase()).join('|');
+}
+
 export async function searchProducts(query: string): Promise<OFFSearchProduct[]> {
   const url = `${SEARCH_BASE}?q=${encodeURIComponent(query)}&page_size=25&fields=${SEARCH_FIELDS}`;
   const data = await requestJson<{ hits?: SearchHit[] }>(url);
+  const seenKeys = new Set<string>();
   return (data.hits ?? [])
     .filter(h => h.code && h.product_name)
     .sort((a, b) => hitScore(b) - hitScore(a))
+    // Dedupe AFTER sorting by score (keeps the best-scoring hit per duplicate
+    // group) and BEFORE the top-8 cap (so duplicates don't waste a slot that
+    // could hold a genuinely different product).
+    .filter(h => {
+      const key = dedupeKey(h);
+      if (seenKeys.has(key)) return false;
+      seenKeys.add(key);
+      return true;
+    })
     .slice(0, 8)
     .map(h => ({
       code: h.code,
       product_name: h.product_name ?? '',
       brands: Array.isArray(h.brands) ? h.brands.join(', ') : (h.brands ?? ''),
+      quantity: h.quantity,
       additives_tags: [],
       relevanceScore: hitScore(h),
     } as OFFSearchProduct));
