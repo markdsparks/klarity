@@ -2,9 +2,12 @@ import { enrichSearchResults } from '../services/product-search';
 import type { OFFSearchProduct } from '../types/off';
 
 jest.mock('../services/usda', () => ({ findBrandedMatch: jest.fn() }));
+jest.mock('../services/off', () => ({ fetchCompletenessSignal: jest.fn() }));
 import { findBrandedMatch } from '../services/usda';
+import { fetchCompletenessSignal } from '../services/off';
 
 const mockFindBrandedMatch = findBrandedMatch as jest.MockedFunction<typeof findBrandedMatch>;
+const mockCompleteness = fetchCompletenessSignal as jest.MockedFunction<typeof fetchCompletenessSignal>;
 
 function product(code: string, name: string, relevanceScore = 0): OFFSearchProduct {
   return { code, product_name: name, relevanceScore };
@@ -14,8 +17,20 @@ function codesOf(list: { product: OFFSearchProduct }[]): string[] {
   return list.map(r => r.product.code);
 }
 
+// Most ranking/USDA tests below aren't testing completeness — default every
+// candidate to "has real ingredient data, unremarkable scan count" so the
+// M3 gate behaves exactly as it did before this signal existed, unless a
+// test deliberately overrides it.
+function completeDefault() {
+  mockCompleteness.mockResolvedValue({ hasIngredients: true, uniqueScans: 0 });
+}
+
 describe('enrichSearchResults — ranking within the confident tier', () => {
-  beforeEach(() => mockFindBrandedMatch.mockReset());
+  beforeEach(() => {
+    mockFindBrandedMatch.mockReset();
+    mockCompleteness.mockReset();
+    completeDefault();
+  });
 
   it('a USDA match breaks a tie between equally-relevant OFF results', async () => {
     const a = product('111', 'A', 3); // no USDA match
@@ -61,7 +76,7 @@ describe('enrichSearchResults — ranking within the confident tier', () => {
     expect(codesOf(confident)).toEqual(['2', '3', '1']);
   });
 
-  it('a rejected/errored check degrades that one result to unverified, not the whole batch', async () => {
+  it('a rejected/errored USDA check degrades that one result to unverified, not the whole batch', async () => {
     const a = product('1', 'A', 3); // will reject
     const b = product('2', 'B', 3); // verified — same base score, wins the tie via the bonus
     mockFindBrandedMatch.mockImplementation(async code => {
@@ -80,19 +95,25 @@ describe('enrichSearchResults — ranking within the confident tier', () => {
 
     await enrichSearchResults(results);
     expect(mockFindBrandedMatch).toHaveBeenCalledTimes(8);
+    expect(mockCompleteness).toHaveBeenCalledTimes(8);
   });
 
-  it('returns empty confident/lowConfidence for empty input, without calling USDA at all', async () => {
+  it('returns empty confident/lowConfidence for empty input, without calling USDA or completeness at all', async () => {
     const result = await enrichSearchResults([]);
     expect(result).toEqual({ confident: [], lowConfidence: [] });
     expect(mockFindBrandedMatch).not.toHaveBeenCalled();
+    expect(mockCompleteness).not.toHaveBeenCalled();
   });
 });
 
 describe('enrichSearchResults — M3 confidence gate (default-visibility partitioning)', () => {
-  beforeEach(() => mockFindBrandedMatch.mockReset());
+  beforeEach(() => {
+    mockFindBrandedMatch.mockReset();
+    mockCompleteness.mockReset();
+    completeDefault();
+  });
 
-  it('relevanceScore >= 2 lands in confident', async () => {
+  it('relevanceScore >= 2 with real ingredient data lands in confident', async () => {
     const p = product('1', 'Real Product', 2);
     mockFindBrandedMatch.mockResolvedValue(null);
     const { confident, lowConfidence } = await enrichSearchResults([p]);
@@ -121,5 +142,86 @@ describe('enrichSearchResults — M3 confidence gate (default-visibility partiti
     const { confident, lowConfidence } = await enrichSearchResults([strong, thin, borderline]);
     expect(codesOf(confident)).toEqual(['1', '3']); // 6 then 2, both >= threshold
     expect(codesOf(lowConfidence)).toEqual(['2']);
+  });
+});
+
+describe('enrichSearchResults — spec 018 completeness gate', () => {
+  beforeEach(() => {
+    mockFindBrandedMatch.mockReset();
+    mockFindBrandedMatch.mockResolvedValue(null);
+    mockCompleteness.mockReset();
+  });
+
+  it('real gap this closes: a good name/nutrients result with NO ingredient data is demoted out of confident', async () => {
+    // The exact screenshot bug: "Baked Cheetos" — a strong relevanceScore
+    // (US tag, rich nutriments, real name) but ingredients_text was never
+    // submitted, so it can never produce an additive verdict on tap-through.
+    const noIngredients = product('1', 'Baked Cheetos', 6);
+    mockCompleteness.mockResolvedValue({ hasIngredients: false, uniqueScans: 500 });
+
+    const { confident, lowConfidence } = await enrichSearchResults([noIngredients]);
+    expect(confident).toEqual([]);
+    expect(codesOf(lowConfidence)).toEqual(['1']);
+  });
+
+  it('a complete record with real ingredients_text but a low relevanceScore still lands in lowConfidence', async () => {
+    // Completeness ADDS to the existing name/nutrient bar, it doesn't
+    // override it on its own.
+    const thinButComplete = product('1', 'x', 1);
+    mockCompleteness.mockResolvedValue({ hasIngredients: true, uniqueScans: 0 });
+
+    const { confident, lowConfidence } = await enrichSearchResults([thinButComplete]);
+    expect(confident).toEqual([]);
+    expect(codesOf(lowConfidence)).toEqual(['1']);
+  });
+
+  it('a strong relevanceScore AND real ingredient data together clear the gate', async () => {
+    const good = product('1', 'Real Product', 6);
+    mockCompleteness.mockResolvedValue({ hasIngredients: true, uniqueScans: 0 });
+
+    const { confident } = await enrichSearchResults([good]);
+    expect(codesOf(confident)).toEqual(['1']);
+  });
+
+  it('fail-closed: a rejected completeness check demotes that one result without affecting others', async () => {
+    const failed = product('1', 'A', 6); // completeness check rejects
+    const fine = product('2', 'B', 6);   // completeness check succeeds
+    mockCompleteness.mockImplementation(async code => {
+      if (code === '1') throw new Error('network trouble');
+      return { hasIngredients: true, uniqueScans: 0 };
+    });
+
+    const { confident, lowConfidence } = await enrichSearchResults([failed, fine]);
+    expect(codesOf(confident)).toEqual(['2']);
+    expect(codesOf(lowConfidence)).toEqual(['1']);
+  });
+
+  it('a rejected completeness check does not affect that same result\'s USDA verification', async () => {
+    const p = product('1', 'A', 6);
+    mockCompleteness.mockRejectedValue(new Error('network trouble'));
+    mockFindBrandedMatch.mockResolvedValue({ fdcId: 1, description: 'x', foodNutrients: [] });
+
+    const { lowConfidence } = await enrichSearchResults([p]);
+    expect(lowConfidence[0].usdaVerified).toBe(true);
+  });
+
+  it('popularity (unique_scans_n above threshold) nudges ranking within a tier, does not cross tiers', async () => {
+    const popular = product('1', 'Popular', 6);
+    const unpopular = product('2', 'Unpopular', 6);
+    mockCompleteness.mockImplementation(async code =>
+      code === '1' ? { hasIngredients: true, uniqueScans: 500 } : { hasIngredients: true, uniqueScans: 0 },
+    );
+
+    const { confident, lowConfidence } = await enrichSearchResults([unpopular, popular]);
+    expect(codesOf(confident)).toEqual(['1', '2']); // popular result outranks despite appearing second in input
+    expect(lowConfidence).toEqual([]);
+  });
+
+  it('a low scan count never gates a result out — it is a legitimate, just less-common product', async () => {
+    const legitButRare = product('1', 'Rare Product', 6);
+    mockCompleteness.mockResolvedValue({ hasIngredients: true, uniqueScans: 0 });
+
+    const { confident } = await enrichSearchResults([legitButRare]);
+    expect(codesOf(confident)).toEqual(['1']);
   });
 });

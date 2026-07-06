@@ -1,4 +1,4 @@
-import { fetchProduct, searchProducts } from '../services/off';
+import { fetchProduct, searchProducts, fetchCompletenessSignal } from '../services/off';
 
 // Minimal OFF search response from search.openfoodfacts.org
 function makeSearchResponse(hits: object[]) {
@@ -149,6 +149,44 @@ describe('searchProducts', () => {
   it('throws HTTP_${status} on non-ok response', async () => {
     mockFetch('', false, 503);
     await expect(searchProducts('test')).rejects.toThrow('HTTP_503');
+  });
+});
+
+// ── fetchCompletenessSignal (spec 018) ──────────────────────────────────────────
+
+describe('fetchCompletenessSignal', () => {
+  it('reports hasIngredients true when ingredients_text is a non-empty string', async () => {
+    mockFetch(makeProductResponse({ ingredients_text: 'water, sugar', unique_scans_n: 42 }));
+    const result = await fetchCompletenessSignal('1');
+    expect(result).toEqual({ hasIngredients: true, uniqueScans: 42 });
+  });
+
+  it('reports hasIngredients false when ingredients_text is missing', async () => {
+    mockFetch(makeProductResponse({ unique_scans_n: 5 }));
+    const result = await fetchCompletenessSignal('1');
+    expect(result?.hasIngredients).toBe(false);
+  });
+
+  it('reports hasIngredients false when ingredients_text is whitespace-only', async () => {
+    mockFetch(makeProductResponse({ ingredients_text: '   ' }));
+    const result = await fetchCompletenessSignal('1');
+    expect(result?.hasIngredients).toBe(false);
+  });
+
+  it('defaults uniqueScans to 0 when unique_scans_n is absent (not fabricated)', async () => {
+    mockFetch(makeProductResponse({ ingredients_text: 'water' }));
+    const result = await fetchCompletenessSignal('1');
+    expect(result?.uniqueScans).toBe(0);
+  });
+
+  it('returns null when OFF status is not 1', async () => {
+    mockFetch(makeProductResponse(null, 0));
+    expect(await fetchCompletenessSignal('1')).toBeNull();
+  });
+
+  it('throws NETWORK on fetch failure', async () => {
+    (globalThis as any).fetch = jest.fn().mockRejectedValue(new Error('failed to connect')) as jest.Mock;
+    await expect(fetchCompletenessSignal('1')).rejects.toThrow('NETWORK');
   });
 });
 

@@ -1,5 +1,6 @@
 import type { OFFSearchProduct } from '../types/off';
 import { findBrandedMatch } from './usda';
+import { fetchCompletenessSignal, type CompletenessSignal } from './off';
 
 // Spec 017 — search-result data-source preference. searchProducts() (off.ts)
 // only ever queries OFF's own crowdsourced full-text index; USDA (the
@@ -21,44 +22,106 @@ export interface EnrichedSearchResults {
   lowConfidence: EnrichedSearchProduct[];
 }
 
-// A USDA nutrition match is worth as much as OFF's own "has rich nutrient
-// data" signal (the +2 case in hitScore) — real, but not able on its own to
-// overcome a genuinely well-formed OFF record. Real bug this fixes: a thin
-// OFF record (garbage name/brand, no ingredients) shared a barcode with a
-// real Cheetos Crunchy USDA has clean nutrition data for. An earlier version
-// of this function gave USDA verification an absolute override (all
-// verified results ahead of all unverified, regardless of OFF quality) and
-// that thin record jumped to #1 purely on the nutrition-side match — a USDA
-// match certifies the numbers, never the rest of the record, which stays
-// 100% OFF-sourced (name, brand, additives) either way.
-const USDA_MATCH_BONUS = 2;
+// Spec 019 — corroboration model. Spec 017 (USDA match) and spec 018
+// (OFF completeness/popularity) each added their own hand-copied bonus block
+// to the same scoring function. This generalizes the shared shape so a third
+// independent source (pending: a confirmed-clean retail catalog) is one new
+// EnrichmentCheck, not a third copy-pasted block.
+//
+// One check = one network fetch per candidate, batched in its own
+// Promise.allSettled — a check's failure/timeout never affects another
+// check's result for the same candidate (spec 018's "completeness failing
+// must not touch USDA verification, or vice versa" lesson, now enforced
+// structurally instead of by convention). A check can yield more than one
+// scoring `rule` from its single fetched result (completeness and
+// popularity are both read off the one OFF product-completeness fetch —
+// they must NOT become two separate network calls just to fit a 1-rule-
+// per-check shape).
+interface EnrichmentRule<T> {
+  bonus: (result: T | null) => number;
+  // If present, this rule's pass/fail feeds the confidence gate. Fail-closed:
+  // a failed/unknown fetch (`null`) must resolve through the same gate
+  // function, so each rule decides its own null-handling explicitly.
+  gate?: (result: T | null) => boolean;
+}
 
-// M3 — confidence gate for default visibility, deliberately OFF-only (never
-// includes USDA_MATCH_BONUS). Same lesson as the ranking fix, applied to
-// visibility instead of ordering: a USDA nutrition match must not be able to
-// buy a thin/garbage OFF record its way into the default view any more than
-// it should buy it the #1 spot. Every OFF hit already has relevanceScore >= 1
-// (search results are pre-filtered to require a name) — requiring >= 2 reads
-// as "has a name AND at least one corroborating signal" (US-market tag or
-// real nutrient data), not a bare name string with nothing backing it up.
-// First-guess calibration, not a settled number — expect to revisit after
-// real search sessions.
+interface EnrichmentCheck<T> {
+  name: string;
+  fetch: (barcode: string) => Promise<T | null>;
+  rules: EnrichmentRule<T>[];
+}
+
+// Real signal, ranking-only. A USDA nutrition match certifies the numbers,
+// never the rest of an OFF-sourced record (name, brand, additives) — see
+// spec 017's "Chunchy"/"Cheeses" bug, where an earlier absolute override let
+// a thin/garbage OFF record jump to #1 purely on a USDA nutrition match.
+// Never gates, for the same reason.
+const usdaCheck: EnrichmentCheck<Awaited<ReturnType<typeof findBrandedMatch>>> = {
+  name: 'usda',
+  fetch: findBrandedMatch,
+  rules: [{ bonus: result => (result != null ? 2 : 0) }],
+};
+
+// Real signal, GATES. Unlike USDA, this is OFF's own record telling us
+// directly whether the exact gap spec 017 M3 flagged (no ingredient data)
+// applies — a strong name/nutrient signal with no ingredients_text can never
+// produce an additive verdict, so it must not clear the default-visibility
+// bar. Fail-closed on a failed/unknown fetch: the existing low-confidence
+// escape hatch (never fully hidden) makes wrongly demoting cheaper than
+// wrongly promoting.
+//
+// Popularity (`unique_scans_n`) rides the same fetch — one OFF request
+// already returns both fields, so it is a second rule off the same check,
+// not a second check. Ranking-only: a low scan count can just mean a
+// genuinely less-common, still-legitimate product. First-guess calibration
+// on both the bonus and threshold, not settled numbers.
+const completenessCheck: EnrichmentCheck<CompletenessSignal> = {
+  name: 'completeness',
+  fetch: fetchCompletenessSignal,
+  rules: [
+    { bonus: result => (result?.hasIngredients ? 2 : 0), gate: result => result?.hasIngredients ?? false },
+    { bonus: result => (result != null && result.uniqueScans >= 100 ? 1 : 0) },
+  ],
+};
+
+// Cast at the array boundary only: each check's own fetch/rules stay
+// internally consistent by construction, this just erases T so the engine
+// below can iterate checks of different result shapes uniformly.
+const CHECKS = [usdaCheck, completenessCheck] as unknown as EnrichmentCheck<unknown>[];
+
+// M3 — confidence gate for default visibility. Every OFF hit already has
+// relevanceScore >= 1 (search results are pre-filtered to require a name);
+// requiring >= 2 reads as "has a name AND at least one corroborating signal"
+// (US-market tag or real nutrient data), not a bare name string with
+// nothing backing it up. First-guess calibration, not a settled number.
 const CONFIDENT_THRESHOLD = 2;
 
 // Checks every OFF result (all 8 — a real, non-DEMO_KEY USDA key is
 // configured with real per-hour headroom, confirmed before this was built).
-// A failed/rate-limited check degrades that one result to unverified rather
-// than failing the batch — allSettled, not all, mirrors fetchJson's existing
-// "network trouble means no USDA data, never an error" contract.
 export async function enrichSearchResults(results: OFFSearchProduct[]): Promise<EnrichedSearchResults> {
-  const checks = await Promise.allSettled(results.map(p => findBrandedMatch(p.code)));
+  if (results.length === 0) return { confident: [], lowConfidence: [] };
+
+  const settledByCheck = await Promise.all(
+    CHECKS.map(check => Promise.allSettled(results.map(p => check.fetch(p.code)))),
+  );
 
   const enriched = results.map((product, i) => {
-    const check = checks[i];
-    const usdaVerified = check.status === 'fulfilled' && check.value != null;
     const relevanceScore = product.relevanceScore ?? 0;
-    const combinedScore = relevanceScore + (usdaVerified ? USDA_MATCH_BONUS : 0);
-    return { product, usdaVerified, relevanceScore, combinedScore };
+    let bonusTotal = 0;
+    let gatesPassed = true;
+    let usdaVerified = false;
+
+    CHECKS.forEach((check, checkIndex) => {
+      const settled = settledByCheck[checkIndex][i];
+      const result = settled.status === 'fulfilled' ? settled.value : null;
+      if (check === usdaCheck) usdaVerified = result != null;
+      check.rules.forEach(rule => {
+        bonusTotal += rule.bonus(result);
+        if (rule.gate && !rule.gate(result)) gatesPassed = false;
+      });
+    });
+
+    return { product, usdaVerified, relevanceScore, gatesPassed, combinedScore: relevanceScore + bonusTotal };
   });
 
   // Stable sort by the blended score — ties keep OFF's own original
@@ -67,8 +130,10 @@ export async function enrichSearchResults(results: OFFSearchProduct[]): Promise<
   const byCombinedScore = (a: typeof enriched[number], b: typeof enriched[number]) => b.combinedScore - a.combinedScore;
   const strip = ({ product, usdaVerified }: typeof enriched[number]): EnrichedSearchProduct => ({ product, usdaVerified });
 
+  const isConfident = (e: typeof enriched[number]) => e.relevanceScore >= CONFIDENT_THRESHOLD && e.gatesPassed;
+
   return {
-    confident: enriched.filter(e => e.relevanceScore >= CONFIDENT_THRESHOLD).sort(byCombinedScore).map(strip),
-    lowConfidence: enriched.filter(e => e.relevanceScore < CONFIDENT_THRESHOLD).sort(byCombinedScore).map(strip),
+    confident: enriched.filter(isConfident).sort(byCombinedScore).map(strip),
+    lowConfidence: enriched.filter(e => !isConfident(e)).sort(byCombinedScore).map(strip),
   };
 }

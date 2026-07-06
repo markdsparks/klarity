@@ -240,6 +240,32 @@ npm run web          # Browser (limited camera)
       `qaTopic: false` to stay out of the on-device Q&A prompt budget
       (spec 014's 800-char `topicGuide()` ceiling)
 
+**Search catalog quality** (specs 017/018)
+- [x] Data-source preference (spec 017) — free-text search now batch-checks
+      each OFF hit's barcode against USDA (already trusted for the
+      single-product detail path); a match nudges ranking via a blended
+      score (never an absolute override — a thin OFF record can't buy its
+      way to #1 or into default visibility on a USDA nutrition match alone)
+      and shows a "USDA" pill. Default-visibility confidence gate (M3),
+      quantity display + true-duplicate dedupe (M4), real product photos
+      with letter-avatar fallback (M5)
+- [x] Completeness + popularity signals (spec 018) — closes the gap 017
+      itself flagged: the M3 confidence gate now also requires real
+      `ingredients_text` (fetched per candidate, fail-closed on error),
+      not just a good name/nutrient signal — a strong-looking result with
+      no ingredient data can never produce an additive verdict, so it's
+      demoted to the reachable low-confidence tier rather than shown by
+      default. OFF's own scan-popularity count (`unique_scans_n`) adds a
+      ranking-only tiebreak (never gates — a low count can mean a
+      legitimately less-common, still-valid product)
+- [ ] Near-duplicate clustering — real gap, deliberately deferred (018's
+      Why section): OFF's crowdsourced index has spelling/wording variants
+      of the literal same product ("Baked flamin hot cheetos" vs. "Baked
+      Flaming Hot Cheetos") that exact-key dedupe (017 M4) correctly does
+      not catch. Revisit once more real search sessions show how much of
+      this remains after 018's completeness gate ships — thin/incomplete
+      records may have been inflating how "duplicate-heavy" results looked
+
 **Phase 5 — Validation & instrumentation** (spec: docs/specs/009 — shipped)
 - [x] Scan-outcome logging + diagnostics view ("How Klarity's doing" in the You
       tab) — M1

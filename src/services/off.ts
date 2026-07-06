@@ -155,6 +155,34 @@ async function fetchProductRaw(barcode: string): Promise<OFFProduct | null> {
   return data.product;
 }
 
+// Spec 018 — a search hit's relevanceScore (hitScore, above) only reflects
+// what OFF's *search* endpoint returns (country tag, nutrient key count, has
+// a name) — it has no visibility into whether ingredients_text is actually
+// populated, which is the one thing Klarity's additive verdict depends on.
+// Minimal field list on purpose: this runs once per search candidate (up to
+// 8 per search), not the full FIELDS list the product-detail path needs.
+const COMPLETENESS_FIELDS = 'ingredients_text,unique_scans_n';
+
+export interface CompletenessSignal {
+  hasIngredients: boolean;
+  uniqueScans: number;
+}
+
+type CompletenessResponse = {
+  status: 0 | 1;
+  product?: OFFProduct & { unique_scans_n?: number };
+};
+
+export async function fetchCompletenessSignal(barcode: string): Promise<CompletenessSignal | null> {
+  const url = `${BASE}/${encodeURIComponent(barcode)}.json?fields=${COMPLETENESS_FIELDS}`;
+  const data = await requestJson<CompletenessResponse>(url);
+  if (data.status !== 1 || !data.product) return null;
+  return {
+    hasIngredients: !!data.product.ingredients_text?.trim(),
+    uniqueScans: data.product.unique_scans_n ?? 0,
+  };
+}
+
 export async function fetchProduct(barcode: string): Promise<OFFProduct | null> {
   const primary = await fetchProductRaw(barcode);
   const alt = alternateCode(barcode);
