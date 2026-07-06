@@ -1,5 +1,5 @@
 import { COMMON_ADDITIONS, findCommonAddition, type CommonAddition } from '@/data/common-additions';
-import { FIBER_PROTEIN_SUGAR_OFFSET_DV, referenceValues, toneNutrition, type ServingNutrients } from '@/services/nutrition';
+import { FIBER_PROTEIN_SUGAR_OFFSET_DV, referenceValues, toneNutrition, type NutritionContext, type ServingNutrients } from '@/services/nutrition';
 import { joinNouns } from '@/services/verdict-sentence';
 import type { NutritionTone, Profile } from '@/types/index';
 
@@ -200,7 +200,7 @@ export function simulateAddition(
   sn: ServingNutrients,
   profile: Profile,
   ingredientQuery: string,
-  ctx?: { wholeFoodSugarMatrix?: boolean; matrixDestroyedCategory?: boolean },
+  ctx?: NutritionContext,
 ): SimulateAdditionResult {
   const before = toneNutrition(sn, profile, ctx);
   const beforeSnapshot: ToneSnapshot = { tone: before.tone, summary: before.summary };
@@ -292,7 +292,7 @@ function rankAdditions(multiplierFor: (addition: CommonAddition) => number | nul
 export function suggestAdditions(
   sn: ServingNutrients,
   profile: Profile,
-  ctx?: { wholeFoodSugarMatrix?: boolean; matrixDestroyedCategory?: boolean },
+  ctx?: NutritionContext,
 ): SuggestAdditionsResult {
   const assessment = toneNutrition(sn, profile, ctx);
   const sugarFlagged = assessment.highNutrients.some(h => h.includes('sugar'));

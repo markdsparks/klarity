@@ -26,6 +26,7 @@
 | `goal = build`: protein surfaced as a positive signal | Protein ~1.6 g/kg supports muscle protein synthesis / lean-mass retention | A/B (human trial) |
 | `sex` + `ageBand`: fiber and protein %DV denominators use IOM DRIs (fiber 25/38 g adult, 21/30 g 51+ by sex; protein 46/56 g by sex) instead of generic FDA DV | IOM Dietary Reference Intakes; labeled "your reference" so it's not confused with the printed panel | A (reference intakes) |
 | Two axes never merged; nutrition tone is per-serving with %DV shown | Editorial rule (see CLAUDE.md) — calibration over simplicity | — |
+| Context (no verdict change, spec 015): when ingredient-text matching identifies exactly one protein source from `PROTEIN_SOURCES`, its DIAAS-based quality (complete/moderate/incomplete, naming the limiting amino acid if any) is surfaced as a context line, and softens the `goal = build` "supports muscle building" line if the source isn't complete. When two or more sources are identified and they **all share the same limiting amino acid**, a "still limited in X" line fires instead — true regardless of the ratio between those sources, so it doesn't need per-ingredient gram data we don't have. Sources that disagree on their limiting amino acid (the genuine complementary-protein case, e.g. rice + beans) stay silent — confirming actual completeness needs ratio data this can't provide, so it's never claimed | FAO 2013 "Dietary Protein Quality Evaluation in Human Nutrition" recommends DIAAS over PDCAAS (uncapped; ileal vs. fecal digestibility); DIAAS values from Mathai, Liu & Stein 2017 (Br J Nutr) and Rutherfurd et al. 2015 (J Nutr) | A (regulatory consensus / published literature values) |
 
 ## Data sources
 
@@ -36,6 +37,18 @@
   field; scoring falls back to total sugars without pretending otherwise. Potassium
   and trans fat are frequently absent — any rule whose datum is missing simply
   doesn't fire (graceful degradation).
+- **`src/data/protein-sources.ts` (spec 015)** — DIAAS values for common
+  single-ingredient protein sources, from published literature (Mathai, Liu &
+  Stein 2017; Rutherfurd et al. 2015; FAO 2013), not lab-tested per batch —
+  honestly labeled approximate, same spirit as `common-additions.ts`. A
+  source's numeric `diaas` is optional: absent means the limiting amino acid
+  is corroborated in the literature but no consensus numeric score has been
+  published yet (e.g. pumpkin seed protein) — never "unknown," an entry
+  always needs at least one real, cited piece of evidence to exist.
+  Ingredient-text matching only ever attributes protein quality when
+  attribution is unambiguous (one identified source, or several that all
+  share the same deficiency) — see spec 015 for the full attribution-
+  confidence design.
 
 ## Explicitly rejected for v1 (decisions, not oversights)
 

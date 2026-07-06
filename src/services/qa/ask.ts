@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { EXPLAIN_RULE_TOPICS, explainRule, topicGuide } from '@/services/qa/explain-rule';
 import { simulateAddition, suggestAdditions } from '@/services/qa/simulate-addition';
-import type { ServingNutrients } from '@/services/nutrition';
+import type { NutritionContext, ServingNutrients } from '@/services/nutrition';
 import type { Profile } from '@/types/index';
 
 // Spec 014 M2 — the on-device model wiring. Two hard rules, both enforced
@@ -42,7 +42,7 @@ import type { Profile } from '@/types/index';
 export interface AskContext {
   sn: ServingNutrients;
   profile: Profile;
-  ctx?: { wholeFoodSugarMatrix?: boolean; matrixDestroyedCategory?: boolean };
+  ctx?: NutritionContext;
 }
 
 export interface AskResult {
