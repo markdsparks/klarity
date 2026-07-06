@@ -240,7 +240,7 @@ npm run web          # Browser (limited camera)
       `qaTopic: false` to stay out of the on-device Q&A prompt budget
       (spec 014's 800-char `topicGuide()` ceiling)
 
-**Search catalog quality** (specs 017/018)
+**Search catalog quality** (specs 017/018/019/020, ADR-006)
 - [x] Data-source preference (spec 017) — free-text search now batch-checks
       each OFF hit's barcode against USDA (already trusted for the
       single-product detail path); a match nudges ranking via a blended
@@ -258,13 +258,39 @@ npm run web          # Browser (limited camera)
       default. OFF's own scan-popularity count (`unique_scans_n`) adds a
       ranking-only tiebreak (never gates — a low count can mean a
       legitimately less-common, still-valid product)
+- [x] Corroboration model (spec 019) — generalized specs 017/018's two
+      hand-copied bonus blocks into a reusable `EnrichmentCheck`/`rule`
+      shape (`src/services/product-search.ts`) before a third source made
+      it a third copy-paste. Pure refactor, same public API, same tests.
+      Dataset research recorded: Nutritionix (no free/non-commercial tier
+      anymore) and GS1 GEPIR (30 free lookups/day, total — unusable at our
+      volume) ruled out; Edamam's no-caching-without-a-paid-plan clause
+      flagged as a real conflict with storing scan history, skipped
+- [x] Kroger corroboration (spec 020, ADR-006) — real curated retail-catalog
+      data (proper brand/description, real ingredient statements, multi-
+      angle photos — confirmed against live API responses, not assumed).
+      Required standing up Klarity's first backend: Kroger's OAuth2
+      `client_credentials` grant needs a `client_secret` that per Kroger's
+      own guidance must never ship in client-side JS, so a minimal
+      Cloudflare Worker (`server/kroger-token-proxy/`) holds the secret and
+      mints short-lived tokens only — no Kroger product data is ever
+      proxied or cached, keeping it outside their content-caching
+      restriction. A Kroger match's own `hasIngredients` can satisfy the
+      spec 018 completeness gate on its own (Mark's call) — gate
+      aggregation changed from AND to OR across all defined gates, since
+      OFF's and Kroger's completeness checks are alternate paths to
+      confirming the same thing, not independent requirements
 - [ ] Near-duplicate clustering — real gap, deliberately deferred (018's
       Why section): OFF's crowdsourced index has spelling/wording variants
       of the literal same product ("Baked flamin hot cheetos" vs. "Baked
       Flaming Hot Cheetos") that exact-key dedupe (017 M4) correctly does
       not catch. Revisit once more real search sessions show how much of
-      this remains after 018's completeness gate ships — thin/incomplete
-      records may have been inflating how "duplicate-heavy" results looked
+      this remains now that both OFF and Kroger completeness gate the
+      default view — thin/incomplete records may have been inflating how
+      "duplicate-heavy" results looked
+- [ ] Kroger photo/identity fields not yet used in the search result row
+      itself (still OFF-sourced name/brand/photo) — corroboration signal
+      only so far; a natural, smaller fast-follow once this is on-device
 
 **Phase 5 — Validation & instrumentation** (spec: docs/specs/009 — shipped)
 - [x] Scan-outcome logging + diagnostics view ("How Klarity's doing" in the You

@@ -1,6 +1,7 @@
 import type { OFFSearchProduct } from '../types/off';
 import { findBrandedMatch } from './usda';
 import { fetchCompletenessSignal, type CompletenessSignal } from './off';
+import { fetchKrogerMatch, type KrogerMatch } from './kroger';
 
 // Spec 017 — search-result data-source preference. searchProducts() (off.ts)
 // only ever queries OFF's own crowdsourced full-text index; USDA (the
@@ -84,10 +85,29 @@ const completenessCheck: EnrichmentCheck<CompletenessSignal> = {
   ],
 };
 
+// Spec 020 — Kroger corroboration (ADR-006). A Kroger match is a real
+// curated retail-catalog record (confirmed against live data: proper brand/
+// description, a real ingredient statement, multi-angle photos) — unlike
+// USDA's nutrition-only match, a Kroger hit can independently confirm the
+// exact thing OFF's own completenessCheck gates on. So its `hasIngredients`
+// rule ALSO gates (an OR alternative to OFF's own — see the OR-aggregation
+// note below), not ranking-only like USDA. `matched` alone (regardless of
+// ingredient data) still earns the ranking bonus, same weight class as the
+// other sources.
+const krogerCheck: EnrichmentCheck<KrogerMatch> = {
+  name: 'kroger',
+  fetch: fetchKrogerMatch,
+  rules: [
+    // bonus and gate independently test different fields of the same
+    // result — a rule doesn't have to gate on the exact thing it scores.
+    { bonus: result => (result?.matched ? 2 : 0), gate: result => result?.hasIngredients ?? false },
+  ],
+};
+
 // Cast at the array boundary only: each check's own fetch/rules stay
 // internally consistent by construction, this just erases T so the engine
 // below can iterate checks of different result shapes uniformly.
-const CHECKS = [usdaCheck, completenessCheck] as unknown as EnrichmentCheck<unknown>[];
+const CHECKS = [usdaCheck, completenessCheck, krogerCheck] as unknown as EnrichmentCheck<unknown>[];
 
 // M3 — confidence gate for default visibility. Every OFF hit already has
 // relevanceScore >= 1 (search results are pre-filtered to require a name);
@@ -108,7 +128,8 @@ export async function enrichSearchResults(results: OFFSearchProduct[]): Promise<
   const enriched = results.map((product, i) => {
     const relevanceScore = product.relevanceScore ?? 0;
     let bonusTotal = 0;
-    let gatesPassed = true;
+    let anyGateDefined = false;
+    let anyGatePassed = false;
     let usdaVerified = false;
 
     CHECKS.forEach((check, checkIndex) => {
@@ -117,9 +138,24 @@ export async function enrichSearchResults(results: OFFSearchProduct[]): Promise<
       if (check === usdaCheck) usdaVerified = result != null;
       check.rules.forEach(rule => {
         bonusTotal += rule.bonus(result);
-        if (rule.gate && !rule.gate(result)) gatesPassed = false;
+        if (rule.gate) {
+          anyGateDefined = true;
+          if (rule.gate(result)) anyGatePassed = true;
+        }
       });
     });
+
+    // OR across every defined gate, not AND. Today's gates (OFF's own
+    // ingredients_text, spec 018; Kroger's ingredientStatement, spec 020)
+    // are two independent, alternate paths to confirming the SAME thing —
+    // real ingredient data exists for this barcode. Requiring every gate to
+    // pass would make adding a second corroborating source strictly worse
+    // (harder to clear, not easier), the opposite of the point of adding
+    // it. If a future gate ever represents a genuinely different kind of
+    // requirement (e.g. a disqualifying safety check that must hold
+    // regardless of what other sources say), this aggregation will need a
+    // rethink then — not speculatively built now.
+    const gatesPassed = !anyGateDefined || anyGatePassed;
 
     return { product, usdaVerified, relevanceScore, gatesPassed, combinedScore: relevanceScore + bonusTotal };
   });

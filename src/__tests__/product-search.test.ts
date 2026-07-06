@@ -3,11 +3,14 @@ import type { OFFSearchProduct } from '../types/off';
 
 jest.mock('../services/usda', () => ({ findBrandedMatch: jest.fn() }));
 jest.mock('../services/off', () => ({ fetchCompletenessSignal: jest.fn() }));
+jest.mock('../services/kroger', () => ({ fetchKrogerMatch: jest.fn() }));
 import { findBrandedMatch } from '../services/usda';
 import { fetchCompletenessSignal } from '../services/off';
+import { fetchKrogerMatch } from '../services/kroger';
 
 const mockFindBrandedMatch = findBrandedMatch as jest.MockedFunction<typeof findBrandedMatch>;
 const mockCompleteness = fetchCompletenessSignal as jest.MockedFunction<typeof fetchCompletenessSignal>;
+const mockKroger = fetchKrogerMatch as jest.MockedFunction<typeof fetchKrogerMatch>;
 
 function product(code: string, name: string, relevanceScore = 0): OFFSearchProduct {
   return { code, product_name: name, relevanceScore };
@@ -17,18 +20,20 @@ function codesOf(list: { product: OFFSearchProduct }[]): string[] {
   return list.map(r => r.product.code);
 }
 
-// Most ranking/USDA tests below aren't testing completeness — default every
-// candidate to "has real ingredient data, unremarkable scan count" so the
-// M3 gate behaves exactly as it did before this signal existed, unless a
-// test deliberately overrides it.
+// Most ranking/USDA tests below aren't testing completeness or Kroger —
+// default every candidate to "has real ingredient data, unremarkable scan
+// count, no Kroger match" so the M3 gate behaves exactly as it did before
+// these signals existed, unless a test deliberately overrides one.
 function completeDefault() {
   mockCompleteness.mockResolvedValue({ hasIngredients: true, uniqueScans: 0 });
+  mockKroger.mockResolvedValue(null);
 }
 
 describe('enrichSearchResults — ranking within the confident tier', () => {
   beforeEach(() => {
     mockFindBrandedMatch.mockReset();
     mockCompleteness.mockReset();
+    mockKroger.mockReset();
     completeDefault();
   });
 
@@ -96,13 +101,15 @@ describe('enrichSearchResults — ranking within the confident tier', () => {
     await enrichSearchResults(results);
     expect(mockFindBrandedMatch).toHaveBeenCalledTimes(8);
     expect(mockCompleteness).toHaveBeenCalledTimes(8);
+    expect(mockKroger).toHaveBeenCalledTimes(8);
   });
 
-  it('returns empty confident/lowConfidence for empty input, without calling USDA or completeness at all', async () => {
+  it('returns empty confident/lowConfidence for empty input, without calling USDA, completeness, or Kroger at all', async () => {
     const result = await enrichSearchResults([]);
     expect(result).toEqual({ confident: [], lowConfidence: [] });
     expect(mockFindBrandedMatch).not.toHaveBeenCalled();
     expect(mockCompleteness).not.toHaveBeenCalled();
+    expect(mockKroger).not.toHaveBeenCalled();
   });
 });
 
@@ -110,6 +117,7 @@ describe('enrichSearchResults — M3 confidence gate (default-visibility partiti
   beforeEach(() => {
     mockFindBrandedMatch.mockReset();
     mockCompleteness.mockReset();
+    mockKroger.mockReset();
     completeDefault();
   });
 
@@ -150,6 +158,8 @@ describe('enrichSearchResults — spec 018 completeness gate', () => {
     mockFindBrandedMatch.mockReset();
     mockFindBrandedMatch.mockResolvedValue(null);
     mockCompleteness.mockReset();
+    mockKroger.mockReset();
+    mockKroger.mockResolvedValue(null);
   });
 
   it('real gap this closes: a good name/nutrients result with NO ingredient data is demoted out of confident', async () => {
@@ -223,5 +233,55 @@ describe('enrichSearchResults — spec 018 completeness gate', () => {
 
     const { confident } = await enrichSearchResults([legitButRare]);
     expect(codesOf(confident)).toEqual(['1']);
+  });
+});
+
+describe('enrichSearchResults — spec 020 Kroger corroboration (OR-across-gates)', () => {
+  beforeEach(() => {
+    mockFindBrandedMatch.mockReset();
+    mockFindBrandedMatch.mockResolvedValue(null);
+    mockCompleteness.mockReset();
+    mockKroger.mockReset();
+  });
+
+  it('Kroger confirming real ingredient data clears the gate even when OFF has none (the point of the OR)', async () => {
+    const p = product('1', 'Strong Name', 6);
+    mockCompleteness.mockResolvedValue({ hasIngredients: false, uniqueScans: 0 }); // OFF: no data
+    mockKroger.mockResolvedValue({ matched: true, hasIngredients: true });        // Kroger: has data
+
+    const { confident, lowConfidence } = await enrichSearchResults([p]);
+    expect(codesOf(confident)).toEqual(['1']);
+    expect(lowConfidence).toEqual([]);
+  });
+
+  it('neither source confirming ingredient data still demotes the result', async () => {
+    const p = product('1', 'Strong Name', 6);
+    mockCompleteness.mockResolvedValue({ hasIngredients: false, uniqueScans: 0 });
+    mockKroger.mockResolvedValue({ matched: true, hasIngredients: false }); // matched, but no ingredient data
+
+    const { confident, lowConfidence } = await enrichSearchResults([p]);
+    expect(confident).toEqual([]);
+    expect(codesOf(lowConfidence)).toEqual(['1']);
+  });
+
+  it('a Kroger match (regardless of ingredient data) adds a ranking bonus', async () => {
+    const withKroger = product('1', 'A', 3);
+    const withoutKroger = product('2', 'B', 3);
+    mockCompleteness.mockResolvedValue({ hasIngredients: true, uniqueScans: 0 });
+    mockKroger.mockImplementation(async code =>
+      code === '1' ? { matched: true, hasIngredients: false } : null,
+    );
+
+    const { confident } = await enrichSearchResults([withoutKroger, withKroger]);
+    expect(codesOf(confident)).toEqual(['1', '2']); // Kroger-matched result outranks despite appearing second in input
+  });
+
+  it('a rejected Kroger check degrades that one result to unverified without affecting OFF completeness for the same result', async () => {
+    const p = product('1', 'A', 6);
+    mockCompleteness.mockResolvedValue({ hasIngredients: true, uniqueScans: 0 }); // OFF still confirms independently
+    mockKroger.mockRejectedValue(new Error('network trouble'));
+
+    const { confident } = await enrichSearchResults([p]);
+    expect(codesOf(confident)).toEqual(['1']); // OFF's own gate still passes despite Kroger failing
   });
 });

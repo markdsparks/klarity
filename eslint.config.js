@@ -5,6 +5,8 @@ const expoConfig = require("eslint-config-expo/flat");
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ["dist/*"],
+    // server/ is a separate Cloudflare Worker sub-project (ADR-006) — its
+    // own runtime globals (Workers, not React Native/DOM), own tsconfig.
+    ignores: ["dist/*", "server/**"],
   }
 ]);
