@@ -291,6 +291,24 @@ npm run web          # Browser (limited camera)
 - [ ] Kroger photo/identity fields not yet used in the *search* result row
       itself (still OFF-sourced name/brand/photo there) — used on the scan
       screen now (spec 021), not yet in the search list
+- [x] Canonical search (spec 022 M1+M2) — fixed the real "cheerios" failure
+      (junk in-store codes and EU Nestlé variants outranking/hiding the
+      actual US General Mills product). First principles: a brand search
+      asks "what do people actually buy," identity is the GTIN, the
+      searcher has a market, and the index should be asked before paying
+      per-candidate calls. Dual retrieval (relevance query + market-filtered
+      popularity-sorted canonical query, merged by GTIN, token guard so
+      popularity sort can't hijack multi-word queries — the observed
+      Kinder-Bueno-for-"honey nut cheerios" failure); local scoring by GTIN
+      checksum validity + market + index-level ingredient completeness
+      (`states_tags`) + stepped popularity (never gates, weight adapts to
+      query length); spec 018's 8 per-candidate completeness fetches
+      deleted (index fields made them free — net one FEWER call per search)
+- [ ] Spec 022 M3 (market from device locale — US hardcoded for now) and
+      M4 (captured-fixture regression suite) — deliberately deferred
+- [ ] On-device validation of spec 022 against live searches (cheerios,
+      honey nut cheerios, cheetos, baked lays) — browser-verified with
+      real captured shapes; real index behavior needs Mark's device
 
 **Multi-source verdict resolution** (spec 021) — closes the deeper gap
 017–020 didn't touch: those specs only improved search *discoverability*,
