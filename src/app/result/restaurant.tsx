@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { matchByIngredientText } from '@/data/ingredient-text-index';
 import { ADDITIVES } from '@/data/additives';
-import { explainerForLine, type NutritionExplainer } from '@/data/nutrition-explainers';
+import type { NutritionExplainer } from '@/data/nutrition-explainers';
 import { additiveLadderContext, nutritionToneToLadderLevel } from '@/data/verdict-ladder';
 import { ExplainerSheet } from '@/components/explainer-sheet';
 import { VerdictExplainerSheet, type VerdictExplainerInput } from '@/components/verdict-explainer-sheet';
@@ -20,7 +20,8 @@ import {
   saveToHistory,
   updateRestaurantBuild,
 } from '@/services/history';
-import { referenceValues, toneNutrition } from '@/services/nutrition';
+import { isPersonalizedReference, referenceValues, toneNutrition, warnThresholds } from '@/services/nutrition';
+import { NutritionCard } from '@/components/nutrition-card';
 import {
   adjustedNutrition,
   effectiveIngredientText,
@@ -71,13 +72,6 @@ const NUTRITION_GLANCE = {
   ok:   { bg: 'rgba(240,184,117,0.16)', fg: '#f0b875', label: 'Sometimes'    },
   warn: { bg: 'rgba(239,143,86,0.18)',  fg: '#ef8f56', label: 'Occasionally' },
 };
-
-// Same ladder as a light pill for the nutrition card (white card): green → amber → deep orange.
-const NUTRITION_TAG = {
-  good: { bg: '#e8f7ef', fg: '#1f9d6b' },
-  ok:   { bg: '#fdf3e3', fg: '#c8821a' },
-  warn: { bg: '#fbe7db', fg: '#c2410c' },
-} as const;
 
 const VERDICT_PILL: Record<VerdictKey, { bg: string; fg: string; label: string }> = {
   everyday:  { bg: '#e8f7ef', fg: '#1f9d6b', label: 'Everyday'  },
@@ -221,7 +215,8 @@ export default function RestaurantResultScreen() {
   const toggleComponents = item.components.filter(c => !slotComponentIds.has(c.id));
 
   // Additives — exact both ways: removed ingredients aren't analyzed, added ones are
-  const additiveIds = matchByIngredientText(effectiveIngredientText(item, removedIds, addedIds));
+  const ingredientText = effectiveIngredientText(item, removedIds, addedIds);
+  const additiveIds = matchByIngredientText(ingredientText);
   const additiveResults: AdditiveResult[] = additiveIds
     .map(id => ADDITIVES[id])
     .filter(Boolean)
@@ -237,9 +232,12 @@ export default function RestaurantResultScreen() {
   // Nutrition — published values, minus removals with data, plus additions
   const adj = adjustedNutrition(item, removedIds, addedIds);
   const sn = restaurantServingNutrients(adj.nutrition, referenceValues(profile));
-  const nutrition = toneNutrition(sn, profile, { wholeFoodSugarMatrix: item.wholeFoodSugarMatrix });
+  const nutrition = toneNutrition(sn, profile, { wholeFoodSugarMatrix: item.wholeFoodSugarMatrix, ingredientsText: ingredientText });
   const nutritionGlance = NUTRITION_GLANCE[nutrition.tone];
   const askContext: AskContext = { sn, profile, ctx: { wholeFoodSugarMatrix: item.wholeFoodSugarMatrix } };
+  const thresholds = warnThresholds(profile);
+  const bloodSugar = profile.conditions.includes('blood_sugar');
+  const personalizedRef = isPersonalizedReference(profile);
 
   const matched = additiveIds.map(id => ADDITIVES[id]).filter(Boolean);
   const sentenceInput = {
@@ -309,16 +307,6 @@ export default function RestaurantResultScreen() {
     return { title: 'Add to this build', options, multi: true, onSelect: toggleAddOn };
   })();
 
-  const nutritionRows = [
-    { k: 'Calories', v: `${Math.round(sn.calories ?? 0)} kcal`, dv: null as number | null },
-    { k: 'Total Fat', v: `${sn.totalFat} g`, dv: sn.fatDv ?? null },
-    { k: 'Saturated Fat', v: `${sn.satFat} g`, dv: sn.satFatDv ?? null },
-    { k: 'Sodium', v: `${Math.round((sn.sodium ?? 0) * 1000)} mg`, dv: sn.sodiumDv ?? null },
-    { k: 'Carbohydrates', v: `${sn.carbs} g`, dv: sn.carbsDv ?? null },
-    { k: 'Sugars', v: `${sn.sugar} g`, dv: sn.sugarDv ?? null },
-    { k: 'Fiber', v: `${sn.fiber} g`, dv: sn.fiberDv ?? null },
-    { k: 'Protein', v: `${sn.protein} g`, dv: sn.proteinDv ?? null },
-  ];
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: insets.bottom + 48 }} showsVerticalScrollIndicator={false}>
@@ -512,65 +500,24 @@ export default function RestaurantResultScreen() {
         </View>
 
         {/* Nutrition */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardTitleRow}>
-              <Text style={styles.cardTitle}>Nutrition</Text>
-              {adj.computed && (
-                <View style={styles.computedBadge}>
-                  <Text style={styles.computedBadgeText}>Computed</Text>
-                </View>
-              )}
-            </View>
-            <Pressable
-              style={({ pressed }) => [styles.pill, { backgroundColor: NUTRITION_TAG[nutrition.tone].bg }, pressed && styles.glanceBadgePressed]}
-              onPress={() => setLadderInput({
-                axis: 'nutrition',
-                level: nutritionToneToLadderLevel(nutrition.tone),
-                productContext: nutrition.summary,
-                askContext,
-              })}>
-              <Text style={[styles.pillText, { color: NUTRITION_TAG[nutrition.tone].fg }]}>
-                {nutritionGlance.label}
-              </Text>
-            </Pressable>
-          </View>
-
-          <Text style={styles.nutritionSummary}>{nutrition.summary}</Text>
-          {nutrition.contextLines.map(line => {
-            const exp = explainerForLine(line);
-            return (
-              <Pressable key={line} disabled={!exp} onPress={exp ? () => setExplainer(exp) : undefined}>
-                <Text style={styles.contextLine}>
-                  · {line}{exp ? <Text style={styles.contextLink}>  Why?</Text> : null}
-                </Text>
-              </Pressable>
-            );
-          })}
-          {nutrition.profileNotes.map(line => (
-            <Text key={line} style={styles.profileNote}>{line}</Text>
-          ))}
-
-          {nutritionRows.map((row, i) => (
-            <View key={row.k} style={[styles.nutritionRow, i === 0 && { borderTopWidth: 0 }]}>
-              <Text style={styles.nutritionKey}>{row.k}</Text>
-              <View style={styles.nutritionValueWrap}>
-                <Text style={styles.nutritionValue}>{row.v}</Text>
-                {row.dv != null && <Text style={styles.nutritionDv}>{row.dv}% DV</Text>}
-              </View>
-            </View>
-          ))}
-
-          {adj.computed && adj.basis ? (
-            <Text style={styles.basisNote}>Computed: {adj.basis}. Base item as published.</Text>
-          ) : null}
-          {adj.unadjustedRemovals.length > 0 ? (
-            <Text style={styles.basisNote}>
-              Nutrition shown for the standard build — removing {adj.unadjustedRemovals.map(c => c.name.toLowerCase()).join(', ')} has
-              no published nutrition data to subtract (ingredient analysis reflects the removal exactly).
-            </Text>
-          ) : null}
-        </View>
+        <NutritionCard
+          nutrition={nutrition}
+          sn={sn}
+          thresholds={thresholds}
+          bloodSugar={bloodSugar}
+          personalizedRef={personalizedRef}
+          askContext={askContext}
+          badge={adj.computed ? 'computed' : undefined}
+          basisNotes={[
+            ...(adj.computed && adj.basis ? [`Computed: ${adj.basis}. Base item as published.`] : []),
+            ...(adj.unadjustedRemovals.length > 0 ? [
+              `Nutrition shown for the standard build — removing ${adj.unadjustedRemovals.map(c => c.name.toLowerCase()).join(', ')} has ` +
+              'no published nutrition data to subtract (ingredient analysis reflects the removal exactly).',
+            ] : []),
+          ]}
+          onOpenLadder={setLadderInput}
+          onOpenExplainer={setExplainer}
+        />
 
         {/* Provenance */}
         <View style={styles.sourceCard}>
@@ -644,7 +591,6 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingTop: 18, gap: 14 },
   card: { backgroundColor: '#ffffff', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 16 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cardTitle: { fontSize: 13, fontWeight: '800', letterSpacing: 1, color: '#5a6472', textTransform: 'uppercase' },
   cardMeta:  { fontSize: 13, color: '#9aa4b2' },
   emptyText: { fontSize: 14, color: '#9aa4b2', paddingVertical: 8 },
@@ -660,22 +606,6 @@ const styles = StyleSheet.create({
   pillText: { fontSize: 13, fontWeight: '700' },
   chevron: { fontSize: 18, color: '#c3cad4' },
   profileNote: { fontSize: 13, color: '#6b5bd2', marginTop: 4, lineHeight: 18 },
-
-  nutritionSummary: { fontSize: 15, fontWeight: '600', color: '#1b2330', marginBottom: 4, lineHeight: 21 },
-  contextLine: { fontSize: 13, color: '#5a6472', lineHeight: 19 },
-  contextLink: { color: '#1f9d6b', fontWeight: '700' },
-  nutritionRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#eef0f3', marginTop: 2,
-  },
-  nutritionKey: { fontSize: 14, color: '#3c4654' },
-  nutritionValueWrap: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-  nutritionValue: { fontSize: 15, fontWeight: '700', color: '#1b2330' },
-  nutritionDv: { fontSize: 12, color: '#9aa4b2' },
-  basisNote: { fontSize: 12, color: '#8a94a3', marginTop: 10, lineHeight: 17 },
-
-  computedBadge: { backgroundColor: '#e8f0fe', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  computedBadgeText: { fontSize: 11, fontWeight: '700', color: '#3d6bcc' },
 
   buildRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,

@@ -206,7 +206,7 @@ npm run web          # Browser (limited camera)
 - [ ] Dairy Queen size variants — blocked (bot wall; needs browser session or
       supplied doc); Dairy Queen shipped-data currency also flagged for spot-check
 
-**Nutrition-science deepening** (specs 007/008)
+**Nutrition-science deepening** (specs 007/008/015)
 - [x] Whole-food sugar-matrix exemption (spec 007) — keyed on the food matrix /
       physical form, NOT natural-vs-added origin (WHO counts fruit juice as free sugar)
 - [x] Sugar-basis disclosure (spec 008 M1) — every sugar verdict states its basis;
@@ -214,8 +214,13 @@ npm run web          # Browser (limited camera)
 - [x] Category veto (spec 008 M2) — juices/sodas/smoothies scored on total sugar
 - [ ] Coverage investigation + whole-food allow-list (spec 008 M3/M4) — folded
       into the instrumentation effort (spec 009)
+- [x] Protein quality via DIAAS (spec 015 M1/M2) — context-only, never
+      verdict-moving; single-identifiable-source scoring plus a ratio-
+      independent "shared deficiency" call for mixed sources that all limit
+      the same amino acid. Complementary-protein claims (rice + beans reading
+      as complete) deliberately NOT symmetric — stays deferred (spec 015 M3)
 
-**Cognitive-load / verdict language** (spec 013)
+**Cognitive-load / verdict language** (specs 013/016)
 - [x] Unified vocabulary across both axes — Everyday/Sometimes/Occasionally,
       shared ladder instead of two separate word sets; distinct 3-level color
 - [x] Hero the plain-language sentence, demote the two axis chips to supporting
@@ -225,6 +230,15 @@ npm run web          # Browser (limited camera)
       how do we calculate it" plus a per-product "why this one" line, with a
       real tappable row (not dead "tap it below" copy) straight to the specific
       additive's evidence page when there's one clear driver
+- [x] Nutrition card decluttering (spec 016) — shared `<NutritionCard>`
+      component (`[barcode].tsx`/`restaurant.tsx` were ~90% duplicated JSX
+      that had quietly drifted apart); dropped the card's own redundant tone
+      pill for an accent border; every annotation line (context/profile/
+      personalization) now one consistent row, individually tappable —
+      closed a real gap where protein-quality/goal/condition lines had no
+      explainer wired at all. 5 new `NUTRITION_EXPLAINERS` entries added
+      `qaTopic: false` to stay out of the on-device Q&A prompt budget
+      (spec 014's 800-char `topicGuide()` ceiling)
 
 **Phase 5 — Validation & instrumentation** (spec: docs/specs/009 — shipped)
 - [x] Scan-outcome logging + diagnostics view ("How Klarity's doing" in the You

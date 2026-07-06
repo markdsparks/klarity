@@ -7,7 +7,17 @@ import { NUTRITION_EXPLAINERS, getExplainer } from '@/data/nutrition-explainers'
 // model's `topic` argument to EXPLAIN_RULE_TOPICS, so a bad topic id is a
 // type/validation error the model can't talk its way around.
 
-export const EXPLAIN_RULE_TOPICS = Object.keys(NUTRITION_EXPLAINERS);
+// Spec 016 M2 — NOT every NUTRITION_EXPLAINERS entry anymore. Each one costs
+// real characters in topicGuide()'s prompt budget (the exact ceiling that
+// caused the M2 pass-12 "exceeded model context window" failure below), and
+// the nutrition card now has 5 more explainers (protein-quality/goal/
+// condition lines) that don't need to double as on-device-askable topics —
+// they're already reachable by tapping the line itself. `qaTopic: false`
+// opts an entry out; default (undefined) stays included, matching every
+// explainer that existed before this flag.
+export const EXPLAIN_RULE_TOPICS = Object.entries(NUTRITION_EXPLAINERS)
+  .filter(([, e]) => e.qaTopic !== false)
+  .map(([id]) => id);
 
 // A bare enum of snake_case ids gives a small model nothing to disambiguate
 // near-identical-looking topics by (sugar_basis_added vs. sugar_pct_calories

@@ -29,8 +29,18 @@ describe('nutrition explainers', () => {
   });
 
   it('returns null for a line with no explainer', () => {
-    expect(explainerForLine('Strong protein (30% DV) — supports muscle building')).toBeNull();
     expect(explainerForLine('anything unrelated')).toBeNull();
+  });
+
+  // Spec 016 M2 — closing the gap the audit found: these lines rendered on
+  // the card since specs 003/015 but had no tap-through at all until now.
+  it('matches the protein-quality, goal-lens, and condition lines (spec 016 M2)', () => {
+    expect(explainerForLine('Strong protein (30% DV) — supports muscle building')?.id).toBe('goal_build_protein');
+    expect(explainerForLine('Protein and fiber here help you feel full for longer')?.id).toBe('goal_lose_satiety');
+    expect(explainerForLine('You flagged blood pressure — one serving is 25% of the daily sodium value.')?.id).toBe('condition_bp_sodium');
+    expect(explainerForLine('You flagged blood sugar — one serving is 20% of the daily sugar value.')?.id).toBe('condition_blood_sugar');
+    expect(explainerForLine('The only protein source we can identify here is whey protein isolate, a complete, high-quality protein source.')?.id).toBe('protein_quality_diaas');
+    expect(explainerForLine('Every protein source we can identify here is limited in lysine.')?.id).toBe('protein_quality_diaas');
   });
 
   it('getExplainer looks up the personalized-reference entry (footnote link)', () => {

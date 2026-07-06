@@ -14,10 +14,22 @@ describe('explainRule', () => {
     expect(explainRule('something_the_model_made_up')).toBeNull();
   });
 
-  it('EXPLAIN_RULE_TOPICS matches every key actually in NUTRITION_EXPLAINERS (the M2 tool enum source)', () => {
-    expect(EXPLAIN_RULE_TOPICS.sort()).toEqual(Object.keys(NUTRITION_EXPLAINERS).sort());
+  it('EXPLAIN_RULE_TOPICS matches every NUTRITION_EXPLAINERS key NOT opted out via qaTopic: false (the M2 tool enum source)', () => {
+    const expected = Object.entries(NUTRITION_EXPLAINERS)
+      .filter(([, e]) => e.qaTopic !== false)
+      .map(([id]) => id);
+    expect(EXPLAIN_RULE_TOPICS.sort()).toEqual(expected.sort());
     for (const topic of EXPLAIN_RULE_TOPICS) {
       expect(explainRule(topic)).not.toBeNull();
+    }
+  });
+
+  it('spec 016 M2\'s card-only explainers (qaTopic: false) are excluded from the QA topic set', () => {
+    // These are real, tappable ExplainerSheet entries — just not also exposed
+    // as an on-device Q&A topic, to keep topicGuide() under its context budget.
+    for (const id of ['protein_quality_diaas', 'goal_build_protein', 'goal_lose_satiety', 'condition_bp_sodium', 'condition_blood_sugar']) {
+      expect(NUTRITION_EXPLAINERS[id]).toBeDefined();
+      expect(EXPLAIN_RULE_TOPICS).not.toContain(id);
     }
   });
 
@@ -36,11 +48,17 @@ describe('explainRule', () => {
     // descriptions, doesn't fit the on-device model's much smaller context
     // budget. `hint` is a deliberately short field that exists to carry the
     // disambiguating signal without that cost.
-    it('includes every topic id paired with its real hint, derived from NUTRITION_EXPLAINERS itself', () => {
+    it('includes every QA topic id paired with its real hint, derived from NUTRITION_EXPLAINERS itself', () => {
       const guide = topicGuide();
-      for (const [id, explainer] of Object.entries(NUTRITION_EXPLAINERS)) {
-        expect(guide).toContain(`${id}: ${explainer.hint}`);
+      for (const id of EXPLAIN_RULE_TOPICS) {
+        expect(guide).toContain(`${id}: ${NUTRITION_EXPLAINERS[id].hint}`);
       }
+    });
+
+    it('does NOT include spec 016 M2\'s card-only explainers (qaTopic: false) — that\'s the whole point of the flag', () => {
+      const guide = topicGuide();
+      expect(guide).not.toContain('protein_quality_diaas');
+      expect(guide).not.toContain('goal_build_protein');
     });
 
     it('the two topics that were confused on-device are both present and distinctly worded', () => {

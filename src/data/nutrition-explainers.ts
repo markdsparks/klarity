@@ -22,6 +22,16 @@ export interface NutritionExplainer {
   tier: EvidenceTier;
   body: string;       // plain-language "why this matters"
   source: string;     // authority behind the rule
+  // false = card-tappable via ExplainerSheet, but excluded from the on-device
+  // QA tool's topic enum (EXPLAIN_RULE_TOPICS, explain-rule.ts). Default
+  // (undefined) = included, matching every explainer that existed before this
+  // flag. Added for spec 016 M2: every new entry costs real characters in
+  // topicGuide()'s prompt budget (capped <800 chars — spec 014's 12th
+  // on-device pass hit a real context-window overflow at this exact ceiling),
+  // and not every card explainer needs to double as an on-device-askable
+  // topic. New entries default to false explicitly rather than silently
+  // inheriting inclusion.
+  qaTopic?: boolean;
 }
 
 export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
@@ -180,6 +190,82 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
       'printed panel\'s.',
     source: 'Institute of Medicine Dietary Reference Intakes.',
   },
+
+  // Spec 016 M2 — closing the gap the audit found: these lines already
+  // rendered on the nutrition card (protein-quality since spec 015, the
+  // goal/condition lines since spec 003) but had no explainer wired at all,
+  // unlike every sugar/fat/fiber line above. All five package evidence
+  // already fully cited in docs/nutrition-evidence.md — no new science.
+  protein_quality_diaas: {
+    id: 'protein_quality_diaas',
+    title: 'Protein quality, not just quantity',
+    hint: 'protein completeness (DIAAS), not just grams',
+    tier: 'A',
+    body:
+      'A gram of protein isn\'t automatically as good as another gram — completeness (whether it ' +
+      'supplies enough of every essential amino acid) and digestibility both matter. DIAAS ' +
+      '(Digestible Indispensable Amino Acid Score) is the current standard for measuring this, ' +
+      'replacing the older PDCAAS specifically because PDCAAS capped scores at 1.0 and used a less ' +
+      'accurate digestibility method. We only ever name a source (or a shared gap across sources) ' +
+      'when the ingredient list makes it unambiguous — never a guessed blend.',
+    source: 'FAO 2013 Dietary Protein Quality Evaluation in Human Nutrition; Mathai, Liu & Stein 2017, Br J Nutr; Rutherfurd et al. 2015, J Nutr.',
+    qaTopic: false,
+  },
+  goal_build_protein: {
+    id: 'goal_build_protein',
+    title: 'Why protein matters for building muscle',
+    hint: 'protein supports muscle protein synthesis',
+    tier: 'A',
+    body:
+      'Building or retaining muscle needs enough dietary protein to drive muscle protein synthesis — ' +
+      'roughly 1.6 g per kg of body weight per day is the trial-supported range, well above the ' +
+      'general adequacy minimum the label\'s Daily Value reflects. That is why a product clearing a ' +
+      'meaningful share of your protein target gets called out as a positive when you\'ve told us ' +
+      'building muscle is a goal — it is not a claim about the food generally, just about this goal.',
+    source: 'Human trials on dietary protein intake (~1.6 g/kg/day) and resistance-training muscle protein synthesis.',
+    qaTopic: false,
+  },
+  goal_lose_satiety: {
+    id: 'goal_lose_satiety',
+    title: 'Why protein and fiber help you feel full',
+    hint: 'protein + fiber increase satiety',
+    tier: 'A',
+    body:
+      'Protein and fiber both slow digestion and increase satiety — feeling fuller for longer on ' +
+      'fewer calories, which matters directly if you\'re managing weight. A food that is genuinely ' +
+      'strong in both is doing double duty toward that goal, which is why we call it out specifically ' +
+      'when you\'ve set weight loss as your goal rather than leaving it as an unremarked nutrition fact.',
+    source: 'AHA/DGA guidance on protein and fiber for satiety and weight management.',
+    qaTopic: false,
+  },
+  condition_bp_sodium: {
+    id: 'condition_bp_sodium',
+    title: 'Why we call out sodium for blood pressure',
+    hint: 'sodium matters more when managing blood pressure',
+    tier: 'A',
+    body:
+      'Lowering sodium intake reduces blood pressure in a dose-responsive way — the more you cut, the ' +
+      'more it tends to help, with no known floor where the benefit stops. That is a stronger, more ' +
+      'individually consequential relationship than the general-population sodium guidance reflects, ' +
+      'which is why we surface a product\'s sodium contribution specifically once you\'ve told us ' +
+      'you\'re managing blood pressure, instead of leaving it folded into the generic reference.',
+    source: 'DASH trial and sodium-reduction RCTs (dose-responsive blood pressure reduction).',
+    qaTopic: false,
+  },
+  condition_blood_sugar: {
+    id: 'condition_blood_sugar',
+    title: 'Why we call out sugar for blood sugar',
+    hint: 'sugar/net carbs matter more for blood sugar',
+    tier: 'A',
+    body:
+      'Sugar and net carbs (total carbs minus fiber) drive the glucose response a meal produces, which ' +
+      'is the exact thing glycemic control is about managing. Fiber softens that response but doesn\'t ' +
+      'erase it, so once you\'ve told us blood sugar is something you\'re managing, we surface a ' +
+      'product\'s sugar contribution and net carbs directly rather than only showing the standard ' +
+      '%DV a general-population label reference wouldn\'t tighten for you.',
+    source: 'Glycemic-control trial evidence; ADA Standards of Care.',
+    qaTopic: false,
+  },
 };
 
 // Ordered [substring emitted by nutrition.ts, explainer id]. First match wins, so
@@ -195,6 +281,14 @@ const MATCHERS: [RegExp, string][] = [
   [/% of calories come from/i, 'sugar_pct_calories'],
   [/unsaturated/i, 'unsaturated_fat'],
   [/trace of trans fat/i, 'trans_trace'],
+  // Spec 016 M2 — these run against BOTH contextLines and profileNotes
+  // (explainerForLine doesn't care which array a string came from), closing
+  // the gap where protein-quality/goal/condition lines rendered as dead text.
+  [/protein source/i, 'protein_quality_diaas'],
+  [/supports muscle building/i, 'goal_build_protein'],
+  [/feel full for longer/i, 'goal_lose_satiety'],
+  [/flagged blood pressure/i, 'condition_bp_sodium'],
+  [/flagged blood sugar/i, 'condition_blood_sugar'],
 ];
 
 export function explainerForLine(line: string): NutritionExplainer | null {
