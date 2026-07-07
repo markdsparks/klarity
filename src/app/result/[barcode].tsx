@@ -165,8 +165,13 @@ export default function ResultScreen() {
     // together rather than USDA/Kroger only being consulted after OFF fails.
     // M1/M2 need USDA's and Kroger's own ingredient text regardless of
     // whether OFF found a record; M3 needs both available to fall back on
-    // when OFF has nothing.
-    Promise.all([fetchProduct(barcode), fetchUSDANutrition(barcode), fetchKrogerMatch(barcode)])
+    // when OFF has nothing. Only fetchProduct's rejection is meaningful here
+    // (NETWORK → the offline message); USDA already never rejects by
+    // contract, and Kroger is corroboration — a Kroger failure of ANY kind
+    // must degrade to "no Kroger data", never break the scan. Real bug this
+    // guards against: a bare Promise.all here turned Kroger's HTTP 400 (on
+    // barcode formats its API rejects) into an error screen on every scan.
+    Promise.all([fetchProduct(barcode), fetchUSDANutrition(barcode), fetchKrogerMatch(barcode).catch(() => null)])
       .then(async ([offProduct, usdaNutrition, kroger]) => {
         const product = offProduct ?? synthesizeProduct(usdaNutrition, kroger);
         if (!product) {

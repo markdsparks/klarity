@@ -1,5 +1,3 @@
-import { alternateCode } from './off';
-
 // ADR-006 / spec 020 — Kroger corroboration. The app never holds Kroger's
 // client_secret; it only talks to our own token-proxy Worker (which does),
 // then calls Kroger's Products API directly with the short-lived token that
@@ -22,11 +20,38 @@ async function getKrogerToken(): Promise<string | null> {
   const now = Date.now();
   if (cachedToken && cachedToken.expiresAt - REFRESH_MARGIN_MS > now) return cachedToken.value;
 
-  const res = await fetch(TOKEN_PROXY_URL);
-  if (!res.ok) return null;
-  const data = (await res.json()) as { access_token: string; expires_in: number };
-  cachedToken = { value: data.access_token, expiresAt: now + data.expires_in * 1000 };
-  return data.access_token;
+  // A proxy hiccup (network, DNS, bad response) means "no corroboration
+  // right now", never an error — same contract as usda.ts's fetchJson.
+  try {
+    const res = await fetch(TOKEN_PROXY_URL);
+    if (!res.ok) return null;
+    const data = (await res.json()) as { access_token: string; expires_in: number };
+    cachedToken = { value: data.access_token, expiresAt: now + data.expires_in * 1000 };
+    return data.access_token;
+  } catch {
+    return null;
+  }
+}
+
+// Real bug this fixes (found on Mark's device, 2026-07-06 — scanning was
+// erroring on every US product): Kroger's productId is NOT the GTIN. It is
+// the GTIN with its check digit REMOVED, left-padded with zeros to exactly
+// 13 digits — verified empirically against Kroger's own term-search results
+// (their upc for plain Cheerios 8.9oz is 0001600027526; the real scanned
+// GTIN is 016000275263 — drop the trailing 3, pad to 13, identical).
+// Sending a real 13-digit GTIN returns 200-with-empty (so corroboration
+// silently never matched), and sending a 12-digit UPC-A returns HTTP 400
+// (which threw, and the scan screen's Promise.all turned that into an error
+// screen for the whole scan). A nice side effect: a UPC-A and its
+// zero-padded EAN-13 twin normalize to the SAME Kroger id, so the twin-code
+// double-lookup the GTIN forms needed is unnecessary here.
+export function krogerProductId(barcode: string): string | null {
+  if (!/^\d{8,14}$/.test(barcode)) return null;
+  const significant = barcode.replace(/^0+/, '');
+  if (significant.length < 2) return null;
+  const sansCheckDigit = significant.slice(0, -1);
+  if (sansCheckDigit.length > 13) return null;
+  return sansCheckDigit.padStart(13, '0');
 }
 
 export interface KrogerMatch {
@@ -68,10 +93,22 @@ function frontImageUrl(product: KrogerProduct): string | undefined {
   return (sizes.find(s => s.size === 'large') ?? sizes[0])?.url;
 }
 
-async function lookupByProductId(token: string, code: string): Promise<KrogerMatch | null> {
-  const url = `${PRODUCTS_URL}?filter.productId=${encodeURIComponent(code)}`;
+export async function fetchKrogerMatch(barcode: string): Promise<KrogerMatch | null> {
+  const productId = krogerProductId(barcode);
+  if (!productId) return null; // a code Kroger's format can't represent — skip the call entirely
+
+  const token = await getKrogerToken();
+  if (!token) return null;
+
+  const url = `${PRODUCTS_URL}?filter.productId=${encodeURIComponent(productId)}`;
   const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  // 400 is Kroger answering "this identifier cannot exist in my catalog" —
+  // a definitive not-found, not a transient failure. 401/5xx stay thrown:
+  // search's allSettled degrades that one candidate, and the scan path
+  // catches at the call site (corroboration must never break a scan).
+  if (res.status === 400) return null;
   if (!res.ok) throw new Error(`HTTP_${res.status}`);
+
   const data = (await res.json()) as KrogerProductsResponse;
   const product = data.data?.[0];
   if (!product) return null; // a real "not found" — Kroger returns 200 + empty data, not a 404
@@ -84,24 +121,4 @@ async function lookupByProductId(token: string, code: string): Promise<KrogerMat
     brand: product.brand,
     imageUrl: frontImageUrl(product),
   };
-}
-
-// Same UPC-A/EAN-13 twin-code reality off.ts's fetchProduct already handles
-// — Kroger's own catalog stores the zero-padded 13-digit form (confirmed
-// against real responses), so a 12-digit scan can miss a record that exists
-// under its zero-padded twin.
-export async function fetchKrogerMatch(barcode: string): Promise<KrogerMatch | null> {
-  const token = await getKrogerToken();
-  if (!token) return null;
-
-  const primary = await lookupByProductId(token, barcode);
-  if (primary) return primary;
-
-  const alt = alternateCode(barcode);
-  if (!alt) return null;
-  try {
-    return await lookupByProductId(token, alt);
-  } catch {
-    return null; // the alt lookup failing never turns a real "not found" into an error
-  }
 }

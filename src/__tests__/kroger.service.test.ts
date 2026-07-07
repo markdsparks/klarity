@@ -2,9 +2,9 @@
 // see kroger.ts). Each test needs a fresh module instance so that cache
 // doesn't leak between cases; jest.resetModules() + a fresh require() per
 // test achieves that without exporting a test-only reset hook.
-function freshFetchKrogerMatch(): typeof import('../services/kroger').fetchKrogerMatch {
+function freshKroger(): typeof import('../services/kroger') {
   jest.resetModules();
-  return require('../services/kroger').fetchKrogerMatch;
+  return require('../services/kroger');
 }
 
 function okResponse(body: object) {
@@ -26,9 +26,56 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
+// ── krogerProductId — the GTIN → Kroger-id conversion ──────────────────────────
+
+describe('krogerProductId', () => {
+  it('real bug this fixes: Kroger ids are the GTIN sans check digit, zero-padded to 13 — verified against Kroger\'s own catalog data', () => {
+    const { krogerProductId } = freshKroger();
+    // Real pair, confirmed live: scanned UPC-A for plain Cheerios 8.9oz is
+    // 016000275263; Kroger's own upc for that product is 0001600027526.
+    expect(krogerProductId('016000275263')).toBe('0001600027526');
+  });
+
+  it('a UPC-A and its zero-padded EAN-13 twin convert to the SAME Kroger id (no twin double-lookup needed)', () => {
+    const { krogerProductId } = freshKroger();
+    expect(krogerProductId('016000275263')).toBe(krogerProductId('0016000275263'));
+  });
+
+  it('converts a true EAN-13 (nonzero first digit) the same way', () => {
+    const { krogerProductId } = freshKroger();
+    expect(krogerProductId('4890008100309')).toBe('0489000810030');
+  });
+
+  it('converts an EAN-8 without erroring — Kroger rejected the raw 8-digit form with HTTP 400', () => {
+    const { krogerProductId } = freshKroger();
+    expect(krogerProductId('96187437')).toBe('0000009618743');
+  });
+
+  it('returns null for codes Kroger\'s format cannot represent (no wasted call, no 400)', () => {
+    const { krogerProductId } = freshKroger();
+    expect(krogerProductId('11941')).toBeNull();            // 5 digits — real junk code from the search investigation
+    expect(krogerProductId('92000160001700300289')).toBeNull(); // 20 digits — also real
+    expect(krogerProductId('abc12345')).toBeNull();
+  });
+});
+
+// ── fetchKrogerMatch ────────────────────────────────────────────────────────────
+
 describe('fetchKrogerMatch', () => {
+  it('looks up using the CONVERTED Kroger id, not the raw scanned barcode', async () => {
+    const { fetchKrogerMatch } = freshKroger();
+    const fetchMock = jest.fn()
+      .mockResolvedValueOnce(okResponse({ access_token: 'tok', expires_in: 1800 }))
+      .mockResolvedValueOnce(okResponse({ data: [{ nutritionInformation: [{ ingredientStatement: 'whole grain oats' }] }] }));
+    (globalThis as any).fetch = fetchMock;
+
+    const result = await fetchKrogerMatch('016000275263'); // real scanned UPC-A
+    expect(result?.matched).toBe(true);
+    expect(String(fetchMock.mock.calls[1][0])).toContain('filter.productId=0001600027526');
+  });
+
   it('returns matched + hasIngredients true when the product has a real ingredientStatement', async () => {
-    const fetchKrogerMatch = freshFetchKrogerMatch();
+    const { fetchKrogerMatch } = freshKroger();
     (globalThis as any).fetch = jest.fn()
       .mockResolvedValueOnce(okResponse({ access_token: 'tok', expires_in: 1800 }))
       .mockResolvedValueOnce(okResponse({ data: [{ nutritionInformation: [{ ingredientStatement: 'corn meal, cheese seasoning' }] }] }));
@@ -42,20 +89,18 @@ describe('fetchKrogerMatch', () => {
   });
 
   it('returns matched true, hasIngredients false when the product exists but has no ingredientStatement', async () => {
-    const fetchKrogerMatch = freshFetchKrogerMatch();
+    const { fetchKrogerMatch } = freshKroger();
     (globalThis as any).fetch = jest.fn()
       .mockResolvedValueOnce(okResponse({ access_token: 'tok', expires_in: 1800 }))
       .mockResolvedValueOnce(okResponse({ data: [{}] }));
 
-    const result = await fetchKrogerMatch('1');
-    expect(result).toEqual({
-      matched: true, hasIngredients: false,
-      ingredientStatement: undefined, description: undefined, brand: undefined, imageUrl: undefined,
-    });
+    const result = await fetchKrogerMatch('016000275263');
+    expect(result?.matched).toBe(true);
+    expect(result?.hasIngredients).toBe(false);
   });
 
   it('carries description, brand, and the front-perspective large image through when present', async () => {
-    const fetchKrogerMatch = freshFetchKrogerMatch();
+    const { fetchKrogerMatch } = freshKroger();
     (globalThis as any).fetch = jest.fn()
       .mockResolvedValueOnce(okResponse({ access_token: 'tok', expires_in: 1800 }))
       .mockResolvedValueOnce(okResponse({
@@ -73,70 +118,66 @@ describe('fetchKrogerMatch', () => {
         }],
       }));
 
-    const result = await fetchKrogerMatch('1');
+    const result = await fetchKrogerMatch('016000275263');
     expect(result?.description).toBe('Cheetos® Crunchy Cheese Chips');
     expect(result?.brand).toBe('Cheetos');
     expect(result?.imageUrl).toBe('https://kroger/front-large.jpg');
   });
 
-  it('returns null when Kroger has no record for either the scanned or alternate code', async () => {
-    const fetchKrogerMatch = freshFetchKrogerMatch();
+  it('returns null when Kroger has no record (200 with empty data)', async () => {
+    const { fetchKrogerMatch } = freshKroger();
     (globalThis as any).fetch = jest.fn()
       .mockResolvedValueOnce(okResponse({ access_token: 'tok', expires_in: 1800 }))
-      .mockResolvedValueOnce(okResponse({ data: [] }))    // primary: not found
-      .mockResolvedValueOnce(okResponse({ data: [] }));   // alt (12-digit form): also not found
+      .mockResolvedValueOnce(okResponse({ data: [] }));
 
-    const result = await fetchKrogerMatch('0850000429604'); // 13-digit, has a 12-digit twin
-    expect(result).toBeNull();
+    expect(await fetchKrogerMatch('016000275263')).toBeNull();
   });
 
-  it('real bug this guards against: falls back to the zero-padded twin code when the scanned form misses', async () => {
-    const fetchKrogerMatch = freshFetchKrogerMatch();
+  it('real bug this guards against: HTTP 400 (identifier Kroger cannot hold) is a definitive not-found, never a thrown error', async () => {
+    // This exact throw, reaching the scan screen through a bare
+    // Promise.all, was "somehow we broke scanning" — an error screen on
+    // every scan whose barcode format Kroger rejects.
+    const { fetchKrogerMatch } = freshKroger();
     (globalThis as any).fetch = jest.fn()
       .mockResolvedValueOnce(okResponse({ access_token: 'tok', expires_in: 1800 }))
-      .mockResolvedValueOnce(okResponse({ data: [] }))  // 850000429604 (12-digit) -> not found
-      .mockResolvedValueOnce(okResponse({ data: [{ nutritionInformation: [{ ingredientStatement: 'milk protein' }] }] })); // 0850000429604 -> found
+      .mockResolvedValueOnce(errResponse(400));
 
-    const result = await fetchKrogerMatch('850000429604');
-    expect(result).toEqual({
-      matched: true, hasIngredients: true,
-      ingredientStatement: 'milk protein', description: undefined, brand: undefined, imageUrl: undefined,
-    });
+    expect(await fetchKrogerMatch('016000275263')).toBeNull();
+  });
+
+  it('returns null for a barcode Kroger\'s id format cannot represent, without any network call', async () => {
+    const { fetchKrogerMatch } = freshKroger();
+    (globalThis as any).fetch = jest.fn();
+    expect(await fetchKrogerMatch('11941')).toBeNull();
+    expect((globalThis as any).fetch).not.toHaveBeenCalled();
   });
 
   it('returns null when the token proxy is not configured (unset env var)', async () => {
     delete process.env.EXPO_PUBLIC_KROGER_TOKEN_PROXY_URL;
-    const fetchKrogerMatch = freshFetchKrogerMatch();
+    const { fetchKrogerMatch } = freshKroger();
     (globalThis as any).fetch = jest.fn();
-    const result = await fetchKrogerMatch('1');
-    expect(result).toBeNull();
+    expect(await fetchKrogerMatch('016000275263')).toBeNull();
     expect((globalThis as any).fetch).not.toHaveBeenCalled();
   });
 
-  it('returns null when the token proxy itself fails', async () => {
-    const fetchKrogerMatch = freshFetchKrogerMatch();
+  it('returns null when the token proxy responds non-ok', async () => {
+    const { fetchKrogerMatch } = freshKroger();
     (globalThis as any).fetch = jest.fn().mockResolvedValue(errResponse(500));
-    const result = await fetchKrogerMatch('1');
-    expect(result).toBeNull();
+    expect(await fetchKrogerMatch('016000275263')).toBeNull();
   });
 
-  it('propagates a real Products API error (not a not-found) so the caller can fail-closed', async () => {
-    const fetchKrogerMatch = freshFetchKrogerMatch();
+  it('returns null when the token proxy fetch itself throws (network/DNS) — a proxy hiccup never becomes an error', async () => {
+    const { fetchKrogerMatch } = freshKroger();
+    (globalThis as any).fetch = jest.fn().mockRejectedValue(new TypeError('Network request failed'));
+    expect(await fetchKrogerMatch('016000275263')).toBeNull();
+  });
+
+  it('still propagates transient Products API errors (401/5xx) so allSettled callers can degrade per-candidate', async () => {
+    const { fetchKrogerMatch } = freshKroger();
     (globalThis as any).fetch = jest.fn()
       .mockResolvedValueOnce(okResponse({ access_token: 'tok', expires_in: 1800 }))
       .mockResolvedValueOnce(errResponse(401));
 
-    await expect(fetchKrogerMatch('1')).rejects.toThrow('HTTP_401');
-  });
-
-  it('the alt-code lookup failing degrades to null rather than throwing (fail-closed)', async () => {
-    const fetchKrogerMatch = freshFetchKrogerMatch();
-    (globalThis as any).fetch = jest.fn()
-      .mockResolvedValueOnce(okResponse({ access_token: 'tok', expires_in: 1800 }))
-      .mockResolvedValueOnce(okResponse({ data: [] }))      // primary: not found
-      .mockRejectedValueOnce(new Error('network trouble')); // alt: fails
-
-    const result = await fetchKrogerMatch('850000429604');
-    expect(result).toBeNull();
+    await expect(fetchKrogerMatch('016000275263')).rejects.toThrow('HTTP_401');
   });
 });

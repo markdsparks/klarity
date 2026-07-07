@@ -235,7 +235,7 @@ export async function searchProducts(query: string): Promise<OFFSearchProduct[]>
 // TWO records for them: one rich, one sparse home-submitted duplicate. Looking
 // up only the scanned form is why the same package can return the right match
 // one day and a wrong/empty one the next.
-export function alternateCode(code: string): string | null {
+function alternateCode(code: string): string | null {
   if (/^0\d{12}$/.test(code)) return code.slice(1);    // EAN-13 with leading 0 → UPC-A
   if (/^\d{12}$/.test(code)) return `0${code}`;        // UPC-A → zero-padded EAN-13
   return null;
