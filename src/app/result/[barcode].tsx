@@ -36,7 +36,7 @@ import {
   toneNutrition,
   warnThresholds,
 } from '@/services/nutrition';
-import { classifyOutcome, logFeedback, logOutcome, type FeedbackCategory } from '@/services/diagnostics';
+import { classifyOutcome, logFeedback, logOutcome } from '@/services/diagnostics';
 import { FeedbackSheet } from '@/components/feedback-sheet';
 import { fetchUSDANutrition } from '@/services/usda';
 import { fetchKrogerMatch, type KrogerMatch } from '@/services/kroger';
