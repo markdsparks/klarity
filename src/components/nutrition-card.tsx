@@ -42,6 +42,11 @@ export interface NutritionCardProps {
   servingText?: string | null;
   badge?: keyof typeof BADGE_LABEL;
   basisNotes?: string[];
+  // Spec 023 — when the serving basis is a guess, the caller offers a
+  // "set serving size" affordance inline with the serving caption. The
+  // card stays presentation-only: the caller decides when it's offered
+  // (never on real label data) and what tapping it opens.
+  servingAction?: { label: string; onPress: () => void };
   onOpenLadder: (input: VerdictExplainerInput) => void;
   onOpenExplainer: (explainer: NutritionExplainer) => void;
 }
@@ -54,7 +59,7 @@ interface Annotation {
 
 export function NutritionCard({
   nutrition, sn, thresholds, bloodSugar, personalizedRef, askContext,
-  servingText, badge, basisNotes, onOpenLadder, onOpenExplainer,
+  servingText, badge, basisNotes, servingAction, onOpenLadder, onOpenExplainer,
 }: NutritionCardProps) {
   const sugarHot = sugarBasisDv(sn) >= thresholds.sugar;
 
@@ -90,7 +95,18 @@ export function NutritionCard({
         <Text style={styles.cardTitle}>Nutrition</Text>
         <Text style={styles.cardChevron}>›</Text>
       </Pressable>
-      {metaCaption ? <Text style={styles.metaCaption}>{metaCaption}</Text> : null}
+      {metaCaption ? (
+        servingAction ? (
+          <Pressable onPress={servingAction.onPress} hitSlop={8}>
+            <Text style={styles.metaCaption}>
+              {metaCaption}
+              <Text style={styles.servingActionText}>{'  ·  '}{servingAction.label}</Text>
+            </Text>
+          </Pressable>
+        ) : (
+          <Text style={styles.metaCaption}>{metaCaption}</Text>
+        )
+      ) : null}
       <Text style={styles.nutritionSummary}>{nutrition.summary}</Text>
       {annotations.map((a, i) => (
         <Pressable
@@ -177,6 +193,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase', color: '#8896a7' },
   cardChevron: { fontSize: 16, color: '#c7cfd9' },
   metaCaption: { fontSize: 12, color: '#b0bcc9', marginBottom: 6 },
+  servingActionText: { color: '#3d6bcc', fontWeight: '600' },
 
   pressed: { opacity: 0.6 },
   nutritionSummary: { fontSize: 13, color: '#5b6675', lineHeight: 19, marginBottom: 6 },

@@ -40,6 +40,8 @@ import { classifyOutcome, logFeedback, logOutcome, type FeedbackCategory } from 
 import { FeedbackSheet } from '@/components/feedback-sheet';
 import { fetchUSDANutrition } from '@/services/usda';
 import { fetchKrogerMatch, type KrogerMatch } from '@/services/kroger';
+import { clearUserServing, getUserServing, setUserServing as persistUserServing } from '@/services/user-serving';
+import { ServingSizeSheet } from '@/components/serving-size-sheet';
 import { resolveVerdict } from '@/services/verdict';
 import { heroTone, verdictSentence } from '@/services/verdict-sentence';
 import type { BuySignal, ScanHistoryEntry } from '@/types/history';
@@ -157,6 +159,10 @@ export default function ResultScreen() {
   const [explainer, setExplainer] = useState<NutritionExplainer | null>(null);
   const [ladderInput, setLadderInput] = useState<VerdictExplainerInput | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  // Spec 023 — user-entered serving size, loaded per barcode alongside the
+  // product lookups, editable via the sheet below.
+  const [userServing, setUserServing] = useState<number | null>(null);
+  const [servingSheetOpen, setServingSheetOpen] = useState(false);
 
   useEffect(() => {
     if (!barcode) return;
@@ -171,8 +177,9 @@ export default function ResultScreen() {
     // must degrade to "no Kroger data", never break the scan. Real bug this
     // guards against: a bare Promise.all here turned Kroger's HTTP 400 (on
     // barcode formats its API rejects) into an error screen on every scan.
-    Promise.all([fetchProduct(barcode), fetchUSDANutrition(barcode), fetchKrogerMatch(barcode).catch(() => null)])
-      .then(async ([offProduct, usdaNutrition, kroger]) => {
+    Promise.all([fetchProduct(barcode), fetchUSDANutrition(barcode), fetchKrogerMatch(barcode).catch(() => null), getUserServing(barcode)])
+      .then(async ([offProduct, usdaNutrition, kroger, savedServing]) => {
+        if (!cancelled) setUserServing(savedServing);
         const product = offProduct ?? synthesizeProduct(usdaNutrition, kroger);
         if (!product) {
           if (!cancelled) setState({ status: 'not_found' });
@@ -212,7 +219,7 @@ export default function ResultScreen() {
         const matchedAdditives = additiveIds
           .map(id => ADDITIVES[id])
           .filter((a): a is Additive => !!a);
-        const sn = computeServingNutrients(product, usdaNutrition);
+        const sn = computeServingNutrients(product, usdaNutrition, undefined, savedServing ?? undefined);
         const matrixDestroyedCategory = isMatrixDestroyedCategory(product.categories_tags);
         const baseAssessment = toneNutrition(sn, DEFAULT_PROFILE, { matrixDestroyedCategory });
         const historyEntry = await saveToHistory({
@@ -312,7 +319,7 @@ export default function ResultScreen() {
   const name     = product.product_name || 'Unknown product';
   const brand    = product.brands?.split(',')[0].trim() || '';
   const imageUrl = product.image_front_url ?? product.image_url;
-  const sn = computeServingNutrients(product, usdaNutrition, referenceValues(profile));
+  const sn = computeServingNutrients(product, usdaNutrition, referenceValues(profile), userServing ?? undefined);
   const matrixDestroyedCategory = isMatrixDestroyedCategory(product.categories_tags);
   const nutrition = toneNutrition(sn, profile, { matrixDestroyedCategory, ingredientsText: product.ingredients_text });
   const askContext: AskContext = { sn, profile, ctx: { matrixDestroyedCategory } };
@@ -325,6 +332,8 @@ export default function ResultScreen() {
     switch (sn.basis) {
       case 'racc-estimate':
         return `~${sn.servingGrams} g · est. serving${sn.servingLabel ? ` (typical ${sn.servingLabel})` : ''}`;
+      case 'user-serving':
+        return `${sn.servingGrams} g · your serving size`;
       case 'per-100g':
         return 'per 100 g · no serving size on file';
       case 'off-serving':
@@ -336,6 +345,12 @@ export default function ResultScreen() {
           : null;
     }
   })();
+
+  // Spec 023 — offered only when the serving is a guess (or already
+  // user-entered, for editing); never on real USDA/OFF label data.
+  const servingAction = (sn.basis === 'racc-estimate' || sn.basis === 'per-100g' || sn.basis === 'user-serving')
+    ? { label: sn.basis === 'user-serving' ? 'Edit serving size →' : 'Set serving size →', onPress: () => setServingSheetOpen(true) }
+    : undefined;
 
   const matchedAdditives = additiveIds
     .map(id => ADDITIVES[id])
@@ -539,6 +554,7 @@ export default function ResultScreen() {
           askContext={askContext}
           servingText={servingText}
           badge={sn.source === 'usda' ? 'usda' : undefined}
+          servingAction={servingAction}
           onOpenLadder={setLadderInput}
           onOpenExplainer={setExplainer}
         />
@@ -550,6 +566,13 @@ export default function ResultScreen() {
 
       <ExplainerSheet explainer={explainer} onClose={() => setExplainer(null)} askContext={askContext} />
       <VerdictExplainerSheet input={ladderInput} onClose={() => setLadderInput(null)} />
+      <ServingSizeSheet
+        visible={servingSheetOpen}
+        initialGrams={userServing}
+        onSave={grams => { setUserServing(grams); if (barcode) void persistUserServing(barcode, grams); }}
+        onClear={() => { setUserServing(null); if (barcode) void clearUserServing(barcode); }}
+        onClose={() => setServingSheetOpen(false)}
+      />
       <FeedbackSheet
         title={feedbackOpen ? 'Something look off?' : null}
         categories={['wrong-verdict', 'wrong-data', 'missing-additive', 'other']}

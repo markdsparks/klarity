@@ -98,3 +98,40 @@ describe('computeServingNutrients — basis resolution priority', () => {
     expect(sn.calories).toBe(190);
   });
 });
+
+// Spec 023 — user-entered serving size: a new tier that beats the guess
+// tiers (racc-estimate, per-100g) but never real label data.
+describe('computeServingNutrients — user-entered serving (spec 023)', () => {
+  it('beats the RACC category estimate — the package in hand is better than a category guess', () => {
+    const sn = computeServingNutrients(offProduct({ categories_tags: ['en:sunflower-seeds'] }), null, undefined, 28);
+    expect(sn.basis).toBe('user-serving');
+    expect(sn.servingGrams).toBe(28);
+    expect(sn.calories).toBeCloseTo(585 * 0.28, 0);
+  });
+
+  it('beats the per-100g floor — the exact case that motivated this (scan with no serving anywhere)', () => {
+    const sn = computeServingNutrients(offProduct({}), null, undefined, 50);
+    expect(sn.basis).toBe('user-serving');
+    expect(sn.servingGrams).toBe(50);
+    expect(sn.calories).toBeCloseTo(585 * 0.5, 0);
+  });
+
+  it('never beats OFF numeric serving_quantity — real label data wins', () => {
+    const sn = computeServingNutrients(offProduct({ serving_quantity: 30 }), null, undefined, 50);
+    expect(sn.basis).toBe('off-serving');
+    expect(sn.servingGrams).toBe(30);
+  });
+
+  it('never beats parseable OFF serving_size text', () => {
+    const sn = computeServingNutrients(offProduct({ serving_size: '1/4 cup (30 g)' }), null, undefined, 50);
+    expect(sn.basis).toBe('off-serving-text');
+    expect(sn.servingGrams).toBe(30);
+  });
+
+  it('never beats USDA label data', () => {
+    const usda = { calories: 190, servingSize: 30 } as any;
+    const sn = computeServingNutrients(offProduct({}), usda, undefined, 50);
+    expect(sn.basis).toBe('usda-serving');
+    expect(sn.calories).toBe(190);
+  });
+});

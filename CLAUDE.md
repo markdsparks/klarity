@@ -206,7 +206,7 @@ npm run web          # Browser (limited camera)
 - [ ] Dairy Queen size variants — blocked (bot wall; needs browser session or
       supplied doc); Dairy Queen shipped-data currency also flagged for spot-check
 
-**Nutrition-science deepening** (specs 007/008/015)
+**Nutrition-science deepening** (specs 007/008/015/023)
 - [x] Whole-food sugar-matrix exemption (spec 007) — keyed on the food matrix /
       physical form, NOT natural-vs-added origin (WHO counts fruit juice as free sugar)
 - [x] Sugar-basis disclosure (spec 008 M1) — every sugar verdict states its basis;
@@ -219,6 +219,14 @@ npm run web          # Browser (limited camera)
       independent "shared deficiency" call for mixed sources that all limit
       the same amino acid. Complementary-protein claims (rice + beans reading
       as complete) deliberately NOT symmetric — stays deferred (spec 015 M3)
+- [x] User-entered serving size (spec 023) — when the serving is a guess
+      (spec 012's racc-estimate / per-100g tiers), the serving-basis line
+      gains a "Set serving size →" affordance → sheet with g/oz input,
+      persisted per barcode. New `user-serving` basis beats the guess tiers,
+      never real USDA/OFF label data (a second competing "label" number
+      would be worse than either); g/oz only, since volume→weight needs
+      density we don't have. Basis line stays honest: "N g · your serving
+      size"
 
 **Cognitive-load / verdict language** (specs 013/016)
 - [x] Unified vocabulary across both axes — Everyday/Sometimes/Occasionally,

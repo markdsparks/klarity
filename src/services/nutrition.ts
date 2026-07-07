@@ -54,6 +54,7 @@ export type NutritionBasis =
   | 'usda-serving'      // exact USDA label serving
   | 'off-serving'       // OFF numeric serving_quantity
   | 'off-serving-text'  // parsed from OFF serving_size text
+  | 'user-serving'      // user-entered from the package (spec 023)
   | 'racc-estimate'     // FDA category reference amount — an estimate
   | 'per-100g';         // no serving anywhere — shown as "per 100 g"
 
@@ -80,6 +81,11 @@ export function computeServingNutrients(
   p: OFFProduct,
   usda: USDANutrition | null,
   refs: DailyValues = FDA_DV,
+  // Spec 023 — user-entered serving from the package. Beats the guess tiers
+  // (racc-estimate, per-100g) but never real label data: when USDA/OFF
+  // already carry the label's serving, a second competing "label" number
+  // would be worse than either, so the user is never asked for one.
+  userServingGrams?: number,
 ): ServingNutrients {
   const dv = (val: number | undefined, ref: number): number | undefined =>
     val != null ? Math.round(val / ref * 100) : undefined;
@@ -118,6 +124,8 @@ export function computeServingNutrients(
     basis = 'off-serving'; servingGrams = p.serving_quantity;
   } else if (parseServingGrams(p.serving_size) != null) {
     basis = 'off-serving-text'; servingGrams = parseServingGrams(p.serving_size)!;
+  } else if (userServingGrams != null && userServingGrams > 0) {
+    basis = 'user-serving'; servingGrams = userServingGrams;
   } else if (racc) {
     basis = 'racc-estimate'; servingGrams = racc.grams; servingLabel = racc.label;
   } else {
