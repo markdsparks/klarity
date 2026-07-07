@@ -126,8 +126,9 @@ From `src/constants/theme.ts`. The spike's visual design (`spike/index.html`) is
 3. **Web** (`npm run web`) — Claude's own verification loop; limited camera.
 4. **Dev-client build** (`npm run build:sim`, ~12 min once) — only if Expo Go
    can't load a native module we use. Rebuild only when native deps change.
-5. **TestFlight** (`npm run build:preview` → `npm run submit:ios`) — release
-   channel for the family, not a testing channel.
+5. **TestFlight** (`npm run build:local` → `npm run submit:local`, ADR-003 —
+   local Xcode build is the permanent default, not EAS cloud build) —
+   release channel for the family, not a testing channel.
 
 ```bash
 npm start            # Metro + QR for Expo Go on device  ← default
@@ -172,7 +173,9 @@ npm run web          # Browser (limited camera)
 - [x] Camera screen with barcode scanning + search mode toggle
 - [x] Additive detection via OFF additives_tags → E-number index
 - [x] Verdict display screen + additive evidence trail
-- [x] EAS build pipeline + TestFlight distribution (npm run build:preview → npm run submit:ios)
+- [x] EAS build pipeline + TestFlight distribution (originally npm run
+      build:preview → npm run submit:ios; superseded by ADR-003's local
+      Xcode build as the permanent default — see Build & deploy below)
 - [x] Family testing live on TestFlight
 
 **Phase 2 — Scale the evidence layer**
@@ -354,18 +357,22 @@ this improves the actual scan verdict's correctness
       on more breadth (Phase 3.5, more chains, etc.).
 
 **Deploy pipeline**
-- [x] Local Xcode build is the default TestFlight path (ADR-003) — EAS cloud
-      build's free-tier quota was exhausted; `eas submit` (upload) isn't
-      quota-gated, only `eas build` (cloud compile) was, so only that step
-      moved local. `npm run build:local` → `npm run submit:local`. Revisit when
-      the EAS quota resets (2026-08-01) or the plan changes.
+- [x] Local Xcode build is the permanent default TestFlight path (ADR-003) —
+      originally adopted when EAS cloud build's free-tier quota was
+      exhausted (`eas submit`/upload isn't quota-gated, only `eas
+      build`/cloud-compile was, so only that step moved local), confirmed
+      2026-07-06 as the standing default independent of quota/plan status.
+      `npm run build:local` → `npm run submit:local`
 
 ## Build & deploy
 
-**Default (ADR-003): local Xcode build → EAS submit.** EAS's free-tier cloud
-*build* quota got exhausted mid-cycle; `eas submit` (the upload step) isn't
-quota-gated, so only the compile step moved local. Same Xcode toolchain
-`npm run ios` already needs — no eject, no new paid dependency.
+**Default (ADR-003): local Xcode build → EAS submit — permanent, not a
+quota workaround.** Originally adopted because EAS's free-tier cloud *build*
+quota got exhausted mid-cycle (`eas submit`, the upload step, isn't
+quota-gated, so only the compile step needed to move local), but confirmed
+2026-07-06 as the standing default regardless of quota/plan status, after
+two successful local build/submit cycles. Same Xcode toolchain `npm run ios`
+already needs — no eject, no new paid dependency.
 
 ```bash
 npm run build:local    # prebuild + pod install + xcodebuild archive + export → ios/build/export/Klarity.ipa
@@ -374,7 +381,19 @@ npm run submit:local   # eas submit --path, uploads the local .ipa to App Store 
 
 See `scripts/build-local-ios.sh` / `scripts/ios-export-options.plist` for the
 exact steps, and [ADR-003](docs/decisions/003-local-xcode-build-default.md)
-for why and when to revisit (EAS quota resets 2026-08-01).
+for the full reasoning and what would actually trigger a revisit (not a
+calendar date).
+
+**Build-number bookkeeping — a real gotcha (found 2026-07-06):** `eas.json`
+has `"appVersionSource": "remote"`, but that only applies when EAS itself
+compiles (`eas build`). A bare local `expo prebuild` doesn't consult or
+update that remote counter, so it silently drifts stale. Before bumping
+`app.json`'s `ios.buildNumber` for a new build, check both: the remote
+tracker (`npx eas build:version:get -p ios`) *and* the last actually-built
+value (`grep CFBundleVersion ios/Klarity/Info.plist`, or the export dir if
+`ios/` doesn't exist locally) — trust whichever is higher, then set
+`app.json` at least one above it. Revert the `app.json` bump after
+submitting, same as always.
 
 **One-time prerequisite:** Xcode must be signed into the Apple ID for team
 `22PRZ6YK2P` (Xcode → Settings → Accounts → "+") — a manual step only Mark can
@@ -391,7 +410,7 @@ sets `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8` for the `pod install` step).
 script doesn't touch `package.json`, but if you ever run `expo prebuild`
 directly, check those two scripts didn't get rewritten and revert if so.
 
-### EAS cloud build (available again after 2026-08-01, or on a paid plan)
+### EAS cloud build (alternative, not the default)
 
 ```bash
 npm run build:preview   # queue EAS cloud build (~12 min)
