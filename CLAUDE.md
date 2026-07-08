@@ -117,10 +117,15 @@ From `src/constants/theme.ts`. The spike's visual design (`spike/index.html`) is
 
 ### Testing loop (fastest → slowest — use the fastest tier that covers the change)
 
-1. **Expo Go on Mark's iPhone — the default inner loop.** `npm start` on the Mac,
-   scan the QR with the phone camera (Expo Go app installed, same Wi-Fi).
-   Hot reload in ~1s, real camera/barcode scanning. This is how Mark tests
-   day-to-day progress — do NOT push to TestFlight just to show progress.
+1. **The Klarity development build on Mark's iPhone — the default inner
+   loop.** `npm start` on the Mac, scan the QR with the phone camera (same
+   Wi-Fi). Hot reload in ~1s, real camera/barcode scanning. This is how
+   Mark tests day-to-day progress — do NOT push to TestFlight just to show
+   progress. (Long documented as "Expo Go," but discovered 2026-07-07:
+   what's on the phone is the expo-dev-client dev build — the App Store
+   Expo Go only supports SDK 54 and would refuse this SDK 56 project. The
+   dev build's server entries are host:port URLs — Klarity owns port 8081;
+   the sibling app Fettle owns 8083.)
 2. **iOS Simulator** (`npm run ios`) — no camera, but Search mode + everything
    downstream works. Needs Xcode.
 3. **Web** (`npm run web`) — Claude's own verification loop; limited camera.
