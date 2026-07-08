@@ -109,4 +109,42 @@ describe('fetchUSDANutrition', () => {
     mockSequence([{ foods: [noServing] }, null]);
     expect(await fetchUSDANutrition('722252014221')).toBeNull();
   });
+
+  // Spec 021 — ingredients/description/brandName/brandOwner were already
+  // returned by USDA's search response and immediately discarded; these lock
+  // in that they now carry through, in both return paths (labelNutrients and
+  // the per-100g scaling fallback), with no new network call.
+  describe('identity + ingredient text passthrough (spec 021)', () => {
+    const richMatch = {
+      ...SEARCH_MATCH,
+      ingredients: 'Organic dates, organic almonds, organic chocolate chips',
+      description: 'CLIF BAR ORGANIC FRUIT + NUT BAR',
+      brandName: 'Clif Bar',
+      brandOwner: 'Clif Bar & Company',
+    };
+
+    it('carries ingredients/description/brandName/brandOwner through the labelNutrients path', async () => {
+      mockSequence([{ foods: [richMatch] }, LABEL_DETAIL]);
+      const result = await fetchUSDANutrition('722252014221');
+      expect(result?.ingredients).toBe('Organic dates, organic almonds, organic chocolate chips');
+      expect(result?.description).toBe('CLIF BAR ORGANIC FRUIT + NUT BAR');
+      expect(result?.brandName).toBe('Clif Bar');
+      expect(result?.brandOwner).toBe('Clif Bar & Company');
+    });
+
+    it('carries the same fields through the per-100g scaling fallback path', async () => {
+      mockSequence([{ foods: [richMatch] }, null]);
+      const result = await fetchUSDANutrition('722252014221');
+      expect(result?.ingredients).toBe('Organic dates, organic almonds, organic chocolate chips');
+      expect(result?.description).toBe('CLIF BAR ORGANIC FRUIT + NUT BAR');
+      expect(result?.brandName).toBe('Clif Bar');
+    });
+
+    it('leaves ingredients undefined (not fabricated) when USDA has none — description is always present (required on USDAFood)', async () => {
+      mockSequence([{ foods: [SEARCH_MATCH] }, LABEL_DETAIL]);
+      const result = await fetchUSDANutrition('722252014221');
+      expect(result?.ingredients).toBeUndefined();
+      expect(result?.description).toBe(SEARCH_MATCH.description);
+    });
+  });
 });

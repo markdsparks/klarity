@@ -1,10 +1,15 @@
 import { NUTRITION_EXPLAINERS, explainerForLine, getExplainer } from '../data/nutrition-explainers';
 
 describe('nutrition explainers', () => {
-  it('every explainer has a title, body, tier, and source', () => {
+  it('every explainer has a title, hint, body, tier, and source', () => {
     for (const [id, e] of Object.entries(NUTRITION_EXPLAINERS)) {
       expect(e.id).toBe(id);
       expect(e.title.length).toBeGreaterThan(0);
+      // hint must stay short — it's embedded per-topic in the on-device QA
+      // tool's description (explain-rule.ts topicGuide()), which shares a
+      // small context window with the system prompt and two other tools.
+      expect(e.hint.length).toBeGreaterThan(0);
+      expect(e.hint.length).toBeLessThan(60);
       expect(e.body.length).toBeGreaterThan(40);
       expect(['A', 'B', 'C', 'D']).toContain(e.tier);
       expect(e.source.length).toBeGreaterThan(0);
@@ -24,8 +29,18 @@ describe('nutrition explainers', () => {
   });
 
   it('returns null for a line with no explainer', () => {
-    expect(explainerForLine('Strong protein (30% DV) — supports muscle building')).toBeNull();
     expect(explainerForLine('anything unrelated')).toBeNull();
+  });
+
+  // Spec 016 M2 — closing the gap the audit found: these lines rendered on
+  // the card since specs 003/015 but had no tap-through at all until now.
+  it('matches the protein-quality, goal-lens, and condition lines (spec 016 M2)', () => {
+    expect(explainerForLine('Strong protein (30% DV) — supports muscle building')?.id).toBe('goal_build_protein');
+    expect(explainerForLine('Protein and fiber here help you feel full for longer')?.id).toBe('goal_lose_satiety');
+    expect(explainerForLine('You flagged blood pressure — one serving is 25% of the daily sodium value.')?.id).toBe('condition_bp_sodium');
+    expect(explainerForLine('You flagged blood sugar — one serving is 20% of the daily sugar value.')?.id).toBe('condition_blood_sugar');
+    expect(explainerForLine('The only protein source we can identify here is whey protein isolate, a complete, high-quality protein source.')?.id).toBe('protein_quality_diaas');
+    expect(explainerForLine('Every protein source we can identify here is limited in lysine.')?.id).toBe('protein_quality_diaas');
   });
 
   it('getExplainer looks up the personalized-reference entry (footnote link)', () => {

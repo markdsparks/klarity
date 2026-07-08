@@ -38,6 +38,18 @@ export interface OFFResponse {
 // Search result — product + its barcode (code field)
 export interface OFFSearchProduct extends OFFProduct {
   code: string;
+  // Composite local quality score (off.ts's localScore, spec 022): GTIN
+  // validity + market match + ingredient completeness + retrieval-list
+  // presence + stepped popularity. Spec 017's lesson still applies — spec
+  // 019's corroboration model blends USDA/Kroger bonuses into this rather
+  // than letting a third-party match alone override how trustworthy the
+  // rest of the (OFF-sourced) record is.
+  relevanceScore?: number;
+  // From the search index's states_tags (en:ingredients-completed) — OFF's
+  // own contributors marking the record's ingredient data done. Free at
+  // search time; feeds the confidence gate (spec 022 replaced spec 018's
+  // per-candidate fetch with this).
+  ingredientsCompleted?: boolean;
 }
 
 export interface OFFSearchResponse {

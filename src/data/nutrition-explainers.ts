@@ -12,15 +12,33 @@ import type { EvidenceTier } from '../types';
 export interface NutritionExplainer {
   id: string;
   title: string;
+  // Deliberately short (a handful of words) — this is what the on-device QA
+  // tool's description embeds per topic (see explain-rule.ts topicGuide()).
+  // The on-device model has a much smaller context window than cloud models;
+  // `title` alone is too verbose across 12+ topics to fit the tool-selection
+  // prompt budget. Required (not derived from title) so it can't silently
+  // regress to something too long as topics are added.
+  hint: string;
   tier: EvidenceTier;
   body: string;       // plain-language "why this matters"
   source: string;     // authority behind the rule
+  // false = card-tappable via ExplainerSheet, but excluded from the on-device
+  // QA tool's topic enum (EXPLAIN_RULE_TOPICS, explain-rule.ts). Default
+  // (undefined) = included, matching every explainer that existed before this
+  // flag. Added for spec 016 M2: every new entry costs real characters in
+  // topicGuide()'s prompt budget (capped <800 chars — spec 014's 12th
+  // on-device pass hit a real context-window overflow at this exact ceiling),
+  // and not every card explainer needs to double as an on-device-askable
+  // topic. New entries default to false explicitly rather than silently
+  // inheriting inclusion.
+  qaTopic?: boolean;
 }
 
 export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   fiber_protein_sugar: {
     id: 'fiber_protein_sugar',
     title: 'Why fiber and protein soften a sugar flag',
+    hint: 'fiber/protein ease a sugar flag',
     tier: 'A',
     body:
       'Sugar eaten alone hits your bloodstream fast. The same sugar alongside fiber or protein ' +
@@ -34,6 +52,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   fiber_carb_ratio: {
     id: 'fiber_carb_ratio',
     title: 'The 1:10 fiber-to-carb rule',
+    hint: '1:10 fiber-to-carb ratio (whole grain)',
     tier: 'B',
     body:
       'A quick way to judge carbohydrate quality: at least 1 gram of fiber for every 10 grams of ' +
@@ -45,6 +64,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   sodium_potassium: {
     id: 'sodium_potassium',
     title: 'Why potassium balances sodium',
+    hint: 'potassium offsets a sodium flag',
     tier: 'A',
     body:
       'For blood pressure, the ratio of sodium to potassium predicts outcomes better than sodium ' +
@@ -57,6 +77,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   satfat_budget: {
     id: 'satfat_budget',
     title: 'Saturated fat is a daily budget',
+    hint: 'sat fat is a daily budget, not one serving',
     tier: 'A',
     body:
       'Saturated fat health guidance is about your total for the day (roughly 20 g, about 10% of ' +
@@ -70,6 +91,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   sugar_pct_calories: {
     id: 'sugar_pct_calories',
     title: 'Sugar as a share of calories',
+    hint: 'sugar as % of calories, not grams (WHO)',
     tier: 'A',
     body:
       'The WHO guideline is that free sugars stay under 10% of the calories you eat — a share, not ' +
@@ -81,6 +103,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   whole_food_sugar_matrix: {
     id: 'whole_food_sugar_matrix',
     title: 'Why the form of sugar matters more than the source',
+    hint: 'whole-fruit sugar exemption',
     tier: 'A',
     body:
       'A sugar molecule from fruit is chemically identical to sugar added to soda — the body can\'t tell ' +
@@ -95,6 +118,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   sugar_basis_added: {
     id: 'sugar_basis_added',
     title: 'Scored on added sugar',
+    hint: 'scored using labeled added sugar',
     tier: 'A',
     body:
       'Health guidance on sugar targets added sugars, not the sugar naturally in fruit or plain dairy. ' +
@@ -106,6 +130,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   sugar_basis_total_only: {
     id: 'sugar_basis_total_only',
     title: 'Sugar we couldn\'t fully classify',
+    hint: 'added sugar unknown, used total sugar',
     tier: 'A',
     body:
       'This item\'s data doesn\'t separate added sugar from the sugar naturally in the food. Rather than ' +
@@ -118,6 +143,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   added_sugar: {
     id: 'added_sugar',
     title: 'Added sugar vs. total sugar',
+    hint: 'added sugar counts, not natural sugar',
     tier: 'A',
     body:
       'Health guidance targets added sugars, not the natural sugars in fruit or plain dairy. When ' +
@@ -130,6 +156,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   unsaturated_fat: {
     id: 'unsaturated_fat',
     title: 'Why "mostly unsaturated" matters',
+    hint: 'high fat, but mostly unsaturated',
     tier: 'A',
     body:
       'Total fat on its own says little about health — the type is what counts. Unsaturated fats ' +
@@ -141,6 +168,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   trans_trace: {
     id: 'trans_trace',
     title: 'Trace trans fat',
+    hint: 'tiny natural trans fat trace, below the flag',
     tier: 'A',
     body:
       'There is no safe level of industrial trans fat, but labels are allowed to round down to 0 ' +
@@ -152,6 +180,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
   personalized_reference: {
     id: 'personalized_reference',
     title: 'Your personalized reference',
+    hint: 'personalized fiber/protein target',
     tier: 'A',
     body:
       'The Daily Values printed on labels use one generic reference. Fiber and protein needs ' +
@@ -160,6 +189,82 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
       'for men, lower past 51). The rows marked "your reference" use your numbers, not the ' +
       'printed panel\'s.',
     source: 'Institute of Medicine Dietary Reference Intakes.',
+  },
+
+  // Spec 016 M2 — closing the gap the audit found: these lines already
+  // rendered on the nutrition card (protein-quality since spec 015, the
+  // goal/condition lines since spec 003) but had no explainer wired at all,
+  // unlike every sugar/fat/fiber line above. All five package evidence
+  // already fully cited in docs/nutrition-evidence.md — no new science.
+  protein_quality_diaas: {
+    id: 'protein_quality_diaas',
+    title: 'Protein quality, not just quantity',
+    hint: 'protein completeness (DIAAS), not just grams',
+    tier: 'A',
+    body:
+      'A gram of protein isn\'t automatically as good as another gram — completeness (whether it ' +
+      'supplies enough of every essential amino acid) and digestibility both matter. DIAAS ' +
+      '(Digestible Indispensable Amino Acid Score) is the current standard for measuring this, ' +
+      'replacing the older PDCAAS specifically because PDCAAS capped scores at 1.0 and used a less ' +
+      'accurate digestibility method. We only ever name a source (or a shared gap across sources) ' +
+      'when the ingredient list makes it unambiguous — never a guessed blend.',
+    source: 'FAO 2013 Dietary Protein Quality Evaluation in Human Nutrition; Mathai, Liu & Stein 2017, Br J Nutr; Rutherfurd et al. 2015, J Nutr.',
+    qaTopic: false,
+  },
+  goal_build_protein: {
+    id: 'goal_build_protein',
+    title: 'Why protein matters for building muscle',
+    hint: 'protein supports muscle protein synthesis',
+    tier: 'A',
+    body:
+      'Building or retaining muscle needs enough dietary protein to drive muscle protein synthesis — ' +
+      'roughly 1.6 g per kg of body weight per day is the trial-supported range, well above the ' +
+      'general adequacy minimum the label\'s Daily Value reflects. That is why a product clearing a ' +
+      'meaningful share of your protein target gets called out as a positive when you\'ve told us ' +
+      'building muscle is a goal — it is not a claim about the food generally, just about this goal.',
+    source: 'Human trials on dietary protein intake (~1.6 g/kg/day) and resistance-training muscle protein synthesis.',
+    qaTopic: false,
+  },
+  goal_lose_satiety: {
+    id: 'goal_lose_satiety',
+    title: 'Why protein and fiber help you feel full',
+    hint: 'protein + fiber increase satiety',
+    tier: 'A',
+    body:
+      'Protein and fiber both slow digestion and increase satiety — feeling fuller for longer on ' +
+      'fewer calories, which matters directly if you\'re managing weight. A food that is genuinely ' +
+      'strong in both is doing double duty toward that goal, which is why we call it out specifically ' +
+      'when you\'ve set weight loss as your goal rather than leaving it as an unremarked nutrition fact.',
+    source: 'AHA/DGA guidance on protein and fiber for satiety and weight management.',
+    qaTopic: false,
+  },
+  condition_bp_sodium: {
+    id: 'condition_bp_sodium',
+    title: 'Why we call out sodium for blood pressure',
+    hint: 'sodium matters more when managing blood pressure',
+    tier: 'A',
+    body:
+      'Lowering sodium intake reduces blood pressure in a dose-responsive way — the more you cut, the ' +
+      'more it tends to help, with no known floor where the benefit stops. That is a stronger, more ' +
+      'individually consequential relationship than the general-population sodium guidance reflects, ' +
+      'which is why we surface a product\'s sodium contribution specifically once you\'ve told us ' +
+      'you\'re managing blood pressure, instead of leaving it folded into the generic reference.',
+    source: 'DASH trial and sodium-reduction RCTs (dose-responsive blood pressure reduction).',
+    qaTopic: false,
+  },
+  condition_blood_sugar: {
+    id: 'condition_blood_sugar',
+    title: 'Why we call out sugar for blood sugar',
+    hint: 'sugar/net carbs matter more for blood sugar',
+    tier: 'A',
+    body:
+      'Sugar and net carbs (total carbs minus fiber) drive the glucose response a meal produces, which ' +
+      'is the exact thing glycemic control is about managing. Fiber softens that response but doesn\'t ' +
+      'erase it, so once you\'ve told us blood sugar is something you\'re managing, we surface a ' +
+      'product\'s sugar contribution and net carbs directly rather than only showing the standard ' +
+      '%DV a general-population label reference wouldn\'t tighten for you.',
+    source: 'Glycemic-control trial evidence; ADA Standards of Care.',
+    qaTopic: false,
   },
 };
 
@@ -176,6 +281,14 @@ const MATCHERS: [RegExp, string][] = [
   [/% of calories come from/i, 'sugar_pct_calories'],
   [/unsaturated/i, 'unsaturated_fat'],
   [/trace of trans fat/i, 'trans_trace'],
+  // Spec 016 M2 — these run against BOTH contextLines and profileNotes
+  // (explainerForLine doesn't care which array a string came from), closing
+  // the gap where protein-quality/goal/condition lines rendered as dead text.
+  [/protein source/i, 'protein_quality_diaas'],
+  [/supports muscle building/i, 'goal_build_protein'],
+  [/feel full for longer/i, 'goal_lose_satiety'],
+  [/flagged blood pressure/i, 'condition_bp_sodium'],
+  [/flagged blood sugar/i, 'condition_blood_sugar'],
 ];
 
 export function explainerForLine(line: string): NutritionExplainer | null {

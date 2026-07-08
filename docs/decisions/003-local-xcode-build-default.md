@@ -1,8 +1,10 @@
-# ADR-003 — Local Xcode build is the default TestFlight path (for now)
+# ADR-003 — Local Xcode build is the default TestFlight path
 
-**Date:** 2026-07-03
-**Status:** Accepted — supersedes the build step of ADR-002, revisit when EAS
-quota resets (2026-08-01) or the EAS plan changes.
+**Date:** 2026-07-03 (confirmed as the permanent default, not a stopgap, on
+2026-07-06 after a second successful local build/submit — build 28)
+**Status:** Accepted — supersedes the build step of ADR-002. This is the
+standing default going forward, independent of EAS quota or plan status; see
+Revisit below for what would actually change it.
 
 ## Context
 
@@ -18,8 +20,11 @@ API key setup exactly as before.
 ## Decision
 
 **Local Xcode build (archive + export on Mark's Mac) → `eas submit --path`
-(upload only) → TestFlight** is the default for all TestFlight builds until
-further notice — not just a fallback for quota exhaustion.
+(upload only) → TestFlight** is the default for all TestFlight builds — a
+deliberate, permanent choice, not just a fallback for quota exhaustion or a
+placeholder until EAS's cloud build is free again. `eas build` (cloud
+compile) remains available as an occasional alternative (e.g. Mark's Mac is
+unavailable) but is not something to revert to automatically.
 
 ## Why this is fine as a default, not just an emergency measure
 
@@ -60,6 +65,9 @@ script or automate entering Apple ID credentials or 2FA codes.
 
 ## Revisit
 
-When the EAS free-tier quota resets (2026-08-01), or if the EAS plan is
-upgraded, decide whether to switch back to `eas build` as default (simpler,
-runs in the background) or keep local as default (no recurring dependency).
+Confirmed 2026-07-06: **not** tied to the EAS quota reset (2026-08-01) —
+Mark chose local as the permanent default regardless of quota/plan status,
+after two successful local build/submit cycles (builds 27 and 28). Revisit
+only if a real, new reason comes up (e.g. local builds become a genuine
+bottleneck, or a second developer joins and needs a shared cloud queue) —
+not on a calendar date.

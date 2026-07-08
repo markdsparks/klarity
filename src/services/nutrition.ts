@@ -3,6 +3,19 @@ import type { OFFProduct } from '../types/off';
 import type { USDANutrition } from '../types/usda';
 import { parseServingGrams } from './serving';
 import { raccServing } from '../data/racc';
+import { analyzeProteinQuality, proteinQualityContextLine, qualifyBuildGoalLine } from './protein-quality';
+
+// Optional per-call context toneNutrition needs beyond the raw numbers —
+// named once and reused (qa/simulate-addition.ts, qa/ask.ts) instead of a
+// duplicated inline shape at every call site.
+export interface NutritionContext {
+  wholeFoodSugarMatrix?: boolean;
+  matrixDestroyedCategory?: boolean;
+  // Spec 015 — raw ingredient list text, when available, for protein-quality
+  // (DIAAS) context lines. Optional and additive: omitting it just means no
+  // protein-quality line, never an error.
+  ingredientsText?: string;
+}
 
 // Evidence basis for every rule in this file: docs/nutrition-evidence.md
 
@@ -13,6 +26,11 @@ export const FDA_DV = {
 };
 
 export type DailyValues = typeof FDA_DV;
+
+// Fiber or protein clearing this %DV softens a sugar flag (see fiber_protein_sugar
+// explainer). Named + exported so spec 014's simulate_addition tool can explain
+// the mechanism precisely instead of leaving the model to infer it.
+export const FIBER_PROTEIN_SUGAR_OFFSET_DV = 20;
 
 // Sex/age-specific reference intakes (IOM DRIs). Only fiber and protein among the
 // nutrients we display differ enough by sex/age to personalize; everything else
@@ -36,6 +54,7 @@ export type NutritionBasis =
   | 'usda-serving'      // exact USDA label serving
   | 'off-serving'       // OFF numeric serving_quantity
   | 'off-serving-text'  // parsed from OFF serving_size text
+  | 'user-serving'      // user-entered from the package (spec 023)
   | 'racc-estimate'     // FDA category reference amount — an estimate
   | 'per-100g';         // no serving anywhere — shown as "per 100 g"
 
@@ -62,6 +81,11 @@ export function computeServingNutrients(
   p: OFFProduct,
   usda: USDANutrition | null,
   refs: DailyValues = FDA_DV,
+  // Spec 023 — user-entered serving from the package. Beats the guess tiers
+  // (racc-estimate, per-100g) but never real label data: when USDA/OFF
+  // already carry the label's serving, a second competing "label" number
+  // would be worse than either, so the user is never asked for one.
+  userServingGrams?: number,
 ): ServingNutrients {
   const dv = (val: number | undefined, ref: number): number | undefined =>
     val != null ? Math.round(val / ref * 100) : undefined;
@@ -100,6 +124,8 @@ export function computeServingNutrients(
     basis = 'off-serving'; servingGrams = p.serving_quantity;
   } else if (parseServingGrams(p.serving_size) != null) {
     basis = 'off-serving-text'; servingGrams = parseServingGrams(p.serving_size)!;
+  } else if (userServingGrams != null && userServingGrams > 0) {
+    basis = 'user-serving'; servingGrams = userServingGrams;
   } else if (racc) {
     basis = 'racc-estimate'; servingGrams = racc.grams; servingLabel = racc.label;
   } else {
@@ -222,8 +248,11 @@ export interface NutritionAssessment {
 }
 
 // Science-based context that reframes the numbers without changing the verdict.
-function buildContextLines(sn: ServingNutrients, sugarLabel: string, goal: string): string[] {
+function buildContextLines(sn: ServingNutrients, sugarLabel: string, goal: string, ingredientsText?: string): string[] {
   const lines: string[] = [];
+  const proteinQuality = ingredientsText ? analyzeProteinQuality(ingredientsText) : { kind: 'none' as const };
+  const proteinLine = proteinQualityContextLine(proteinQuality);
+  if (proteinLine) lines.push(proteinLine);
 
   // Sugar as % of energy — WHO frames free-sugar guidance as <10% of calories,
   // which %DV only proxies. Surface when it's a notable share of the product.
@@ -257,7 +286,8 @@ function buildContextLines(sn: ServingNutrients, sugarLabel: string, goal: strin
   const proteinDv = sn.proteinDv ?? 0;
   const fiberDv = sn.fiberDv ?? 0;
   if (goal === 'build' && proteinDv >= 20) {
-    lines.push(`Strong protein (${proteinDv}% DV) — supports muscle building`);
+    const baseLine = `Strong protein (${proteinDv}% DV) — supports muscle building`;
+    lines.push(qualifyBuildGoalLine(baseLine, proteinQuality));
   } else if (goal === 'lose' && proteinDv >= 15 && fiberDv >= 15) {
     lines.push('Protein and fiber here help you feel full for longer');
   }
@@ -268,7 +298,7 @@ function buildContextLines(sn: ServingNutrients, sugarLabel: string, goal: strin
 export function toneNutrition(
   sn: ServingNutrients,
   profile: Profile,
-  ctx?: { wholeFoodSugarMatrix?: boolean; matrixDestroyedCategory?: boolean },
+  ctx?: NutritionContext,
 ): NutritionAssessment {
   const t = warnThresholds(profile);
   const sugarDvBasis = sugarBasisDv(sn);
@@ -325,7 +355,7 @@ export function toneNutrition(
     );
   }
 
-  const contextLines = buildContextLines(sn, sugarLabel, goal);
+  const contextLines = buildContextLines(sn, sugarLabel, goal, ctx?.ingredientsText);
   // Sugar-basis disclosure (spec 008) — a calm, tappable line stating what the
   // sugar verdict rests on. Only when sugar is material (basis ≠ negligible).
   if (sugarBasis === 'whole-food') {
@@ -339,8 +369,8 @@ export function toneNutrition(
   // ── Verdict-moving offsets (extend the fiber↔sugar precedent) ──
   // Fiber and/or protein slow glucose absorption and add satiety — a high-sugar
   // food with strong fiber or protein is nutritionally different from sugar alone.
-  const fiberQualifies = fiberDv >= 20;
-  const proteinQualifies = proteinDv >= 20;
+  const fiberQualifies = fiberDv >= FIBER_PROTEIN_SUGAR_OFFSET_DV;
+  const proteinQualifies = proteinDv >= FIBER_PROTEIN_SUGAR_OFFSET_DV;
   const sugarOffset = sugarToneDvBasis >= t.sugar && (fiberQualifies || proteinQualifies);
 
   // Na:K ratio predicts BP/CVD better than sodium alone — high sodium paired with
