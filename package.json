@@ -54,7 +54,8 @@
     "build:device": "eas build --platform ios --profile development-device",
     "submit:ios": "eas submit --platform ios --profile preview --latest",
     "golden": "tsx scripts/export-data.ts && tsx scripts/gen-golden.ts && tsx scripts/gen-golden-network.ts",
-    "test:swift": "swift test --package-path swift/KlarityCore"
+    "test:swift": "swift test --package-path swift/KlarityCore",
+    "native:gen": "bash scripts/native-secrets.sh && cd native && xcodegen generate --quiet"
   },
   "jest": {
     "preset": "jest-expo",

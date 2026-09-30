@@ -295,11 +295,26 @@ function buildContextLines(sn: ServingNutrients, sugarLabel: string, goal: strin
   return lines;
 }
 
+// Spec 025 — the single definition of "we have nutrition data". Missing %DVs otherwise score as 0,
+// which would read a record with no nutriments as the cleanest possible food.
+export function hasNutritionData(sn: ServingNutrients): boolean {
+  return [
+    sn.calories, sn.totalFat, sn.carbs, sn.sugar, sn.satFat, sn.transFat, sn.sodium, sn.potassium, sn.protein, sn.fiber,
+    sn.fatDv, sn.carbsDv, sn.sugarDv, sn.addedSugarDv, sn.satFatDv, sn.sodiumDv, sn.proteinDv, sn.fiberDv,
+  ].some(v => v != null);
+}
+
 export function toneNutrition(
   sn: ServingNutrients,
   profile: Profile,
   ctx?: NutritionContext,
 ): NutritionAssessment {
+  if (!hasNutritionData(sn)) {
+    return {
+      tone: 'unknown', summary: 'No nutrition data on file for this product',
+      profileNotes: [], contextLines: [], highNutrients: [], budgetNutrient: null, sugarBasis: 'negligible',
+    };
+  }
   const t = warnThresholds(profile);
   const sugarDvBasis = sugarBasisDv(sn);
   const { sodiumDv = 0, satFatDv = 0, fiberDv = 0, proteinDv = 0 } = sn;

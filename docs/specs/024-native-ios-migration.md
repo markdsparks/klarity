@@ -45,6 +45,46 @@ Ask-about-this (Foundation Models tools; port of spec 014) → Diagnostics.
 Design tokens from CLAUDE.md map to an asset catalog; system materials/Liquid
 Glass by default. Verified in Simulator (Search mode) and on device (scan).
 
+### Phase 2 progress
+- ✅ Slice 1 (2026-09-29): `native/` app (XcodeGen `project.yml`; `npm run native:gen` writes
+  gitignored `Config/Secrets.xcconfig` from `.env` and generates the project). Bundle id
+  `com.klarity.app.native` until cutover. Tabs: Scan (VisionKit DataScanner on device; Search +
+  barcode entry everywhere) · History · You. Result screen (hero sentence, two glance axes,
+  frequency card + buy signal, additives incl. regulatory/unrated tiers, nutrition card with
+  tappable annotations), ladder / explainer / serving-size sheets (native detents), additive and
+  EFSA regulatory evidence pages. Scan orchestration + screen derivations live in KlarityCore
+  (`ScanResolver`, `ProductAnalysis`). Verified live in the Simulator (search "cheerios" → result →
+  sheets → history persistence across relaunch → profile).
+- Persistence choice: history is one JSON file in Application Support (same shape as the RN
+  AsyncStorage value → cutover import is a straight decode) rather than SwiftData — revisit only
+  if multi-member profiles (Phase 3.5) need relational queries.
+- ✅ Slice 2: restaurants — progressive menu browser in search (chain recognition, live narrowing,
+  "no X" annotations, glance pills), restaurant result with build customizer (toggles, slot swaps,
+  add-ons; option sheet with calorie delta + additive consequence), "computed" disclosures,
+  provenance. Build state + options + analysis in KlarityCore (`RestaurantBuild`,
+  `RestaurantAnalysis`, 36 Swift tests). Hero / additives / nutrition card are shared components
+  across packaged + restaurant results. Build edits update history in place (verified: scanCount
+  stays 1, final build stored).
+- ✅ Design language applied (see design/README.md): K mark + app icon from one SwiftUI source,
+  text-safe ladder tones (contrast audit), LadderMark replaces card rails, ink launch screen.
+- ✅ Slice 3: diagnostics — outcome logging (barcode / not-found / restaurant), feedback sheet
+  on result, not-found and restaurant screens, "How Klarity's doing" with breakdown, sugar basis,
+  feedback list and JSON export (ShareLink; same shape as the RN export).
+- ✅ Spec 025 found during simulator testing and fixed in BOTH engines (parity kept): no nutrition
+  data no longer reads as "easy everyday pick".
+- ✅ Legacy import (`LegacyImport` in KlarityCore): reads @react-native-async-storage v2's iOS
+  layout (manifest.json + MD5-named overflow files, both Application Support/<bundleID> and the
+  older Documents location); decodes profile, history (legacy entries normalized), user servings,
+  diagnostics, feedback — each key independent. Runs once at launch, fills only empty categories,
+  never deletes the RN files. Verified by planting a real-format store in the Simulator sandbox.
+  It only finds data once the native app ships under `com.klarity.app` (cutover).
+- ✅ Ask about this — Foundation Models, redesigned as guided classification + deterministic dispatch
+  (see spec 014 native addendum). Verified live in the Simulator across all four question kinds.
+- ✅ On-device pass 1 (2026-09-30, Mark's iPhone 17 Pro Max): found the scanner acting only on
+  VisionKit's didAdd (payload often arrives in a later update) — fixed; Pure Leaf UPC scanned,
+  resolved and rendered correctly (Mark confirmed).
+- ⏳ Next: a few more real-product scans (store brands, long ingredient lists), then Phase 3 cutover.
+
 ## Phase 3 — Cutover
 Same bundle ID/ASC app; build number above RN's; TestFlight to family;
 one release of overlap testing. Then delete RN app, EAS, `ios/` generation,

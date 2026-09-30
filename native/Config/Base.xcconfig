@@ -1,0 +1,4 @@
+// Committed defaults. Secrets.xcconfig (gitignored) is generated from .env by scripts/native-secrets.sh.
+USDA_API_KEY =
+KROGER_TOKEN_PROXY_URL =
+#include? "Secrets.xcconfig"

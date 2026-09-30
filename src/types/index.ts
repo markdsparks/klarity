@@ -132,7 +132,8 @@ export interface Profile {
 
 // ── Product (from OFF + evidence layer) ────────────────────────────────────────
 
-export type NutritionTone = 'good' | 'ok' | 'warn';
+// 'unknown' = no nutrition data at all (spec 025) — never scored as if it were clean.
+export type NutritionTone = 'good' | 'ok' | 'warn' | 'unknown';
 
 export interface NutritionFlag {
   k: string;   // label, e.g. "Sugar"

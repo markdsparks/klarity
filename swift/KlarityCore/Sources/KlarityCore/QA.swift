@@ -138,15 +138,25 @@ private func sodiumPotassiumMechanism(beforeSodium: Double?, beforePotassium: Do
     if beforeK >= sodiumGrams { return nil }
 
     let beforeMg = formatAmount(beforeK * 1000), afterMg = formatAmount(afterK * 1000), sodiumMg = formatAmount(sodiumGrams * 1000)
+    // Unpublished potassium still counts as 0 in the math (the cautious direction), but the copy never
+    // claims the item HAS 0 mg — missing is not zero (spec 025).
+    let unknownK = beforePotassium == nil
+    let reaches = unknownK
+        ? "adds about \(afterMg) mg of potassium (this item's own potassium isn't published, so none is counted)"
+        : "potassium only reaches about \(afterMg) mg (from \(beforeMg) mg)"
     if afterK >= sodiumGrams {
-        return "Potassium would go from about \(beforeMg) mg to \(afterMg) mg — enough to at least match this product's \(sodiumMg) mg of sodium, which softens a high-sodium flag."
+        return unknownK
+            ? "This adds about \(afterMg) mg of potassium — enough on its own to at least match this product's \(sodiumMg) mg of sodium, which softens a high-sodium flag."
+            : "Potassium would go from about \(beforeMg) mg to \(afterMg) mg — enough to at least match this product's \(sodiumMg) mg of sodium, which softens a high-sodium flag."
     }
     let shortServing = String(addition.commonServing.components(separatedBy: " (")[0])
     if let m = multiplierToThreshold(beforeK, sodiumGrams, addition.perServing.potassium), m > 0 {
         let amount = describeAmount(addition, m * addition.unitQuantity)
-        return "You'd need about \(amount) — not \(shortServing) — for potassium to at least match this product's \(sodiumMg) mg of sodium, which is what softens a high-sodium flag. At \(shortServing), potassium only reaches about \(afterMg) mg (from \(beforeMg) mg)."
+        return "You'd need about \(amount) — not \(shortServing) — for potassium to at least match this product's \(sodiumMg) mg of sodium, which is what softens a high-sodium flag. At \(shortServing), it \(reaches)."
     }
-    return "Potassium would go from about \(beforeMg) mg to \(afterMg) mg — still short of this product's \(sodiumMg) mg of sodium."
+    return unknownK
+        ? "This adds about \(afterMg) mg of potassium (this item's own potassium isn't published) — still short of this product's \(sodiumMg) mg of sodium."
+        : "Potassium would go from about \(beforeMg) mg to \(afterMg) mg — still short of this product's \(sodiumMg) mg of sodium."
 }
 
 /// Adds a common addition's nutrients to `sn` and recomputes every %DV it touches — the same dv() math the

@@ -46,3 +46,9 @@ example
 # Swift
 swift/KlarityCore/.build/
 swift/**/.swiftpm/
+
+# Native app (generated)
+native/Klarity.xcodeproj/
+native/Config/Secrets.xcconfig
+native/Klarity/Info.plist
+native/build/

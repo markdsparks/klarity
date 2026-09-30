@@ -147,8 +147,18 @@ function sodiumPotassiumMechanism(
 
   if (beforeOffset) return null; // already over the threshold before adding — nothing new to report
 
+  // Chains (and some labels) don't publish potassium. The math still counts it as 0 — the cautious
+  // direction, since it can only overstate how much you'd need — but the copy must not claim the item
+  // HAS 0 mg (spec 025's lesson: missing is not zero).
+  const unknownK = beforePotassium == null;
+  const reaches = unknownK
+    ? `adds about ${afterMg} mg of potassium (this item's own potassium isn't published, so none is counted)`
+    : `potassium only reaches about ${afterMg} mg (from ${beforeMg} mg)`;
+
   if (afterOffset) {
-    return `Potassium would go from about ${beforeMg} mg to ${afterMg} mg — enough to at least match this product's ${sodiumMg} mg of sodium, which softens a high-sodium flag.`;
+    return unknownK
+      ? `This adds about ${afterMg} mg of potassium — enough on its own to at least match this product's ${sodiumMg} mg of sodium, which softens a high-sodium flag.`
+      : `Potassium would go from about ${beforeMg} mg to ${afterMg} mg — enough to at least match this product's ${sodiumMg} mg of sodium, which softens a high-sodium flag.`;
   }
 
   // Lead with the actionable recommendation — see the note in
@@ -160,10 +170,12 @@ function sodiumPotassiumMechanism(
       `You'd need about ${amount} — not ` +
       `${addition.commonServing.split(' (')[0]} — for potassium to at least match this product's ` +
       `${sodiumMg} mg of sodium, which is what softens a high-sodium flag. At ` +
-      `${addition.commonServing.split(' (')[0]}, potassium only reaches about ${afterMg} mg (from ${beforeMg} mg).`
+      `${addition.commonServing.split(' (')[0]}, it ${reaches}.`
     );
   }
-  return `Potassium would go from about ${beforeMg} mg to ${afterMg} mg — still short of this product's ${sodiumMg} mg of sodium.`;
+  return unknownK
+    ? `This adds about ${afterMg} mg of potassium (this item's own potassium isn't published) — still short of this product's ${sodiumMg} mg of sodium.`
+    : `Potassium would go from about ${beforeMg} mg to ${afterMg} mg — still short of this product's ${sodiumMg} mg of sodium.`;
 }
 
 // Adds a common addition's nutrients to sn and recomputes every %DV it

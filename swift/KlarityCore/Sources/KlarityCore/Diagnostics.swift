@@ -52,6 +52,12 @@ public struct ScanOutcomeRecord: Codable, Sendable, Equatable {
     public var sugarBasis: SugarBasis?
     public var productName: String?
     public var barcode: String?
+
+    public init(at: Double, source: ScanSource, outcome: ScanOutcome, sugarBasis: SugarBasis? = nil,
+                productName: String? = nil, barcode: String? = nil) {
+        self.at = at; self.source = source; self.outcome = outcome; self.sugarBasis = sugarBasis
+        self.productName = productName; self.barcode = barcode
+    }
 }
 
 public struct DiagnosticsSummary: Codable, Sendable, Equatable {
@@ -72,7 +78,7 @@ public func summarize(_ records: [ScanOutcomeRecord]) -> DiagnosticsSummary {
 
 // MARK: Feedback (spec 009 M2) — the human signal raw stats can't give
 
-public enum FeedbackCategory: String, Codable, Sendable {
+public enum FeedbackCategory: String, Codable, Sendable, CaseIterable {
     case wrongVerdict = "wrong-verdict", wrongData = "wrong-data", missingAdditive = "missing-additive"
     case notFound = "not-found", other
 }
@@ -86,6 +92,12 @@ public struct FeedbackRecord: Codable, Sendable, Equatable {
     public var note: String?
     public var productName: String?
     public var barcode: String?
+
+    public init(at: Double, source: FeedbackSource, category: FeedbackCategory, note: String? = nil,
+                productName: String? = nil, barcode: String? = nil) {
+        self.at = at; self.source = source; self.category = category; self.note = note
+        self.productName = productName; self.barcode = barcode
+    }
 }
 
 /// Spec 009 M3 export — explicit user action, never automatic. Same JSON shape as the RN app's export.
@@ -93,4 +105,10 @@ public struct DiagnosticsExport: Codable, Sendable, Equatable {
     public var exportedAt: Double
     public var outcomes: [ScanOutcomeRecord]
     public var feedback: [FeedbackRecord]
+
+    public init(exportedAt: Double, outcomes: [ScanOutcomeRecord], feedback: [FeedbackRecord]) {
+        self.exportedAt = exportedAt; self.outcomes = outcomes; self.feedback = feedback
+    }
 }
+
+public let diagnosticsMaxRecords = 500

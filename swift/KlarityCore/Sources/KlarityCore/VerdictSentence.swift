@@ -61,17 +61,31 @@ private func nutritionCaveat(_ tone: NutritionTone, _ high: [String], staple: Bo
 
 /// Subtle color hint for the hero card. Mirrors verdictSentence's branch order so the hint
 /// never disagrees with the sentence — NOT a new merged score.
-public enum HeroTone: String, Codable, Sendable { case good, sometimes, warn, contested }
+public enum HeroTone: String, Codable, Sendable { case good, sometimes, warn, contested, unknown }
 
 public func heroTone(_ input: SentenceInput) -> HeroTone {
     if input.contestedDriver != nil { return .contested }
     if input.nutritionTone == .warn { return .warn }
     if !input.sometimesAdditives.isEmpty { return .sometimes }
+    if input.nutritionTone == .unknown { return .unknown }
     if input.budgetNutrient != nil || input.nutritionTone == .ok { return .sometimes }
     return .good
 }
 
+/// Spec 025 — no nutrition data: additive framing still leads, but the read is labeled half a read.
+private let noNutritionSuffix = " We couldn't find nutrition data, so this covers additives only."
+
 public func verdictSentence(_ input: SentenceInput) -> String? {
+    if input.nutritionTone == .unknown && input.contestedDriver == nil {
+        if input.sometimesAdditives.isEmpty {
+            return "We couldn't find nutrition data for this one, so this is only half a read — nothing in the additives needs a second thought."
+        }
+        return (additiveSentence(input) ?? "") + noNutritionSuffix
+    }
+    return fullSentence(input)
+}
+
+private func fullSentence(_ input: SentenceInput) -> String? {
     let profile = input.profile
     let goalBuild = profile.goal == .build && input.proteinDv >= 20
 
@@ -100,6 +114,14 @@ public func verdictSentence(_ input: SentenceInput) -> String? {
         }
         return "An occasional pick, not an everyday one\(tail) — worth going lighter across the rest of the day."
     }
+
+    return additiveSentence(input) ?? cleanSentence(input)
+}
+
+/// Steps 3–4: framing driven by `sometimes` additives, or nil when there are none.
+private func additiveSentence(_ input: SentenceInput) -> String? {
+    let profile = input.profile
+    let goalBuild = profile.goal == .build && input.proteinDv >= 20
 
     // 3. A stack of `sometimes` additives — occasional, none alarming alone.
     if input.sometimesAdditives.count >= stackThreshold {
@@ -132,6 +154,12 @@ public func verdictSentence(_ input: SentenceInput) -> String? {
             return "Fine in normal amounts — worth a glance at the details below.\(caveat)"
         }
     }
+    return nil
+}
+
+/// Step 5: additives clean, nutrition not a concern.
+private func cleanSentence(_ input: SentenceInput) -> String {
+    let goalBuild = input.profile.goal == .build && input.proteinDv >= 20
 
     // 5. Additives clean, nutrition not a concern. Budget reframe keeps the trade-off in the headline.
     if let budget = input.budgetNutrient {
