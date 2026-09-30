@@ -51,8 +51,28 @@ struct ScanView: View {
 
     // MARK: Search
 
+    private var restaurant: RestaurantSearch { searchRestaurant(trimmed) }
+
     private var searchList: some View {
         List {
+            switch restaurant {
+            case .menu(let chain, let hits, let filtered):
+                MenuBrowser(chain: chain, hits: hits, filtered: filtered)
+            case .suggestion(let chain):
+                Section {
+                    Button { query = chain.name } label: {
+                        Label("See the \(chain.name) menu", systemImage: "fork.knife")
+                    }
+                }
+                packagedSections
+            case .none:
+                packagedSections
+            }
+        }
+        .overlay { if searching && results == nil { ProgressView() } }
+    }
+
+    @ViewBuilder private var packagedSections: some View {
             if looksLikeBarcode {
                 Section {
                     NavigationLink(value: Route.product(barcode: trimmed)) {
@@ -81,15 +101,15 @@ struct ScanView: View {
                 }
             }
             if let searchError { Text(searchError).foregroundStyle(.secondary) }
-        }
-        .overlay { if searching && results == nil { ProgressView() } }
     }
 
     private func runSearch() async {
         let q = trimmed
         showLowConfidence = false
         searchError = nil
+        // A recognized chain's menu owns the screen (spec 006 Q2) — no packaged-goods search behind it.
         guard q.count >= 2, !looksLikeBarcode else { results = nil; return }
+        if case .menu = searchRestaurant(q) { results = nil; return }
         try? await Task.sleep(for: .milliseconds(350))   // debounce typing
         guard !Task.isCancelled else { return }
         searching = true
@@ -146,5 +166,38 @@ struct ProductThumbnail: View {
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+/// Spec 006 M1 — one list that narrows as you type; "no X" phrases annotate the top hit, never reshape the list.
+private struct MenuBrowser: View {
+    let chain: RestaurantChain
+    let hits: [MenuHit]
+    let filtered: Bool
+
+    var body: some View {
+        Section {
+            ForEach(hits, id: \.item.id) { hit in
+                let glance = menuItemGlance(hit.item, removedIds: hit.removedIds)
+                NavigationLink(value: Route.restaurant(itemID: hit.item.id, removed: hit.removedIds, added: [])) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(hit.item.name).font(.body.weight(.medium))
+                        HStack(spacing: 6) {
+                            Text(hit.item.category).font(.caption).foregroundStyle(.secondary)
+                            Pill(text: glance.additiveGlance.style.label, color: glance.additiveGlance.cardColor)
+                            Pill(text: glance.nutritionTone.style.label, color: glance.nutritionTone.cardAccent)
+                        }
+                        if !hit.removedIds.isEmpty {
+                            let names = hit.item.components.filter { hit.removedIds.contains($0.id) }.map(\.name)
+                            Text("Without \(names.joined(separator: ", "))").font(.caption).foregroundStyle(Theme.sometimes)
+                        }
+                    }
+                }
+            }
+        } header: {
+            Text("\(chain.name) menu")
+        } footer: {
+            Text(filtered ? "Keep typing to narrow — try \"no cheese\"." : "Type an item name to narrow the menu.")
+        }
     }
 }

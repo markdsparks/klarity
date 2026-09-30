@@ -49,6 +49,15 @@ extension GlanceKey {
 
 extension AdditiveGlanceKey {
     var style: GlanceStyle { (GlanceKey(rawValue: rawValue) ?? .unrated).style }
+    /// On-light color for list pills.
+    var cardColor: Color {
+        switch self {
+        case .everyday, .clean: Theme.good
+        case .sometimes: Theme.sometimes
+        case .contested: Theme.contested
+        case .unrated: .secondary
+        }
+    }
 }
 
 /// Unified behavioral ladder (spec 013): three distinct nutrition colors; purple stays reserved for Contested.
@@ -102,6 +111,7 @@ enum Route: Hashable {
     case product(barcode: String)
     case additive(id: String)
     case regulatory(eNumber: String)
+    case restaurant(itemID: String, removed: [String], added: [String])
 }
 
 extension View {
@@ -111,6 +121,7 @@ extension View {
             case .product(let barcode): ResultView(barcode: barcode)
             case .additive(let id): AdditiveDetailView(additiveID: id)
             case .regulatory(let e): RegulatoryDetailView(eNumber: e)
+            case .restaurant(let id, let removed, let added): RestaurantResultView(itemID: id, removed: removed, added: added)
             }
         }
     }

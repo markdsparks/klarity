@@ -13,10 +13,12 @@ struct HistoryView: View {
                                            description: Text("Products you scan or search show up here."))
                 } else {
                     List(model.history, id: \.barcode) { entry in
-                        if entry.restaurant == nil {
-                            NavigationLink(value: Route.product(barcode: entry.barcode)) { HistoryRow(entry: entry) }
+                        if let r = entry.restaurant {
+                            NavigationLink(value: Route.restaurant(itemID: r.itemId, removed: r.removedIds, added: r.addedIds)) {
+                                HistoryRow(entry: entry)
+                            }
                         } else {
-                            HistoryRow(entry: entry)   // restaurant screens arrive in the next slice
+                            NavigationLink(value: Route.product(barcode: entry.barcode)) { HistoryRow(entry: entry) }
                         }
                     }
                 }

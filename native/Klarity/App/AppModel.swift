@@ -56,6 +56,16 @@ final class AppModel {
         return merged
     }
 
+    /// A build change edits the existing entry, never a new scan — toggling must not inflate the frequency
+    /// signal. The glance travels with the build so history pills reflect the build the user settled on.
+    func updateRestaurantBuild(_ record: ScanRecord) {
+        guard let i = history.firstIndex(where: { $0.barcode == record.barcode }) else { return }
+        history[i].additiveGlance = record.additiveGlance
+        history[i].nutritionTone = record.nutritionTone
+        history[i].restaurant = record.restaurant
+        HistoryFile.save(history)
+    }
+
     func historyEntry(for barcode: String) -> ScanHistoryEntry? { history.first { $0.barcode == barcode } }
 
     func setBuySignal(_ signal: BuySignal, for barcode: String) {

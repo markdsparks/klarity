@@ -53,10 +53,16 @@ struct ResultView: View {
             let analysis = ProductAnalysis(resolved, profile: model.profile, userServingGrams: model.userServing(for: barcode))
             ScrollView {
                 VStack(spacing: 0) {
-                    ResultHero(analysis: analysis, entry: model.historyEntry(for: barcode), barcode: barcode, sheet: $sheet)
+                    VerdictHero(eyebrow: analysis.brand, title: analysis.name, subtitle: nil, imageURL: analysis.imageURL,
+                                sentence: analysis.sentence, heroTone: analysis.heroTone, glance: analysis.glance,
+                                nutrition: analysis.nutrition, additiveContext: analysis.additiveContext, sheet: $sheet) {
+                        if let entry = model.historyEntry(for: barcode) {
+                            FrequencyCard(entry: entry, barcode: barcode, analysis: analysis)
+                        }
+                    }
                     VStack(spacing: 14) {
-                        AdditivesCard(analysis: analysis)
-                        NutritionCard(analysis: analysis, sheet: $sheet)
+                        AdditivesCard(results: analysis.additiveResults, regulatory: analysis.regulatory, unknown: analysis.unknown)
+                        NutritionCard(data: analysis.nutritionCard, sheet: $sheet)
                     }
                     .padding(16)
                 }
@@ -84,95 +90,102 @@ struct ResultView: View {
     }
 }
 
-// MARK: - Hero
+// MARK: - Hero (shared by packaged + restaurant results)
 
-private struct ResultHero: View {
-    let analysis: ProductAnalysis
-    let entry: ScanHistoryEntry?
-    let barcode: String
+struct VerdictHero<Extra: View>: View {
+    let eyebrow: String
+    let title: String
+    let subtitle: String?
+    let imageURL: URL?
+    let sentence: String?
+    let heroTone: HeroTone
+    let glance: GlanceKey
+    let nutrition: NutritionAssessment
+    let additiveContext: AdditiveContext
     @Binding var sheet: ResultSheet?
-    @Environment(AppModel.self) private var model
+    @ViewBuilder var extra: Extra
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top, spacing: 14) {
                 VStack(alignment: .leading, spacing: 4) {
-                    if !analysis.brand.isEmpty {
-                        Text(analysis.brand.uppercased()).font(.caption.weight(.semibold)).foregroundStyle(Theme.heroMuted)
+                    if !eyebrow.isEmpty {
+                        Text(eyebrow.uppercased()).font(.caption.weight(.semibold)).foregroundStyle(Theme.heroMuted)
                     }
-                    Text(analysis.name).font(.title2.weight(.bold)).foregroundStyle(Theme.heroText).lineLimit(3)
+                    Text(title).font(.title2.weight(.bold)).foregroundStyle(Theme.heroText).lineLimit(3)
+                    if let subtitle { Text(subtitle).font(.subheadline).foregroundStyle(Theme.heroMuted) }
                 }
                 Spacer(minLength: 0)
-                if analysis.imageURL != nil {
-                    ProductThumbnail(url: analysis.imageURL, name: analysis.name, size: 72)
-                }
+                if imageURL != nil { ProductThumbnail(url: imageURL, name: title, size: 72) }
             }
 
-            if let sentence = analysis.sentence {
+            if let sentence {
                 Text(sentence)
                     .font(.body)
                     .foregroundStyle(Theme.heroText)
                     .padding(14)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(analysis.heroTone.accent.opacity(0.11), in: RoundedRectangle(cornerRadius: 14))
+                    .background(heroTone.accent.opacity(0.11), in: RoundedRectangle(cornerRadius: 14))
                     .overlay(alignment: .leading) {
-                        UnevenRoundedRectangle(topLeadingRadius: 14, bottomLeadingRadius: 14)
-                            .fill(analysis.heroTone.accent).frame(width: 4)
+                        UnevenRoundedRectangle(topLeadingRadius: 14, bottomLeadingRadius: 14).fill(heroTone.accent).frame(width: 4)
                     }
-                Text("The two axes behind it — tap either for why")
-                    .font(.caption).foregroundStyle(Theme.heroMuted)
+                Text("The two axes behind it — tap either for why").font(.caption).foregroundStyle(Theme.heroMuted)
             }
 
             HStack(spacing: 10) {
-                GlanceButton(axis: "ADDITIVES", style: analysis.glance.style,
-                             action: analysis.glance == .unrated ? nil : {
+                GlanceButton(axis: "ADDITIVES", style: glance.style, action: glance == .unrated ? nil : {
                     sheet = .ladder(axis: .additives,
-                                    level: analysis.glance == .clean ? .everyday : LadderLevel(rawValue: analysis.glance.rawValue) ?? .everyday,
-                                    context: analysis.additiveContext.text, link: analysis.additiveContext.link)
+                                    level: glance == .clean ? .everyday : LadderLevel(rawValue: glance.rawValue) ?? .everyday,
+                                    context: additiveContext.text, link: additiveContext.link)
                 })
-                GlanceButton(axis: "NUTRITION", style: analysis.nutrition.tone.style) {
-                    sheet = .ladder(axis: .nutrition, level: nutritionToneToLadderLevel(analysis.nutrition.tone),
-                                    context: analysis.nutrition.summary, link: nil)
+                GlanceButton(axis: "NUTRITION", style: nutrition.tone.style) {
+                    sheet = .ladder(axis: .nutrition, level: nutritionToneToLadderLevel(nutrition.tone),
+                                    context: nutrition.summary, link: nil)
                 }
             }
-
-            if let entry, showsFrequency(entry) { frequencyCard(entry) }
+            extra
         }
         .padding(16)
         .padding(.bottom, 6)
         .background(Theme.heroBackground)
     }
+}
 
-    private var amber: Bool {
-        analysis.glance == .sometimes || analysis.glance == .contested || analysis.nutrition.tone == .warn
-    }
+/// Frequency context (spec 001) — only when the product repeats across distinct days, something on it is
+/// worth watching, and the user hasn't said they were just checking.
+private struct FrequencyCard: View {
+    let entry: ScanHistoryEntry
+    let barcode: String
+    let analysis: ProductAnalysis
+    @Environment(AppModel.self) private var model
 
-    private func showsFrequency(_ entry: ScanHistoryEntry) -> Bool {
-        frequencyLineEligible(entry, amber: amber, now: Date().timeIntervalSince1970 * 1000)
-    }
+    private var now: Double { Date().timeIntervalSince1970 * 1000 }
+    private var amber: Bool { analysis.glance == .sometimes || analysis.glance == .contested || analysis.nutrition.tone == .warn }
 
-    @ViewBuilder private func frequencyCard(_ entry: ScanHistoryEntry) -> some View {
-        let focus = analysis.additiveResults.first { $0.verdict == .sometimes }?.additive
-        VStack(alignment: .leading, spacing: 10) {
-            if entry.buySignal == .regular {
-                Text("A regular buy for you — " + (focus.map { "for \($0.name.lowercased()), frequency is the whole game." }
-                                                   ?? "how often matters more than any single serving."))
-            } else {
-                let days = distinctScanDays(entry, windowDays: 14, now: Date().timeIntervalSince1970 * 1000)
-                Text("This keeps showing up in your scans — \(days.formatted(.number.notation(.automatic)))\(ordinalSuffix(days)) day in two weeks.")
-                HStack {
-                    Text("Regular buy?").foregroundStyle(Theme.heroMuted)
-                    Button("Yes") { model.setBuySignal(.regular, for: barcode) }
-                    Button("Just checking") { model.setBuySignal(.justChecking, for: barcode) }
+    var body: some View {
+        if frequencyLineEligible(entry, amber: amber, now: now) {
+            let focus = analysis.additiveResults.first { $0.verdict == .sometimes }?.additive
+            VStack(alignment: .leading, spacing: 10) {
+                if entry.buySignal == .regular {
+                    Text("A regular buy for you — " + (focus.map { "for \($0.name.lowercased()), frequency is the whole game." }
+                                                       ?? "how often matters more than any single serving."))
+                } else {
+                    let days = distinctScanDays(entry, windowDays: 14, now: now)
+                    Text("This keeps showing up in your scans — \(days)\(ordinalSuffix(days)) day in two weeks.")
+                    HStack {
+                        Text("Regular buy?").foregroundStyle(Theme.heroMuted)
+                        Button("Yes") { model.setBuySignal(.regular, for: barcode) }
+                        Button("Just checking") { model.setBuySignal(.justChecking, for: barcode) }
+                    }
+                    .buttonStyle(.bordered).tint(Theme.heroMuted)
                 }
-                .buttonStyle(.bordered).tint(Theme.heroMuted)
             }
+            .font(.subheadline)
+            .foregroundStyle(Theme.heroText)
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
         }
-        .font(.subheadline)
-        .foregroundStyle(Theme.heroText)
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -206,10 +219,12 @@ private struct GlanceButton: View {
 
 // MARK: - Additives
 
-private struct AdditivesCard: View {
-    let analysis: ProductAnalysis
+struct AdditivesCard: View {
+    let results: [AdditiveResult]
+    var regulatory: [RegulatoryAdditive] = []
+    var unknown: [UnknownAdditive] = []
 
-    private var total: Int { analysis.additiveResults.count + analysis.regulatory.count + analysis.unknown.count }
+    private var total: Int { results.count + regulatory.count + unknown.count }
 
     var body: some View {
         Card {
@@ -221,22 +236,22 @@ private struct AdditivesCard: View {
             if total == 0 {
                 Text("No additives detected.").foregroundStyle(.secondary)
             }
-            ForEach(analysis.additiveResults, id: \.additive.id) { r in
+            ForEach(results, id: \.additive.id) { r in
                 NavigationLink(value: Route.additive(id: r.additive.id)) { AdditiveRow(result: r) }
                     .buttonStyle(.plain)
             }
-            if !analysis.regulatory.isEmpty {
+            if !regulatory.isEmpty {
                 SectionDivider(title: "Regulatory status only")
-                ForEach(analysis.regulatory, id: \.eNumber) { reg in
+                ForEach(regulatory, id: \.eNumber) { reg in
                     NavigationLink(value: Route.regulatory(eNumber: reg.eNumber)) {
                         SimpleAdditiveRow(name: reg.name, eNumber: reg.eNumber, pill: "Permitted", color: .secondary)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            if !analysis.unknown.isEmpty {
+            if !unknown.isEmpty {
                 SectionDivider(title: "Not yet rated")
-                ForEach(analysis.unknown, id: \.eNumber) { u in
+                ForEach(unknown, id: \.eNumber) { u in
                     SimpleAdditiveRow(name: u.name, eNumber: u.eNumber, pill: nil, color: .secondary)
                 }
             }

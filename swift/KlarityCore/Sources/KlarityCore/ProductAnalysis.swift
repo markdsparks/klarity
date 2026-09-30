@@ -13,6 +13,21 @@ public func overallAdditiveGlance(_ verdicts: [VerdictKey], unratedCount: Int) -
     return .everyday
 }
 
+/// Everything the shared nutrition card renders — identical for packaged and restaurant results so the two
+/// screens can't drift apart again (the reason spec 016 extracted `<NutritionCard>`).
+public struct NutritionCardData: Sendable {
+    public let servingNutrients: ServingNutrients
+    public let nutrition: NutritionAssessment
+    public let servingText: String?
+    public let servingEditable: Bool
+    /// "USDA" / "Computed" provenance badge.
+    public let badge: String?
+    /// Extra disclosure lines (restaurant "computed" basis, unadjusted removals).
+    public let basisNotes: [String]
+    public let personalizedReference: Bool
+    public let sugarThreshold: Int
+}
+
 public struct ProductAnalysis: Sendable {
     public let name: String
     public let brand: String
@@ -81,6 +96,12 @@ public struct ProductAnalysis: Sendable {
         servingEditable = sn.basis == .raccEstimate || sn.basis == .per100g || sn.basis == .userServing
         personalizedReference = isPersonalizedReference(profile)
         sugarThreshold = warnThresholds(for: profile).sugar
+    }
+
+    public var nutritionCard: NutritionCardData {
+        NutritionCardData(servingNutrients: servingNutrients, nutrition: nutrition, servingText: servingText,
+                          servingEditable: servingEditable, badge: servingNutrients.basis == .usdaServing ? "USDA" : nil,
+                          basisNotes: [], personalizedReference: personalizedReference, sugarThreshold: sugarThreshold)
     }
 
     /// The base-verdict (profile-independent) glance + tone that history stores, so entries stay objective.

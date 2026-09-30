@@ -58,8 +58,15 @@ Glass by default. Verified in Simulator (Search mode) and on device (scan).
 - Persistence choice: history is one JSON file in Application Support (same shape as the RN
   AsyncStorage value → cutover import is a straight decode) rather than SwiftData — revisit only
   if multi-member profiles (Phase 3.5) need relational queries.
-- ⏳ Next slices: restaurant search + customizer; diagnostics logging + feedback + export;
-  Ask-about-this (Foundation Models); legacy AsyncStorage import; on-device scan pass.
+- ✅ Slice 2: restaurants — progressive menu browser in search (chain recognition, live narrowing,
+  "no X" annotations, glance pills), restaurant result with build customizer (toggles, slot swaps,
+  add-ons; option sheet with calorie delta + additive consequence), "computed" disclosures,
+  provenance. Build state + options + analysis in KlarityCore (`RestaurantBuild`,
+  `RestaurantAnalysis`, 36 Swift tests). Hero / additives / nutrition card are shared components
+  across packaged + restaurant results. Build edits update history in place (verified: scanCount
+  stays 1, final build stored).
+- ⏳ Next slices: diagnostics logging + feedback + export; Ask-about-this (Foundation Models);
+  legacy AsyncStorage import; on-device scan pass (needs Mark's phone).
 
 ## Phase 3 — Cutover
 Same bundle ID/ASC app; build number above RN's; TestFlight to family;

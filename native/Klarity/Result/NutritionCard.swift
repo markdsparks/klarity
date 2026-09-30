@@ -4,17 +4,17 @@ import SwiftUI
 /// Port of src/components/nutrition-card.tsx (spec 016): summary, one consistent annotation row per
 /// profile note / context line — each individually tappable when an explainer exists — plus the numbers.
 struct NutritionCard: View {
-    let analysis: ProductAnalysis
+    let data: NutritionCardData
     @Binding var sheet: ResultSheet?
 
-    private var sn: ServingNutrients { analysis.servingNutrients }
+    private var sn: ServingNutrients { data.servingNutrients }
 
     private struct Annotation: Identifiable { let id: String; let text: String; let explainer: NutritionExplainer? }
 
     private var annotations: [Annotation] {
-        var out = (analysis.nutrition.profileNotes + analysis.nutrition.contextLines)
+        var out = (data.nutrition.profileNotes + data.nutrition.contextLines)
             .map { Annotation(id: $0, text: $0, explainer: NutritionExplainers.explainer(forLine: $0)) }
-        if analysis.personalizedReference {
+        if data.personalizedReference {
             out.append(Annotation(id: "personalized_reference",
                                   text: "Fiber & protein %DV use your reference intake (sex/age), not the generic label value.",
                                   explainer: NutritionExplainers.explainer(id: "personalized_reference")))
@@ -23,10 +23,10 @@ struct NutritionCard: View {
     }
 
     var body: some View {
-        Card(accent: analysis.nutrition.tone.cardAccent) {
+        Card(accent: data.nutrition.tone.cardAccent) {
             Button {
-                sheet = .ladder(axis: .nutrition, level: nutritionToneToLadderLevel(analysis.nutrition.tone),
-                                context: analysis.nutrition.summary, link: nil)
+                sheet = .ladder(axis: .nutrition, level: nutritionToneToLadderLevel(data.nutrition.tone),
+                                context: data.nutrition.summary, link: nil)
             } label: {
                 HStack {
                     Text("Nutrition").font(.headline)
@@ -38,7 +38,8 @@ struct NutritionCard: View {
             .buttonStyle(.plain)
 
             servingLine
-            Text(analysis.nutrition.summary).font(.body.weight(.medium))
+            Text(data.nutrition.summary).font(.body.weight(.medium))
+            ForEach(data.basisNotes, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
 
             ForEach(annotations) { a in
                 Button { if let e = a.explainer { sheet = .explainer(e) } } label: {
@@ -59,11 +60,11 @@ struct NutritionCard: View {
     }
 
     @ViewBuilder private var servingLine: some View {
-        let meta = [analysis.servingText, sn.basis == .usdaServing ? "USDA" : nil].compactMap { $0 }.joined(separator: " · ")
-        if !meta.isEmpty || analysis.servingEditable {
+        let meta = [data.servingText, data.badge].compactMap { $0 }.joined(separator: " · ")
+        if !meta.isEmpty || data.servingEditable {
             HStack(spacing: 6) {
                 if !meta.isEmpty { Text(meta).foregroundStyle(.secondary) }
-                if analysis.servingEditable {
+                if data.servingEditable {
                     Button(sn.basis == .userServing ? "Edit serving size" : "Set serving size") { sheet = .serving }
                         .font(.caption.weight(.semibold))
                 }
@@ -74,7 +75,7 @@ struct NutritionCard: View {
 
     private var nutrientGrid: some View {
         let sugarLabel = sn.addedSugarDv != nil ? "Added sugar" : "Sugar"
-        let sugarHot = sugarBasisDv(sn) >= analysis.sugarThreshold
+        let sugarHot = sugarBasisDv(sn) >= data.sugarThreshold
         return Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
             NutrientRow(label: "Calories", value: sn.calories.map { "\(Int($0.rounded()))" }, dv: nil)
             NutrientRow(label: "Sat fat", value: grams(sn.satFat), dv: sn.satFatDv)
