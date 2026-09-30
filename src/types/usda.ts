@@ -17,6 +17,10 @@ export interface USDAFood {
   servingSizeUnit?: string;
   householdServingFullText?: string;
   foodNutrients: USDAFoodNutrient[];
+  // Spec 021 — /foods/search already returns this plain-text ingredient
+  // statement (confirmed against live data); previously fetched and
+  // immediately discarded since only foodNutrients was read.
+  ingredients?: string;
 }
 
 export interface USDASearchResponse {
@@ -66,4 +70,12 @@ export interface USDANutrition {
   servingSize?: number;   // grams
   servingSizeUnit?: string;
   householdServing?: string;  // e.g. "1 STICK"
+  // Spec 021 — carried straight off the already-fetched USDA match, no new
+  // network call. `ingredients` feeds the same additive-detection fallback
+  // OFF's own ingredients_text already does; description/brandName/brandOwner
+  // let the not-found path (M3) synthesize an identity when OFF has nothing.
+  ingredients?: string;
+  description?: string;
+  brandName?: string;
+  brandOwner?: string;
 }

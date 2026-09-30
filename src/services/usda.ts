@@ -49,7 +49,11 @@ async function fetchJson<T>(url: string): Promise<T | null> {
   }
 }
 
-async function findMatch(barcode: string): Promise<USDAFood | null> {
+// Exported for spec 017 (search-result data-source preference) — the same
+// exact-GTIN matching logic fetchUSDANutrition already trusts for the
+// single-product path, reused to check whether a cleaner USDA record exists
+// for a search-result candidate before the user has committed to tapping it.
+export async function findBrandedMatch(barcode: string): Promise<USDAFood | null> {
   const url = `${BASE}/foods/search?query=${encodeURIComponent(barcode)}&dataType=Branded&pageSize=10&api_key=${API_KEY}`;
   const data = await fetchJson<USDASearchResponse>(url);
   if (!data?.foods?.length) return null;
@@ -92,11 +96,15 @@ function scalePer100g(match: USDAFood): USDANutrition | null {
     servingSize:      match.servingSize,
     servingSizeUnit:  match.servingSizeUnit,
     householdServing: match.householdServingFullText,
+    ingredients:  match.ingredients,
+    description:  match.description,
+    brandName:    match.brandName,
+    brandOwner:   match.brandOwner,
   };
 }
 
 export async function fetchUSDANutrition(barcode: string): Promise<USDANutrition | null> {
-  const match = await findMatch(barcode);
+  const match = await findBrandedMatch(barcode);
   if (!match) return null;
 
   // labelNutrients (only on the /food/{fdcId} detail endpoint) mirrors the
@@ -119,6 +127,10 @@ export async function fetchUSDANutrition(barcode: string): Promise<USDANutrition
       servingSize:      match.servingSize,
       servingSizeUnit:  match.servingSizeUnit,
       householdServing: match.householdServingFullText,
+      ingredients:  match.ingredients,
+      description:  match.description,
+      brandName:    match.brandName,
+      brandOwner:   match.brandOwner,
     };
   }
 

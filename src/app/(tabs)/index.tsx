@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -7,6 +8,7 @@ import {
   FlatList,
   Keyboard,
   Pressable,
+  ScrollView,
   SectionList,
   StyleSheet,
   Text,
@@ -17,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useProfile } from '@/hooks/use-profile';
 import { searchProducts } from '@/services/off';
+import { enrichSearchResults, type EnrichedSearchProduct, type EnrichedSearchResults } from '@/services/product-search';
 import { menuItemGlance, searchRestaurant, type MenuHit } from '@/services/restaurant-search';
 import { CHAINS } from '@/data/restaurants';
 import type { MenuItem, RestaurantChain } from '@/types/restaurant';
@@ -183,7 +186,7 @@ type SearchState =
   | { status: 'idle' }
   | { status: 'loading'; suggestion?: RestaurantChain }
   | { status: 'error'; suggestion?: RestaurantChain }
-  | { status: 'done'; results: OFFSearchProduct[]; suggestion?: RestaurantChain }
+  | { status: 'done'; results: EnrichedSearchResults; suggestion?: RestaurantChain }
   | { status: 'menu'; chain: RestaurantChain; hits: MenuHit[]; filtered: boolean };
 
 function SearchOverlay({
@@ -200,10 +203,14 @@ function SearchOverlay({
   // Escape hatch (spec 006 Q2): chain-owned results until the user explicitly
   // asks for packaged goods; reset when the box is cleared.
   const [forceOFF, setForceOFF] = useState(false);
+  // Spec 017 M3 — collapsed by default each new search; tapping "Show N
+  // more, lower-confidence results" reveals them for THIS query's results.
+  const [showLowConfidence, setShowLowConfidence] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function onChangeText(text: string) {
     setQuery(text);
+    setShowLowConfidence(false);
     runQuery(text, forceOFF);
   }
 
@@ -236,7 +243,13 @@ function SearchOverlay({
 
   async function runOFFSearch(q: string, suggestion?: RestaurantChain) {
     try {
-      const results = await searchProducts(q);
+      const hits = await searchProducts(q);
+      // Spec 017 — prefer USDA-verified results: OFF's search index is
+      // crowdsourced and can be messy; USDA Branded (already trusted for the
+      // single-product detail path) is cleaner where it has a match. Never
+      // throws (enrichSearchResults degrades a failed check to unverified),
+      // so this can't turn a working OFF search into an error state.
+      const results = await enrichSearchResults(hits);
       setState({ status: 'done', results, suggestion });
     } catch {
       // A dead network must not eat the local suggestion — restaurant data is offline.
@@ -263,7 +276,11 @@ function SearchOverlay({
         <View style={styles.backBtnSpacer} />
       </View>
 
-      {/* Search input — directly below header, no manual offset needed */}
+      {/* Search input — directly below header, no manual offset needed.
+          Deliberately no autoFocus: the idle state below offers zero-typing
+          chain browsing, and the keyboard popping up immediately covered
+          those chips before the user had said they wanted to type anything.
+          Tapping the field still brings the keyboard up when they do. */}
       <View style={styles.searchInputWrap}>
         <TextInput
           style={styles.searchInput}
@@ -271,16 +288,26 @@ function SearchOverlay({
           placeholderTextColor="#9fadbf"
           value={query}
           onChangeText={onChangeText}
-          autoFocus
           returnKeyType="search"
           onSubmitEditing={() => query.trim() && runQuery(query, forceOFF)}
           clearButtonMode="while-editing"
         />
       </View>
 
-      {/* States */}
+      {/* States. Every searchEmpty state renders through a ScrollView, not a
+          plain View, purely for keyboardShouldPersistTaps + onScrollBeginDrag
+          — the keyboard can still be up here (e.g. typed, got zero results,
+          wants to dismiss to read the message or tap a chain chip) and a
+          plain View has no way to dismiss it short of the input's own return
+          key. Same pattern as the bottom sheets (ADR-005) — a tap on
+          non-interactive content dismisses, a tap on a real Pressable (the
+          chain chips) still fires normally. */}
       {state.status === 'idle' && (
-        <View style={styles.searchEmpty}>
+        <ScrollView
+          style={styles.searchEmptyScroll}
+          contentContainerStyle={styles.searchEmptyContent}
+          keyboardShouldPersistTaps="handled"
+          onScrollBeginDrag={() => Keyboard.dismiss()}>
           <Text style={styles.searchEmptyText}>Type a product name to search</Text>
           <Text style={styles.browseLabel}>or browse a menu</Text>
           <View style={styles.chainChips}>
@@ -293,7 +320,7 @@ function SearchOverlay({
               </Pressable>
             ))}
           </View>
-        </View>
+        </ScrollView>
       )}
 
       {/* Chain suggestion — rides above OFF results (or their absence), never replaced */}
@@ -309,15 +336,23 @@ function SearchOverlay({
       )}
 
       {state.status === 'error' && (
-        <View style={styles.searchEmpty}>
+        <ScrollView
+          style={styles.searchEmptyScroll}
+          contentContainerStyle={styles.searchEmptyContent}
+          keyboardShouldPersistTaps="handled"
+          onScrollBeginDrag={() => Keyboard.dismiss()}>
           <Text style={styles.searchEmptyText}>Search failed — check your connection</Text>
-        </View>
+        </ScrollView>
       )}
 
-      {state.status === 'done' && state.results.length === 0 && (
-        <View style={styles.searchEmpty}>
+      {state.status === 'done' && state.results.confident.length === 0 && state.results.lowConfidence.length === 0 && (
+        <ScrollView
+          style={styles.searchEmptyScroll}
+          contentContainerStyle={styles.searchEmptyContent}
+          keyboardShouldPersistTaps="handled"
+          onScrollBeginDrag={() => Keyboard.dismiss()}>
           <Text style={styles.searchEmptyText}>No products found for "{query}"</Text>
-        </View>
+        </ScrollView>
       )}
 
       {state.status === 'menu' && (
@@ -334,17 +369,74 @@ function SearchOverlay({
         />
       )}
 
-      {state.status === 'done' && state.results.length > 0 && (
-        <FlatList
-          data={state.results}
-          keyExtractor={p => p.code}
-          contentContainerStyle={{ paddingBottom: safeBottom + 20 }}
-          keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => <SearchResultRow product={item} />}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
+      {state.status === 'done' && (state.results.confident.length > 0 || state.results.lowConfidence.length > 0) && (
+        <SearchResultsList
+          results={state.results}
+          showLowConfidence={showLowConfidence}
+          onRevealLowConfidence={() => setShowLowConfidence(true)}
+          safeBottom={safeBottom}
         />
       )}
     </View>
+  );
+}
+
+// ── Search results list (spec 017 M3 — confidence tiers) ───────────────────────
+
+// A flat row union lets one FlatList render the confident block, an optional
+// "show N more" toggle OR an auto-revealed low-confidence header, and the
+// low-confidence block itself — without a second list/section-header dance.
+type ResultRow =
+  | { kind: 'result'; item: EnrichedSearchProduct }
+  | { kind: 'toggle'; count: number }
+  | { kind: 'lowConfidenceHeader'; auto: boolean };
+
+function SearchResultsList({
+  results, showLowConfidence, onRevealLowConfidence, safeBottom,
+}: {
+  results: EnrichedSearchResults;
+  showLowConfidence: boolean;
+  onRevealLowConfidence: () => void;
+  safeBottom: number;
+}) {
+  const { confident, lowConfidence } = results;
+  // Never hide the ONLY thing found — if nothing clears the confidence bar,
+  // show the low-confidence results anyway rather than looking like a dead end.
+  const reveal = showLowConfidence || confident.length === 0;
+
+  const rows: ResultRow[] = [
+    ...confident.map((item): ResultRow => ({ kind: 'result', item })),
+    ...(lowConfidence.length === 0 ? [] :
+      reveal
+        ? [{ kind: 'lowConfidenceHeader' as const, auto: confident.length === 0 }, ...lowConfidence.map((item): ResultRow => ({ kind: 'result', item }))]
+        : [{ kind: 'toggle' as const, count: lowConfidence.length }]),
+  ];
+
+  return (
+    <FlatList
+      data={rows}
+      keyExtractor={(r, i) => (r.kind === 'result' ? r.item.product.code : `${r.kind}-${i}`)}
+      contentContainerStyle={{ paddingBottom: safeBottom + 20 }}
+      keyboardShouldPersistTaps="handled"
+      renderItem={({ item: row }) => {
+        if (row.kind === 'toggle') {
+          return (
+            <Pressable style={styles.lowConfidenceToggle} onPress={onRevealLowConfidence}>
+              <Text style={styles.lowConfidenceToggleText}>Show {row.count} more, lower-confidence result{row.count === 1 ? '' : 's'}</Text>
+            </Pressable>
+          );
+        }
+        if (row.kind === 'lowConfidenceHeader') {
+          return (
+            <Text style={styles.lowConfidenceSectionLabel}>
+              {row.auto ? 'NO CONFIDENT MATCHES — SHOWING LOWER-CONFIDENCE RESULTS' : 'LOWER-CONFIDENCE RESULTS'}
+            </Text>
+          );
+        }
+        return <SearchResultRow product={row.item.product} usdaVerified={row.item.usdaVerified} />;
+      }}
+      ItemSeparatorComponent={() => <View style={styles.separator} />}
+    />
   );
 }
 
@@ -518,21 +610,56 @@ function MenuItemRow({ hit }: { hit: MenuHit }) {
   );
 }
 
-function SearchResultRow({ product }: { product: OFFSearchProduct }) {
+function SearchResultRow({ product, usdaVerified }: { product: OFFSearchProduct; usdaVerified?: boolean }) {
   const brand = product.brands?.split(',')[0].trim();
+  // Package size (e.g. "8.5 oz") — OFF's search API already returns this;
+  // without it, generically-named entries ("Cheetos" / "Cheetos") are
+  // indistinguishable from each other in the list.
+  const subtitle = [brand, product.quantity?.trim()].filter(Boolean).join(' · ');
   const initial = (product.product_name?.[0] ?? '?').toUpperCase();
   const color = AVATAR_PALETTE[initial.charCodeAt(0) % AVATAR_PALETTE.length];
+  // Real product photos beat a letter+color for telling near-identical
+  // listings apart (packaging usually makes the variant obvious at a
+  // glance) — shown when the search hit has one, falling back to the
+  // existing letter-avatar otherwise (most crowdsourced hits still won't).
+  // Crowdsourced image URLs do occasionally 404 — onError falls back to the
+  // letter-avatar rather than leaving a blank square.
+  const imageUrl = product.image_front_url ?? product.image_url;
+  const [imageFailed, setImageFailed] = useState(false);
 
   return (
     <Pressable
       style={({ pressed }) => [styles.resultRow, pressed && styles.resultRowPressed]}
       onPress={() => router.push(`/result/${encodeURIComponent(product.code)}`)}>
-      <View style={[styles.resultAvatar, { backgroundColor: color.bg }]}>
-        <Text style={[styles.resultAvatarText, { color: color.fg }]}>{initial}</Text>
-      </View>
+      {imageUrl && !imageFailed ? (
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.resultAvatar}
+          contentFit="cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <View style={[styles.resultAvatar, { backgroundColor: color.bg }]}>
+          <Text style={[styles.resultAvatarText, { color: color.fg }]}>{initial}</Text>
+        </View>
+      )}
       <View style={styles.resultInfo}>
-        <Text style={styles.resultName} numberOfLines={2}>{product.product_name}</Text>
-        {brand ? <Text style={styles.resultBrand}>{brand}</Text> : null}
+        <View style={styles.resultNameRow}>
+          <Text style={[styles.resultName, { flexShrink: 1 }]} numberOfLines={2}>{product.product_name}</Text>
+          {/* Spec 017 — deliberately more prominent than the detail screen's
+              demoted provenance text (spec 016): here, surfacing the trusted
+              source IS the feature, front and center while picking a result,
+              not a footnote after committing to one. Reuses the same blue
+              "informational, not a verdict" pill language as the additive
+              axis's "Regulatory status" pill, so it doesn't read as a
+              green/amber/red judgment. */}
+          {usdaVerified && (
+            <View style={styles.usdaPill}>
+              <Text style={styles.usdaPillText}>USDA</Text>
+            </View>
+          )}
+        </View>
+        {subtitle ? <Text style={styles.resultBrand}>{subtitle}</Text> : null}
       </View>
       <Text style={styles.chevron}>›</Text>
     </Pressable>
@@ -679,8 +806,26 @@ const styles = StyleSheet.create({
     color: '#1a1f29',
   },
 
+  // Used directly as a plain View's style (the loading spinner state, which
+  // has no keyboard-dismiss need). The ScrollView variants below use
+  // searchEmptyScroll for their own `style` instead — RN Web enforces (and
+  // native RN expects) that a ScrollView's alignItems/justifyContent live in
+  // contentContainerStyle, not its outer style, so this can't be reused as
+  // that outer style directly.
   searchEmpty: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 80,
+  },
+  searchEmptyScroll: {
+    flex: 1,
+  },
+  // contentContainerStyle for the ScrollView variants of searchEmpty above —
+  // flexGrow (not flex) is what lets short content still center vertically
+  // inside a ScrollView's content container.
+  searchEmptyContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingBottom: 80,
@@ -714,9 +859,18 @@ const styles = StyleSheet.create({
   },
   resultAvatarText: { fontSize: 18, fontWeight: '800' },
   resultInfo: { flex: 1, gap: 3 },
+  resultNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   resultName: { fontSize: 14, fontWeight: '700', color: '#1a1f29', lineHeight: 19 },
   resultBrand: { fontSize: 12, color: '#8896a7', lineHeight: 16 },
+  usdaPill:     { backgroundColor: '#e8f0fe', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  usdaPillText: { fontSize: 9, fontWeight: '800', color: '#3d6bcc', letterSpacing: 0.5 },
   chevron: { color: '#bec9d4', fontSize: 20 },
+  lowConfidenceToggle: { paddingVertical: 16, paddingHorizontal: 16, alignItems: 'center' },
+  lowConfidenceToggleText: { fontSize: 13.5, fontWeight: '600', color: '#5a6472' },
+  lowConfidenceSectionLabel: {
+    fontSize: 10.5, fontWeight: '800', letterSpacing: 0.6, color: '#9aa4b2',
+    textTransform: 'uppercase', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 6,
+  },
   separator: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#e4eaf2',

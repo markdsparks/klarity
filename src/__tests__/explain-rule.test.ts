@@ -1,4 +1,4 @@
-import { EXPLAIN_RULE_TOPICS, explainRule } from '../services/qa/explain-rule';
+import { EXPLAIN_RULE_TOPICS, explainRule, topicGuide } from '../services/qa/explain-rule';
 import { NUTRITION_EXPLAINERS } from '../data/nutrition-explainers';
 
 describe('explainRule', () => {
@@ -14,10 +14,66 @@ describe('explainRule', () => {
     expect(explainRule('something_the_model_made_up')).toBeNull();
   });
 
-  it('EXPLAIN_RULE_TOPICS matches every key actually in NUTRITION_EXPLAINERS (the M2 tool enum source)', () => {
-    expect(EXPLAIN_RULE_TOPICS.sort()).toEqual(Object.keys(NUTRITION_EXPLAINERS).sort());
+  it('EXPLAIN_RULE_TOPICS matches every NUTRITION_EXPLAINERS key NOT opted out via qaTopic: false (the M2 tool enum source)', () => {
+    const expected = Object.entries(NUTRITION_EXPLAINERS)
+      .filter(([, e]) => e.qaTopic !== false)
+      .map(([id]) => id);
+    expect(EXPLAIN_RULE_TOPICS.sort()).toEqual(expected.sort());
     for (const topic of EXPLAIN_RULE_TOPICS) {
       expect(explainRule(topic)).not.toBeNull();
     }
+  });
+
+  it('spec 016 M2\'s card-only explainers (qaTopic: false) are excluded from the QA topic set', () => {
+    // These are real, tappable ExplainerSheet entries — just not also exposed
+    // as an on-device Q&A topic, to keep topicGuide() under its context budget.
+    for (const id of ['protein_quality_diaas', 'goal_build_protein', 'goal_lose_satiety', 'condition_bp_sodium', 'condition_blood_sugar']) {
+      expect(NUTRITION_EXPLAINERS[id]).toBeDefined();
+      expect(EXPLAIN_RULE_TOPICS).not.toContain(id);
+    }
+  });
+
+  describe('topicGuide', () => {
+    // Real bug this guards against: on-device, the model picked
+    // sugar_basis_added ("Scored on added sugar") for a question about sugar
+    // as a share of calories, because a bare enum of ids gave it nothing to
+    // disambiguate two similar-looking "sugar_..." topics by. This locks in
+    // that every topic's `hint` — the disambiguating signal — is present in
+    // the guide, and that it can't silently drift out of sync with
+    // NUTRITION_EXPLAINERS as topics are added or renamed.
+    //
+    // Uses `hint`, not `title`: a second on-device bug (a distinct failure
+    // mode, "exceeded model context window") showed that `title`-length text
+    // across 12+ topics, stacked on the system prompt and two other tools'
+    // descriptions, doesn't fit the on-device model's much smaller context
+    // budget. `hint` is a deliberately short field that exists to carry the
+    // disambiguating signal without that cost.
+    it('includes every QA topic id paired with its real hint, derived from NUTRITION_EXPLAINERS itself', () => {
+      const guide = topicGuide();
+      for (const id of EXPLAIN_RULE_TOPICS) {
+        expect(guide).toContain(`${id}: ${NUTRITION_EXPLAINERS[id].hint}`);
+      }
+    });
+
+    it('does NOT include spec 016 M2\'s card-only explainers (qaTopic: false) — that\'s the whole point of the flag', () => {
+      const guide = topicGuide();
+      expect(guide).not.toContain('protein_quality_diaas');
+      expect(guide).not.toContain('goal_build_protein');
+    });
+
+    it('the two topics that were confused on-device are both present and distinctly worded', () => {
+      const guide = topicGuide();
+      expect(guide).toContain('sugar_pct_calories: sugar as % of calories, not grams (WHO)');
+      expect(guide).toContain('sugar_basis_added: scored using labeled added sugar');
+    });
+
+    it('stays within a small character budget across all topics (on-device context-window guard)', () => {
+      // Not a magic number — a regression guard. The exact "exceeded model
+      // context window" failure this fixed was caused by this string
+      // creeping past what fits alongside the system prompt and the other
+      // two tools' descriptions. If this budget needs to grow, shorten other
+      // hints to make room rather than raising the ceiling freely.
+      expect(topicGuide().length).toBeLessThan(800);
+    });
   });
 });

@@ -4,13 +4,36 @@
 // nature (brands vary), and every answer built from this table says so.
 //
 // Units match ServingNutrients' convention: grams for fat/fiber/protein/sugar,
-// GRAMS for sodium too (not mg — see nutrition.ts, sodium is stored in grams
-// and only multiplied by 1000 for display).
+// GRAMS for sodium and potassium too (not mg — see nutrition.ts, both are
+// stored in grams and only multiplied by 1000 for display).
+//
+// potassium (spec 014 M2 follow-up): added to cover the second real "add X to
+// offset a flag" mechanism nutrition.ts already computes — potassium at least
+// matching sodium by weight softens a high-sodium flag (DASH-trial evidence,
+// same tier as the sugar/fiber-protein rule). Only populated for additions
+// with a meaningful contribution; banana and baked potato are the two
+// genuinely useful sources here — the modest amounts in beans/avocado/yogurt
+// are real but too small to close most sodium gaps in a realistic serving
+// count.
 
 export interface CommonAddition {
   id: string;
   name: string;           // display name, e.g. "Ground flaxseed"
   commonServing: string;  // e.g. "1 tbsp (~7 g)" — shown so the answer is legible
+  unitQuantity: number;   // the "1" (or "1/4", "1/2") in commonServing, e.g. 1 or 0.25
+  unitLabel: string;      // e.g. "tbsp", "cup", "scoop" — lets simulate-addition.ts
+                           // scale to "how much more" without parsing commonServing
+  // Plural form of unitLabel, used whenever the computed amount isn't 1 (e.g.
+  // "cups", "potatoes"). Optional because abbreviations (tbsp, oz) are the
+  // same word either way — only spelled-out units need this authored.
+  unitLabelPlural?: string;
+  // True when unitLabel names the food itself (banana, potato, avocado) —
+  // simulate-addition.ts's describeAmount() uses this to skip the redundant
+  // "of {name}" suffix that measured units (tbsp, cup, scoop) need to stay
+  // unambiguous. An authored flag, not a string-similarity guess, so it
+  // can't misfire on a future addition whose name happens to overlap its
+  // unit for an unrelated reason.
+  wholeItem?: boolean;
   aliases: string[];      // free-text terms to match against (lowercase)
   perServing: {
     calories?: number;
@@ -19,6 +42,7 @@ export interface CommonAddition {
     protein?: number;
     sugar?: number;
     sodium?: number;      // grams
+    potassium?: number;   // grams
   };
 }
 
@@ -27,6 +51,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'flaxseed_ground',
     name: 'Ground flaxseed',
     commonServing: '1 tbsp (~7 g)',
+    unitQuantity: 1, unitLabel: 'tbsp',
     aliases: ['flax seed', 'flaxseed', 'ground flax', 'flax'],
     perServing: { calories: 37, totalFat: 3, fiber: 2, protein: 1.3 },
   },
@@ -34,6 +59,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'chia_seeds',
     name: 'Chia seeds',
     commonServing: '1 tbsp (~12 g)',
+    unitQuantity: 1, unitLabel: 'tbsp',
     aliases: ['chia seed', 'chia seeds', 'chia'],
     perServing: { calories: 58, totalFat: 3.7, fiber: 4.9, protein: 2 },
   },
@@ -41,6 +67,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'psyllium_husk',
     name: 'Psyllium husk',
     commonServing: '1 tbsp (~5 g)',
+    unitQuantity: 1, unitLabel: 'tbsp',
     aliases: ['psyllium husk', 'psyllium'],
     perServing: { calories: 5, fiber: 4, protein: 0 },
   },
@@ -48,6 +75,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'wheat_bran',
     name: 'Wheat bran',
     commonServing: '1 tbsp (~4 g)',
+    unitQuantity: 1, unitLabel: 'tbsp',
     aliases: ['wheat bran', 'bran'],
     perServing: { calories: 8, fiber: 1.7, protein: 0.6 },
   },
@@ -55,6 +83,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'rolled_oats',
     name: 'Rolled oats (dry)',
     commonServing: '1/4 cup (~20 g)',
+    unitQuantity: 0.25, unitLabel: 'cup', unitLabelPlural: 'cups',
     aliases: ['rolled oats', 'oats', 'oatmeal'],
     perServing: { calories: 75, totalFat: 1.4, fiber: 3, protein: 3.4 },
   },
@@ -62,6 +91,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'hemp_seeds',
     name: 'Hemp seeds',
     commonServing: '1 tbsp (~10 g)',
+    unitQuantity: 1, unitLabel: 'tbsp',
     aliases: ['hemp seed', 'hemp seeds', 'hemp hearts'],
     perServing: { calories: 55, totalFat: 4.5, fiber: 1, protein: 3.3 },
   },
@@ -69,6 +99,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'sunflower_seeds',
     name: 'Sunflower seeds',
     commonServing: '1 tbsp (~9 g)',
+    unitQuantity: 1, unitLabel: 'tbsp',
     aliases: ['sunflower seed', 'sunflower seeds'],
     perServing: { calories: 52, totalFat: 4.5, fiber: 1, protein: 1.9 },
   },
@@ -76,6 +107,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'almonds',
     name: 'Almonds',
     commonServing: '1 oz, ~23 almonds (~28 g)',
+    unitQuantity: 1, unitLabel: 'oz',
     aliases: ['almond', 'almonds'],
     perServing: { calories: 164, totalFat: 14, fiber: 3.5, protein: 6 },
   },
@@ -83,6 +115,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'peanut_butter',
     name: 'Peanut butter',
     commonServing: '1 tbsp (~16 g)',
+    unitQuantity: 1, unitLabel: 'tbsp',
     aliases: ['peanut butter'],
     perServing: { calories: 94, totalFat: 8, fiber: 1, protein: 3.6 },
   },
@@ -90,6 +123,7 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'olive_oil',
     name: 'Olive oil',
     commonServing: '1 tbsp (~14 g)',
+    unitQuantity: 1, unitLabel: 'tbsp',
     aliases: ['olive oil'],
     perServing: { calories: 119, totalFat: 14 },
   },
@@ -97,36 +131,57 @@ export const COMMON_ADDITIONS: CommonAddition[] = [
     id: 'avocado_quarter',
     name: 'Avocado',
     commonServing: '1/4 medium (~50 g)',
+    unitQuantity: 0.25, unitLabel: 'avocado', unitLabelPlural: 'avocados', wholeItem: true,
     aliases: ['avocado'],
-    perServing: { calories: 80, totalFat: 7.5, fiber: 3.4, protein: 1 },
+    perServing: { calories: 80, totalFat: 7.5, fiber: 3.4, protein: 1, potassium: 0.18 },
   },
   {
     id: 'black_beans',
     name: 'Black beans (cooked)',
     commonServing: '1/4 cup (~57 g)',
+    unitQuantity: 0.25, unitLabel: 'cup', unitLabelPlural: 'cups',
     aliases: ['black beans', 'black bean'],
-    perServing: { calories: 55, fiber: 3.7, protein: 4 },
+    perServing: { calories: 55, fiber: 3.7, protein: 4, potassium: 0.18 },
   },
   {
     id: 'chickpeas',
     name: 'Chickpeas (cooked)',
     commonServing: '1/4 cup (~41 g)',
+    unitQuantity: 0.25, unitLabel: 'cup', unitLabelPlural: 'cups',
     aliases: ['chickpea', 'chickpeas', 'garbanzo beans', 'garbanzo'],
-    perServing: { calories: 60, fiber: 3, protein: 4 },
+    perServing: { calories: 60, fiber: 3, protein: 4, potassium: 0.12 },
   },
   {
     id: 'greek_yogurt_plain',
     name: 'Greek yogurt (plain)',
     commonServing: '1/2 cup (~123 g)',
+    unitQuantity: 0.5, unitLabel: 'cup', unitLabelPlural: 'cups',
     aliases: ['greek yogurt', 'plain greek yogurt'],
-    perServing: { calories: 75, protein: 11 },
+    perServing: { calories: 75, protein: 11, potassium: 0.155 },
   },
   {
     id: 'whey_protein',
     name: 'Whey protein powder',
     commonServing: '1 scoop (~30 g)',
+    unitQuantity: 1, unitLabel: 'scoop', unitLabelPlural: 'scoops',
     aliases: ['protein powder', 'whey protein', 'whey'],
     perServing: { calories: 120, protein: 24 },
+  },
+  {
+    id: 'banana',
+    name: 'Banana',
+    commonServing: '1 medium (~118 g)',
+    unitQuantity: 1, unitLabel: 'banana', unitLabelPlural: 'bananas', wholeItem: true,
+    aliases: ['banana', 'bananas'],
+    perServing: { calories: 105, fiber: 3.1, protein: 1.3, sugar: 14, potassium: 0.422 },
+  },
+  {
+    id: 'baked_potato',
+    name: 'Baked potato (with skin)',
+    commonServing: '1 medium (~173 g)',
+    unitQuantity: 1, unitLabel: 'potato', unitLabelPlural: 'potatoes', wholeItem: true,
+    aliases: ['baked potato', 'potato', 'potatoes'],
+    perServing: { calories: 161, fiber: 3.6, protein: 4.3, sugar: 2, potassium: 0.926 },
   },
 ];
 

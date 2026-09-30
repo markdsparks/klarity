@@ -14,10 +14,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { matchByETags } from '@/data/additive-index';
 import { matchByIngredientText } from '@/data/ingredient-text-index';
 import { ADDITIVES } from '@/data/additives';
-import { explainerForLine, getExplainer, type NutritionExplainer } from '@/data/nutrition-explainers';
+import type { NutritionExplainer } from '@/data/nutrition-explainers';
 import { additiveLadderContext, nutritionToneToLadderLevel } from '@/data/verdict-ladder';
 import { ExplainerSheet } from '@/components/explainer-sheet';
 import { VerdictExplainerSheet, type VerdictExplainerInput } from '@/components/verdict-explainer-sheet';
+import { NutritionCard } from '@/components/nutrition-card';
+import type { AskContext } from '@/services/qa/ask';
 import { DEFAULT_PROFILE, useProfile } from '@/hooks/use-profile';
 import { fetchProduct } from '@/services/off';
 import {
@@ -31,13 +33,15 @@ import {
   isMatrixDestroyedCategory,
   isPersonalizedReference,
   referenceValues,
-  sugarBasisDv,
   toneNutrition,
   warnThresholds,
 } from '@/services/nutrition';
-import { classifyOutcome, logFeedback, logOutcome, type FeedbackCategory } from '@/services/diagnostics';
+import { classifyOutcome, logFeedback, logOutcome } from '@/services/diagnostics';
 import { FeedbackSheet } from '@/components/feedback-sheet';
 import { fetchUSDANutrition } from '@/services/usda';
+import { fetchKrogerMatch, type KrogerMatch } from '@/services/kroger';
+import { clearUserServing, getUserServing, setUserServing as persistUserServing } from '@/services/user-serving';
+import { ServingSizeSheet } from '@/components/serving-size-sheet';
 import { resolveVerdict } from '@/services/verdict';
 import { heroTone, verdictSentence } from '@/services/verdict-sentence';
 import type { BuySignal, ScanHistoryEntry } from '@/types/history';
@@ -70,13 +74,6 @@ const NUTRITION_GLANCE: Record<NutritionTone, { bg: string; fg: string; label: s
   good: { bg: 'rgba(127,211,170,0.16)', fg: '#7fd3aa', label: 'Everyday'     },
   ok:   { bg: 'rgba(240,184,117,0.16)', fg: '#f0b875', label: 'Sometimes'    },
   warn: { bg: 'rgba(239,143,86,0.18)',  fg: '#ef8f56', label: 'Occasionally' },
-};
-
-// Same ladder as a light pill (nutrition card sits on a white card): green → amber → deep orange.
-const NUTRITION_TAG: Record<NutritionTone, { bg: string; fg: string }> = {
-  good: { bg: '#e8f7ef', fg: '#1f9d6b' },
-  ok:   { bg: '#fdf3e3', fg: '#c8821a' },
-  warn: { bg: '#fbe7db', fg: '#c2410c' },
 };
 
 // Subtle hero color hint (spec 013 follow-up) — a soft tint + left accent bar
@@ -112,6 +109,32 @@ function ordinal(n: number): string {
   return `${n}${suffix}`;
 }
 
+// Spec 021 M3 — OFF is the default identity source whenever it has anything
+// at all; this only fires when it has genuinely nothing for this barcode.
+// USDA and Kroger are both independent barcode lookups already in flight for
+// M1/M2's ingredient-text fallback, so resolving identity from them here
+// costs no extra network call. Kroger's identity is preferred when both
+// resolve (richer, curated retail description + real photos in our own
+// testing) — a first-guess tie-break, not a settled ranking.
+function synthesizeProduct(usda: USDANutrition | null, kroger: KrogerMatch | null): OFFProduct | null {
+  if (kroger?.description) {
+    return {
+      product_name: kroger.description,
+      brands: kroger.brand,
+      ingredients_text: kroger.ingredientStatement,
+      image_front_url: kroger.imageUrl,
+    };
+  }
+  if (usda?.description) {
+    return {
+      product_name: usda.description,
+      brands: usda.brandName ?? usda.brandOwner,
+      ingredients_text: usda.ingredients,
+    };
+  }
+  return null;
+}
+
 // ── State type ─────────────────────────────────────────────────────────────────
 type State =
   | { status: 'loading' }
@@ -136,12 +159,28 @@ export default function ResultScreen() {
   const [explainer, setExplainer] = useState<NutritionExplainer | null>(null);
   const [ladderInput, setLadderInput] = useState<VerdictExplainerInput | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  // Spec 023 — user-entered serving size, loaded per barcode alongside the
+  // product lookups, editable via the sheet below.
+  const [userServing, setUserServing] = useState<number | null>(null);
+  const [servingSheetOpen, setServingSheetOpen] = useState(false);
 
   useEffect(() => {
     if (!barcode) return;
     let cancelled = false;
-    Promise.all([fetchProduct(barcode), fetchUSDANutrition(barcode)])
-      .then(async ([product, usdaNutrition]) => {
+    // Spec 021 — all three sources are independent barcode lookups, fetched
+    // together rather than USDA/Kroger only being consulted after OFF fails.
+    // M1/M2 need USDA's and Kroger's own ingredient text regardless of
+    // whether OFF found a record; M3 needs both available to fall back on
+    // when OFF has nothing. Only fetchProduct's rejection is meaningful here
+    // (NETWORK → the offline message); USDA already never rejects by
+    // contract, and Kroger is corroboration — a Kroger failure of ANY kind
+    // must degrade to "no Kroger data", never break the scan. Real bug this
+    // guards against: a bare Promise.all here turned Kroger's HTTP 400 (on
+    // barcode formats its API rejects) into an error screen on every scan.
+    Promise.all([fetchProduct(barcode), fetchUSDANutrition(barcode), fetchKrogerMatch(barcode).catch(() => null), getUserServing(barcode)])
+      .then(async ([offProduct, usdaNutrition, kroger, savedServing]) => {
+        if (!cancelled) setUserServing(savedServing);
+        const product = offProduct ?? synthesizeProduct(usdaNutrition, kroger);
         if (!product) {
           if (!cancelled) setState({ status: 'not_found' });
           void logOutcome({ at: Date.now(), source: 'barcode', outcome: 'not-found', barcode });
@@ -151,10 +190,19 @@ export default function ResultScreen() {
           matchByETags(product.additives_tags ?? []);
         // OFF's own additives_tags parsing sometimes misses ingredients (nutrition
         // filled in, ingredient parser never ran) — scan the raw text as a fallback.
-        const textMatched = matchByIngredientText(
-          product.ingredients_text ?? '', new Set(tagMatched)
+        // Spec 021 — also scan USDA's and Kroger's own ingredient text. Each is a
+        // real, independent source; one having text doesn't mean the others don't
+        // ALSO carry an additive the first missed. Kept as separately-named
+        // passes (not silently flattened) so which source found which additive
+        // stays traceable in the code, even though it isn't surfaced in the UI yet.
+        const offTextMatched = matchByIngredientText(product.ingredients_text ?? '', new Set(tagMatched));
+        const usdaTextMatched = matchByIngredientText(
+          usdaNutrition?.ingredients ?? '', new Set([...tagMatched, ...offTextMatched]),
         );
-        const additiveIds = [...tagMatched, ...textMatched];
+        const krogerTextMatched = matchByIngredientText(
+          kroger?.ingredientStatement ?? '', new Set([...tagMatched, ...offTextMatched, ...usdaTextMatched]),
+        );
+        const additiveIds = [...tagMatched, ...offTextMatched, ...usdaTextMatched, ...krogerTextMatched];
 
         // Paint first — history persistence must never delay the result screen
         if (!cancelled) {
@@ -171,7 +219,7 @@ export default function ResultScreen() {
         const matchedAdditives = additiveIds
           .map(id => ADDITIVES[id])
           .filter((a): a is Additive => !!a);
-        const sn = computeServingNutrients(product, usdaNutrition);
+        const sn = computeServingNutrients(product, usdaNutrition, undefined, savedServing ?? undefined);
         const matrixDestroyedCategory = isMatrixDestroyedCategory(product.categories_tags);
         const baseAssessment = toneNutrition(sn, DEFAULT_PROFILE, { matrixDestroyedCategory });
         const historyEntry = await saveToHistory({
@@ -244,7 +292,7 @@ export default function ResultScreen() {
         </Text>
         <Text style={styles.errorBody}>
           {isNotFound
-            ? "This barcode isn't in Open Food Facts yet."
+            ? "We checked Open Food Facts, USDA, and Kroger and couldn't find this barcode."
             : (state as { status: 'error'; message: string }).message}
         </Text>
         <Pressable style={styles.errorBtn} onPress={() => router.back()}>
@@ -271,10 +319,10 @@ export default function ResultScreen() {
   const name     = product.product_name || 'Unknown product';
   const brand    = product.brands?.split(',')[0].trim() || '';
   const imageUrl = product.image_front_url ?? product.image_url;
-  const sn = computeServingNutrients(product, usdaNutrition, referenceValues(profile));
-  const nutrition = toneNutrition(sn, profile, {
-    matrixDestroyedCategory: isMatrixDestroyedCategory(product.categories_tags),
-  });
+  const sn = computeServingNutrients(product, usdaNutrition, referenceValues(profile), userServing ?? undefined);
+  const matrixDestroyedCategory = isMatrixDestroyedCategory(product.categories_tags);
+  const nutrition = toneNutrition(sn, profile, { matrixDestroyedCategory, ingredientsText: product.ingredients_text });
+  const askContext: AskContext = { sn, profile, ctx: { matrixDestroyedCategory } };
   const thresholds = warnThresholds(profile);
   const bloodSugar = profile.conditions.includes('blood_sugar');
   const personalizedRef = isPersonalizedReference(profile);
@@ -284,6 +332,8 @@ export default function ResultScreen() {
     switch (sn.basis) {
       case 'racc-estimate':
         return `~${sn.servingGrams} g · est. serving${sn.servingLabel ? ` (typical ${sn.servingLabel})` : ''}`;
+      case 'user-serving':
+        return `${sn.servingGrams} g · your serving size`;
       case 'per-100g':
         return 'per 100 g · no serving size on file';
       case 'off-serving':
@@ -295,6 +345,12 @@ export default function ResultScreen() {
           : null;
     }
   })();
+
+  // Spec 023 — offered only when the serving is a guess (or already
+  // user-entered, for editing); never on real USDA/OFF label data.
+  const servingAction = (sn.basis === 'racc-estimate' || sn.basis === 'per-100g' || sn.basis === 'user-serving')
+    ? { label: sn.basis === 'user-serving' ? 'Edit serving size →' : 'Set serving size →', onPress: () => setServingSheetOpen(true) }
+    : undefined;
 
   const matchedAdditives = additiveIds
     .map(id => ADDITIVES[id])
@@ -331,7 +387,6 @@ export default function ResultScreen() {
   const summarySentence = verdictSentence(sentenceInput);
   const heroColor = HERO_TONE[heroTone(sentenceInput)];
 
-  const sugarHot = sugarBasisDv(sn) >= thresholds.sugar;
   const additiveContext = additiveLadderContext(
     glanceKey, additiveResults, regulatoryAdditives.length, unknownAdditives.length,
   );
@@ -388,6 +443,7 @@ export default function ResultScreen() {
               level: glanceKey === 'clean' ? 'everyday' : glanceKey,
               productContext: additiveContext.text,
               productLink: additiveContext.link,
+              askContext,
             })}
           />
           <GlanceBadge
@@ -399,6 +455,7 @@ export default function ResultScreen() {
               axis: 'nutrition',
               level: nutritionToneToLadderLevel(nutrition.tone),
               productContext: nutrition.summary,
+              askContext,
             })}
           />
         </View>
@@ -488,89 +545,34 @@ export default function ResultScreen() {
         </View>
 
         {/* Nutrition */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardTitleRow}>
-              <Text style={styles.cardTitle}>Nutrition</Text>
-              {sn.source === 'usda' && (
-                <View style={styles.usdaBadge}>
-                  <Text style={styles.usdaBadgeText}>USDA</Text>
-                </View>
-              )}
-            </View>
-            <Pressable
-              style={({ pressed }) => [styles.toneTag, { backgroundColor: NUTRITION_TAG[nutrition.tone].bg }, pressed && styles.glanceBadgePressed]}
-              onPress={() => setLadderInput({
-                axis: 'nutrition',
-                level: nutritionToneToLadderLevel(nutrition.tone),
-                productContext: nutrition.summary,
-              })}>
-              <Text style={[styles.toneTagText, { color: NUTRITION_TAG[nutrition.tone].fg }]}>
-                {nutritionGlance.label}
-              </Text>
-            </Pressable>
-          </View>
-          {servingText ? <Text style={styles.servingCaption}>{servingText}</Text> : null}
-          <Text style={styles.nutritionSummary}>{nutrition.summary}</Text>
-          {nutrition.contextLines.map(line => {
-            const exp = explainerForLine(line);
-            return (
-              <Pressable
-                key={line}
-                style={styles.contextRow}
-                disabled={!exp}
-                onPress={exp ? () => setExplainer(exp) : undefined}>
-                <Text style={styles.contextBullet}>·</Text>
-                <Text style={[styles.contextText, exp && styles.contextTextLink]}>{line}</Text>
-                {exp ? <Text style={styles.contextWhy}>Why?</Text> : null}
-              </Pressable>
-            );
-          })}
-          {nutrition.profileNotes.map(note => (
-            <View key={note} style={styles.profileNoteBanner}>
-              <Text style={styles.profileNoteLabel}>FOR YOU</Text>
-              <Text style={styles.profileNoteText}>{note}</Text>
-            </View>
-          ))}
-          <NutrientRow label="Calories"      value={sn.calories} unit="kcal" />
-          <NutrientRow label="Total Fat"     value={sn.totalFat} unit="g" dvPct={sn.fatDv}    />
-          <NutrientRow label="Saturated Fat" value={sn.satFat}   unit="g" dvPct={sn.satFatDv} highlight={sn.satFatDv != null && sn.satFatDv >= thresholds.satFat ? 'warn' : null} sub />
-          <NutrientRow label="Trans Fat"     value={sn.transFat} unit="g" highlight={sn.transFat != null && sn.transFat >= 0.5 ? 'warn' : null} sub />
-          <NutrientRow label="Total Carbs"   value={sn.carbs}    unit="g" dvPct={sn.carbsDv}  />
-          <NutrientRow label="Sugar"         value={sn.sugar}    unit="g" dvPct={sn.sugarDv}  highlight={sn.addedSugar == null && sugarHot ? 'warn' : null} sub />
-          {sn.addedSugar != null && (
-            <NutrientRow label="of which added" value={sn.addedSugar} unit="g" dvPct={sn.addedSugarDv} highlight={sugarHot ? 'warn' : null} sub />
-          )}
-          <NutrientRow label={personalizedRef ? 'Fiber *' : 'Fiber'} value={sn.fiber} unit="g" dvPct={sn.fiberDv} highlight={sn.fiberDv != null && sn.fiberDv >= 10 ? 'good' : null} sub />
-          {sn.carbs != null && sn.fiber != null && (
-            <NutrientRow
-              label="Net carbs"
-              value={sn.carbs - sn.fiber}
-              unit="g"
-              sub
-              computed={!bloodSugar}
-              highlight={bloodSugar ? 'warn' : null}
-            />
-          )}
-          <NutrientRow label={personalizedRef ? 'Protein *' : 'Protein'} value={sn.protein} unit="g" dvPct={sn.proteinDv} highlight={sn.proteinDv != null && sn.proteinDv >= 10 ? 'good' : null} />
-          <NutrientRow label="Sodium"        value={sn.sodium != null ? Math.round(sn.sodium * 1000) : undefined} unit="mg" dvPct={sn.sodiumDv}  highlight={sn.sodiumDv != null && sn.sodiumDv >= thresholds.sodium ? 'warn' : null} />
-          <NutrientRow label="Potassium"     value={sn.potassium} unit="g" dvPct={sn.potassiumDv} highlight={sn.potassiumDv != null && sn.potassiumDv >= 10 ? 'good' : null} sub />
-          {personalizedRef && (
-            <Pressable onPress={() => setExplainer(getExplainer('personalized_reference'))}>
-              <Text style={styles.refFootnote}>
-                * Fiber &amp; protein %DV use your reference intake (sex/age), not the generic label value. <Text style={styles.contextTextLink}>Why?</Text>
-              </Text>
-            </Pressable>
-          )}
-        </View>
+        <NutritionCard
+          nutrition={nutrition}
+          sn={sn}
+          thresholds={thresholds}
+          bloodSugar={bloodSugar}
+          personalizedRef={personalizedRef}
+          askContext={askContext}
+          servingText={servingText}
+          badge={sn.source === 'usda' ? 'usda' : undefined}
+          servingAction={servingAction}
+          onOpenLadder={setLadderInput}
+          onOpenExplainer={setExplainer}
+        />
 
         <Pressable style={styles.feedbackLink} onPress={() => setFeedbackOpen(true)}>
           <Text style={styles.feedbackLinkText}>Something look off?</Text>
         </Pressable>
       </View>
 
-      <ExplainerSheet explainer={explainer} onClose={() => setExplainer(null)} />
+      <ExplainerSheet explainer={explainer} onClose={() => setExplainer(null)} askContext={askContext} />
       <VerdictExplainerSheet input={ladderInput} onClose={() => setLadderInput(null)} />
+      <ServingSizeSheet
+        visible={servingSheetOpen}
+        initialGrams={userServing}
+        onSave={grams => { setUserServing(grams); if (barcode) void persistUserServing(barcode, grams); }}
+        onClear={() => { setUserServing(null); if (barcode) void clearUserServing(barcode); }}
+        onClose={() => setServingSheetOpen(false)}
+      />
       <FeedbackSheet
         title={feedbackOpen ? 'Something look off?' : null}
         categories={['wrong-verdict', 'wrong-data', 'missing-additive', 'other']}
@@ -676,33 +678,6 @@ function UnknownAdditiveRow({ additive, first }: { additive: UnknownAdditive; fi
   );
 }
 
-function NutrientRow({ label, value, unit, dvPct, highlight, sub, computed }: {
-  label: string; value?: number; unit: string;
-  dvPct?: number; highlight?: 'warn' | 'good' | null; sub?: boolean; computed?: boolean;
-}) {
-  if (value == null) return null;
-  const valueColor = computed    ? '#9fadbf'
-    : highlight === 'warn'       ? '#c8821a'
-    : highlight === 'good'       ? '#1f9d6b'
-    : '#1a1f29';
-  const dvColor = highlight != null ? valueColor : '#b0bcc9';
-  return (
-    <View style={[styles.nutrientRow, sub && styles.nutrientSubRow]}>
-      <Text style={[styles.nutrientLabel, sub && styles.nutrientSubLabel, computed && styles.nutrientComputedLabel]}>
-        {label}
-      </Text>
-      <View style={styles.nutrientRight}>
-        <Text style={[styles.nutrientValue, sub && styles.nutrientSubValue, { color: valueColor }]}>
-          {unit === 'kcal' || unit === 'mg' ? Math.round(value) : value.toFixed(1)} {unit}
-        </Text>
-        {dvPct != null && (
-          <Text style={[styles.nutrientDv, { color: dvColor }]}>{dvPct}% DV</Text>
-        )}
-      </View>
-    </View>
-  );
-}
-
 // ── Styles ─────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   scroll:  { flex: 1, backgroundColor: '#f6f8fa' },
@@ -794,10 +769,6 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 12, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase', color: '#8896a7' },
   cardMeta:  { fontSize: 12, color: '#b0bcc9' },
-  servingCaption: { fontSize: 12, color: '#b0bcc9', marginBottom: 6 },
-  cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  usdaBadge:     { backgroundColor: '#e8f7ef', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  usdaBadgeText: { fontSize: 9, fontWeight: '800', color: '#1f9d6b', letterSpacing: 0.5 },
 
   emptyText: { fontSize: 14, color: '#9fadbf', paddingBottom: 4 },
 
@@ -850,35 +821,8 @@ const styles = StyleSheet.create({
   unknownDividerLine: { flex: 1, height: 1, backgroundColor: '#f1f4f8' },
   unknownDividerLabel: { fontSize: 10, fontWeight: '700', color: '#b0bcc9', letterSpacing: 0.6, textTransform: 'uppercase' },
 
-  toneTag:     { borderRadius: 99, paddingHorizontal: 10, paddingVertical: 4 },
-  toneTagText: { fontSize: 11.5, fontWeight: '800' },
-  nutritionSummary: { fontSize: 13, color: '#5b6675', lineHeight: 19, marginBottom: 6 },
-
-  contextRow:    { flexDirection: 'row', gap: 6, paddingLeft: 2, marginBottom: 4, alignItems: 'flex-start' },
-  contextBullet: { fontSize: 13, color: '#9fadbf', lineHeight: 18 },
-  contextText:   { flex: 1, fontSize: 12.5, color: '#6b7787', lineHeight: 18 },
-  contextTextLink: { color: '#1f9d6b', fontWeight: '600' },
-  contextWhy:    { fontSize: 12, color: '#1f9d6b', fontWeight: '700' },
-  refFootnote:   { fontSize: 11, color: '#9fadbf', lineHeight: 16, marginTop: 8 },
   feedbackLink:  { alignSelf: 'center', paddingVertical: 14, marginTop: 4 },
   feedbackLinkText: { fontSize: 13, fontWeight: '600', color: '#9fadbf' },
   errorFeedback:    { marginTop: 14, paddingVertical: 8 },
   errorFeedbackText: { fontSize: 14, fontWeight: '600', color: '#7fd3aa' },
-
-  nutrientRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#f1f4f8',
-  },
-  nutrientLabel:    { fontSize: 13.5, color: '#5b6675' },
-  nutrientSubRow:      { paddingLeft: 16 },
-  nutrientSubLabel:    { fontSize: 12.5, color: '#9fadbf' },
-  nutrientSubValue:    { fontSize: 12.5, fontWeight: '500' },
-  nutrientComputedLabel: { fontStyle: 'italic' },
-  nutrientRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  nutrientValue: { fontSize: 13.5, fontWeight: '700' },
-  nutrientDv:    { fontSize: 11, fontWeight: '700', opacity: 0.85 },
 });

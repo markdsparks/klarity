@@ -270,6 +270,48 @@ describe('toneNutrition — goal lens', () => {
   });
 });
 
+describe('toneNutrition — protein quality (spec 015), wired via ctx.ingredientsText', () => {
+  it('adds no protein-quality line when ingredientsText is omitted', () => {
+    const r = toneNutrition(nutrients({ proteinDv: 10 }), profileWith());
+    expect(r.contextLines.some(l => l.includes('protein source'))).toBe(false);
+  });
+
+  it('surfaces a high-quality single-source line', () => {
+    const r = toneNutrition(
+      nutrients({ proteinDv: 10 }), profileWith(),
+      { ingredientsText: 'Whey Protein Isolate, Cocoa' },
+    );
+    expect(r.contextLines.some(l => /whey protein isolate.*complete, high-quality/i.test(l))).toBe(true);
+  });
+
+  it('softens the goal=build line when the identified source is low-quality', () => {
+    const r = toneNutrition(
+      nutrients({ proteinDv: 30 }), profileWith([], { goal: 'build' }),
+      { ingredientsText: 'Vital Wheat Gluten, Water' },
+    );
+    const buildLine = r.contextLines.find(l => l.includes('supports muscle building'));
+    expect(buildLine).toMatch(/incomplete.*low in lysine/i);
+  });
+
+  it('leaves the goal=build line unqualified for a high-quality source', () => {
+    const r = toneNutrition(
+      nutrients({ proteinDv: 30 }), profileWith([], { goal: 'build' }),
+      { ingredientsText: 'Whey Protein Isolate' },
+    );
+    expect(r.contextLines).toContain('Strong protein (30% DV) — supports muscle building');
+  });
+
+  it('real product this guards against: a rice + pumpkin seed protein blend (ALOHA Peanut Butter Cup) surfaces the shared lysine gap end to end', () => {
+    const r = toneNutrition(
+      nutrients({ proteinDv: 25 }), profileWith([], { goal: 'build' }),
+      { ingredientsText: 'Protein Blend (Brown Rice Protein, Pumpkin Seed Protein)' },
+    );
+    expect(r.contextLines.some(l => /every protein source we can identify here is limited in lysine/i.test(l))).toBe(true);
+    const buildLine = r.contextLines.find(l => l.includes('supports muscle building'));
+    expect(buildLine).toMatch(/every identified protein source here is limited in lysine/i);
+  });
+});
+
 describe('referenceValues — sex/age personalization', () => {
   it('defaults to generic FDA DV when sex is unspecified', () => {
     expect(referenceValues(profileWith())).toMatchObject({ fiber: 28, protein: 50 });

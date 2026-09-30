@@ -1,0 +1,7 @@
+name = "klarity-kroger-token-proxy"
+main = "src/index.ts"
+compatibility_date = "2026-07-06"
+
+# Set with: wrangler secret put KROGER_CLIENT_ID
+#           wrangler secret put KROGER_CLIENT_SECRET
+# Never committed — these live only in Cloudflare's encrypted secret store.

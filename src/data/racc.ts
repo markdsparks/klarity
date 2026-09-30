@@ -14,7 +14,7 @@
 // product whose OFF category doesn't confidently match here falls through to a
 // labeled "per 100 g" — we never guess a category to force a number.
 
-interface RaccCategory {
+export interface RaccCategory {
   grams: number;
   label: string;        // human label for the "estimated serving" line
   slugs: string[];      // OFF categories_tags that map here (exact en: slugs)
@@ -22,7 +22,7 @@ interface RaccCategory {
 
 // Ordered specific → general; first category whose slug set intersects the
 // product's tags wins.
-const RACC: RaccCategory[] = [
+export const RACC: RaccCategory[] = [
   { grams: 32,  label: 'nut & seed butters', slugs: ['en:nut-butters', 'en:peanut-butters', 'en:nut-and-seed-butters', 'en:almond-butters'] },
   { grams: 30,  label: 'nuts & seeds',       slugs: ['en:nuts', 'en:seeds', 'en:sunflower-seeds', 'en:pumpkin-seeds', 'en:mixed-nuts', 'en:almonds', 'en:cashews', 'en:pistachios', 'en:walnuts', 'en:peanuts'] },
   { grams: 110, label: 'cottage cheese',     slugs: ['en:cottage-cheese'] },

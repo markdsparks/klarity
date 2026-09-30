@@ -1,0 +1,32 @@
+[
+ {
+  "id": "ibd",
+  "label": "IBD (Crohn’s / colitis)",
+  "hint": "Surfaces gut-barrier notes on additives like carrageenan",
+  "kind": "additive"
+ },
+ {
+  "id": "ibs",
+  "label": "IBS",
+  "hint": "Surfaces gut-sensitivity notes where the evidence mentions them",
+  "kind": "additive"
+ },
+ {
+  "id": "asthma",
+  "label": "Asthma",
+  "hint": "Surfaces sensitivity notes on additives like sulfites",
+  "kind": "additive"
+ },
+ {
+  "id": "bp",
+  "label": "Blood pressure",
+  "hint": "Tightens the sodium threshold and calls out sodium per serving",
+  "kind": "nutrition"
+ },
+ {
+  "id": "blood_sugar",
+  "label": "Blood sugar",
+  "hint": "Emphasizes sugar and net carbs per serving",
+  "kind": "nutrition"
+ }
+]

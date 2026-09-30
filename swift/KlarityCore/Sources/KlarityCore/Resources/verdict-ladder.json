@@ -1,0 +1,198 @@
+{
+ "additives": {
+  "everyday": {
+   "axis": "additives",
+   "level": "everyday",
+   "title": "Additives: Everyday",
+   "body": "The evidence here is settled and reassuring — regulatory consensus or human-trial data showing no meaningful risk at normal exposure. Have it as often as you like; there is no dose or frequency caveat attached.",
+   "method": "Every additive is tiered A–D by the strength of its evidence (regulatory consensus and human trials at the top, animal or in-vitro data below), then weighed against how far a normal serving sits from any dose or frequency threshold that evidence actually supports.",
+   "steps": [
+    {
+     "level": "everyday",
+     "label": "Everyday",
+     "blurb": "Settled evidence, no meaningful concern at normal use"
+    },
+    {
+     "level": "sometimes",
+     "label": "Sometimes",
+     "blurb": "A real signal — dose, frequency, or a specific group"
+    },
+    {
+     "level": "contested",
+     "label": "Contested",
+     "blurb": "Credible experts genuinely disagree"
+    }
+   ]
+  },
+  "sometimes": {
+   "axis": "additives",
+   "level": "sometimes",
+   "title": "Additives: Sometimes",
+   "body": "There is a real signal behind this rating — enough evidence that a regulator or study flags a dose, frequency, or sensitive-group caveat. That is not \"avoid\" — it is \"this is not something to build a daily habit around.\"",
+   "method": "Every additive is tiered A–D by the strength of its evidence (regulatory consensus and human trials at the top, animal or in-vitro data below), then weighed against how far a normal serving sits from any dose or frequency threshold that evidence actually supports.",
+   "steps": [
+    {
+     "level": "everyday",
+     "label": "Everyday",
+     "blurb": "Settled evidence, no meaningful concern at normal use"
+    },
+    {
+     "level": "sometimes",
+     "label": "Sometimes",
+     "blurb": "A real signal — dose, frequency, or a specific group"
+    },
+    {
+     "level": "contested",
+     "label": "Contested",
+     "blurb": "Credible experts genuinely disagree"
+    }
+   ]
+  },
+  "occasionally": {
+   "axis": "additives",
+   "level": "occasionally",
+   "title": "Additives: Sometimes",
+   "body": "There is a real signal behind this rating — enough evidence that a regulator or study flags a dose, frequency, or sensitive-group caveat.",
+   "method": "Every additive is tiered A–D by the strength of its evidence (regulatory consensus and human trials at the top, animal or in-vitro data below), then weighed against how far a normal serving sits from any dose or frequency threshold that evidence actually supports.",
+   "steps": [
+    {
+     "level": "everyday",
+     "label": "Everyday",
+     "blurb": "Settled evidence, no meaningful concern at normal use"
+    },
+    {
+     "level": "sometimes",
+     "label": "Sometimes",
+     "blurb": "A real signal — dose, frequency, or a specific group"
+    },
+    {
+     "level": "contested",
+     "label": "Contested",
+     "blurb": "Credible experts genuinely disagree"
+    }
+   ]
+  },
+  "contested": {
+   "axis": "additives",
+   "level": "contested",
+   "title": "Additives: Contested",
+   "body": "Credible authorities genuinely disagree on this one — different regulators or studies reach different conclusions. We do not pick a side for you: we show both, and your Values setting (in your profile) decides how it resolves for you, always with the disagreement still visible.",
+   "method": "Every additive is tiered A–D by the strength of its evidence (regulatory consensus and human trials at the top, animal or in-vitro data below), then weighed against how far a normal serving sits from any dose or frequency threshold that evidence actually supports.",
+   "steps": [
+    {
+     "level": "everyday",
+     "label": "Everyday",
+     "blurb": "Settled evidence, no meaningful concern at normal use"
+    },
+    {
+     "level": "sometimes",
+     "label": "Sometimes",
+     "blurb": "A real signal — dose, frequency, or a specific group"
+    },
+    {
+     "level": "contested",
+     "label": "Contested",
+     "blurb": "Credible experts genuinely disagree"
+    }
+   ]
+  }
+ },
+ "nutrition": {
+  "everyday": {
+   "axis": "nutrition",
+   "level": "everyday",
+   "title": "Nutrition: Everyday",
+   "body": "Nothing here needs a second thought — no nutrient crosses the threshold that would make us think twice about having this any day of the week.",
+   "method": "Based on % Daily Value for the nutrients that matter most for this kind of food — usually saturated fat, sodium, or sugar — scored against FDA, WHO, and DGA public-health guidance, not an arbitrary cutoff.",
+   "steps": [
+    {
+     "level": "everyday",
+     "label": "Everyday",
+     "blurb": "No nutrient close to a daily limit"
+    },
+    {
+     "level": "sometimes",
+     "label": "Sometimes",
+     "blurb": "One or two nutrients creeping toward a daily limit"
+    },
+    {
+     "level": "occasionally",
+     "label": "Occasionally",
+     "blurb": "At least one nutrient genuinely high for a full day"
+    }
+   ]
+  },
+  "sometimes": {
+   "axis": "nutrition",
+   "level": "sometimes",
+   "title": "Nutrition: Sometimes",
+   "body": "One or two nutrients are creeping toward a daily limit — commonly saturated fat, sodium, or added sugar. Not a red flag by itself, but a food to treat as a regular choice rather than an every-meal one.",
+   "method": "Based on % Daily Value for the nutrients that matter most for this kind of food — usually saturated fat, sodium, or sugar — scored against FDA, WHO, and DGA public-health guidance, not an arbitrary cutoff.",
+   "steps": [
+    {
+     "level": "everyday",
+     "label": "Everyday",
+     "blurb": "No nutrient close to a daily limit"
+    },
+    {
+     "level": "sometimes",
+     "label": "Sometimes",
+     "blurb": "One or two nutrients creeping toward a daily limit"
+    },
+    {
+     "level": "occasionally",
+     "label": "Occasionally",
+     "blurb": "At least one nutrient genuinely high for a full day"
+    }
+   ]
+  },
+  "occasionally": {
+   "axis": "nutrition",
+   "level": "occasionally",
+   "title": "Nutrition: Occasionally",
+   "body": "At least one nutrient is genuinely high relative to a full day's target — high enough that eating this often would make it hard to stay within daily guidance. Best treated as an occasional pick, and worth going lighter on that nutrient the rest of the day.",
+   "method": "Based on % Daily Value for the nutrients that matter most for this kind of food — usually saturated fat, sodium, or sugar — scored against FDA, WHO, and DGA public-health guidance, not an arbitrary cutoff.",
+   "steps": [
+    {
+     "level": "everyday",
+     "label": "Everyday",
+     "blurb": "No nutrient close to a daily limit"
+    },
+    {
+     "level": "sometimes",
+     "label": "Sometimes",
+     "blurb": "One or two nutrients creeping toward a daily limit"
+    },
+    {
+     "level": "occasionally",
+     "label": "Occasionally",
+     "blurb": "At least one nutrient genuinely high for a full day"
+    }
+   ]
+  },
+  "contested": {
+   "axis": "nutrition",
+   "level": "occasionally",
+   "title": "Nutrition: Occasionally",
+   "body": "At least one nutrient is genuinely high relative to a full day's target.",
+   "method": "Based on % Daily Value for the nutrients that matter most for this kind of food — usually saturated fat, sodium, or sugar — scored against FDA, WHO, and DGA public-health guidance, not an arbitrary cutoff.",
+   "steps": [
+    {
+     "level": "everyday",
+     "label": "Everyday",
+     "blurb": "No nutrient close to a daily limit"
+    },
+    {
+     "level": "sometimes",
+     "label": "Sometimes",
+     "blurb": "One or two nutrients creeping toward a daily limit"
+    },
+    {
+     "level": "occasionally",
+     "label": "Occasionally",
+     "blurb": "At least one nutrient genuinely high for a full day"
+    }
+   ]
+  }
+ }
+}

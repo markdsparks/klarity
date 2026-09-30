@@ -77,6 +77,39 @@ export interface Additive {
   contestedGuidance?: string;
 }
 
+// ── Protein source (spec 015) ────────────────────────────────────────────────
+
+// DIAAS (Digestible Indispensable Amino Acid Score) — the FAO-recommended
+// successor to PDCAAS (FAO 2013 "Dietary Protein Quality Evaluation in Human
+// Nutrition"). Uncapped, unlike PDCAAS: a value >= 1.0 means the protein meets
+// or exceeds requirements for every indispensable amino acid; values are
+// bounded only by what's been published, not by a 1.0 ceiling.
+export interface ProteinSource {
+  id: string;
+  name: string;
+  // Alternate ingredient-label phrasings, same role as Additive['aliases'] —
+  // fed into the same ingredient-text matcher (buildSearchTerms/matchSearchTerms).
+  aliases?: string[];
+  // Absent when no consensus numeric DIAAS has been published yet, but the
+  // limiting amino acid is still well-corroborated (e.g. pumpkin seed protein —
+  // several studies agree it's lysine-limited with no settled DIAAS figure).
+  // Invariant enforced by protein-sources.test.ts: diaas undefined REQUIRES
+  // limitingAminoAcid defined — an entry needs at least one piece of real
+  // evidence to exist at all; "we know nothing" isn't a valid table row.
+  diaas?: number;
+  // The single indispensable amino acid DIAAS is actually scored against
+  // (the lowest-scoring one) — undefined means "complete," no EAA falls
+  // meaningfully short. Doubles as the input to the shared-deficiency check
+  // across multiple matched sources (src/services/protein-quality.ts).
+  limitingAminoAcid?: string;
+  // Citation for the diaas figure (or, when diaas is absent, for the
+  // limiting-amino-acid finding) — published literature values (Mathai, Liu
+  // & Stein 2017; Rutherfurd et al. 2015; FAO 2013), not lab-tested per batch —
+  // can vary by cultivar/processing, same "honestly approximate" spirit as
+  // src/data/common-additions.ts.
+  source: string;
+}
+
 // ── Profile ────────────────────────────────────────────────────────────────────
 
 export type ProfileValues = 'balanced' | 'precaution' | 'risk';
