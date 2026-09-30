@@ -34,3 +34,6 @@ write('conditions.json', CONDITIONS);
 
 import { CATALOG, CHAINS, MENU_ITEMS } from '../src/data/restaurants';
 write('restaurants.json', { chains: CHAINS, items: MENU_ITEMS, catalog: CATALOG });
+
+import { COMMON_ADDITIONS } from '../src/data/common-additions';
+write('common-additions.json', COMMON_ADDITIONS);

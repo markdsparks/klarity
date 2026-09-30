@@ -1,6 +1,6 @@
 # Spec 024 — Native iOS Migration (RN → Swift/SwiftUI)
 
-**Status:** Approved 2026-09-29 (ADR-007). Phase 0 done; Phase 1 next.
+**Status:** Approved 2026-09-29 (ADR-007). Phase 0 done; **Phase 1 done** (2026-09-29); Phase 2 next.
 **Assumptions taken as defaults (Mark to override):** iOS-only permanently;
 minimum iOS 26; Fettle adopts `KlarityCore` later, not during migration;
 multi-member profiles (Phase 3.5) waits for Swift.
@@ -81,7 +81,18 @@ device test before cutover.
 - ✅ restaurant engine: 7-chain data, progressive search (1,800 fuzzed queries: chain
   recognition, item narrowing, "no X" annotations), build math (adjusted nutrition, effective
   ingredient text, glance) over 687 builds
-- ⏳ history/diagnostics pure logic, common-additions/QA simulate-addition (with spec 014 port)
+- ✅ history/diagnostics pure logic (DST-boundary frequency fuzz; legacy AsyncStorage entries
+  decode + normalize — the first-launch import path), on-device Q&A tool layer
+  (`simulateAddition`, `suggestAdditions`, `explainRule`, `topicGuide` <800-char budget check)
+
+### Phase 1 exit criteria — met
+`npm run golden` regenerates deterministic fixtures (no diff on re-run); `npm run test:swift`:
+29 tests / 15 suites green — every ported module matches the TS engine on seeded fuzz + recorded
+network scenarios. Not ported by design: `qa/ask.ts` (model wiring → Phase 2, replaced by Foundation
+Models `@Generable`/`Tool`), `label-ocr.ts` (deferred by spec 010; no callers).
+
+**What golden parity does NOT prove:** live-API behavior on real barcodes (mocked responses, like the TS
+tests), on-device model behavior (spec 014's 15th device pass), and UI. Those are Phase 2 device checks.
 
 **Regenerating goldens:** `npm run golden` (TS side), `npm run test:swift` (Swift side).
 **Deliberate divergence:** `KrogerClient` shares one in-flight token request across concurrent

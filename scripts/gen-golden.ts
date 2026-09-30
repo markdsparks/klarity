@@ -344,3 +344,45 @@ write('history.json', {
   outcomes: outcomeInputs.map(input => ({ input, outcome: classifyOutcome(input) })),
   summary: { records: summaryRecords, result: summarize(summaryRecords as never) },
 });
+
+// ── on-device Q&A tool layer (spec 014): simulateAddition / suggestAdditions / explainRule ──
+import { COMMON_ADDITIONS, findCommonAddition } from '../src/data/common-additions';
+import { simulateAddition, suggestAdditions } from '../src/services/qa/simulate-addition';
+import { EXPLAIN_RULE_TOPICS, explainRule, topicGuide } from '../src/services/qa/explain-rule';
+
+const qaQueries = [
+  ...COMMON_ADDITIONS.flatMap(a => a.aliases.flatMap(al => [al, al.toUpperCase(), ` ${al}s `, al + 's'])),
+  '', '  ', 'kale', 'chocolate', 'flax', 'chia seed', 'potatos', 'BANANAS', 'a banana',
+];
+write('qa-findaddition.json', qaQueries.map(q => ({ query: q, id: findCommonAddition(q)?.id ?? null })));
+
+// Bias the fuzz toward flagged sugar/sodium — those are the only paths that produce mechanisms.
+const qaCases = [];
+for (let i = 0; i < 1500; i++) {
+  const sugarish = chance(0.6), saltish = chance(0.5);
+  const sn = computeServingNutrients({
+    serving_quantity: pick([30, 45, 60, 100, 240]),
+    nutriments: {
+      'energy-kcal_100g': amt(500, 0), fat_100g: amt(30), carbohydrates_100g: amt(70),
+      sugars_100g: sugarish ? round(20 + rnd() * 45, 1) : amt(8),
+      'saturated-fat_100g': amt(8), sodium_100g: saltish ? round(0.6 + rnd() * 1.8, 2) : amt(0.3, 2),
+      potassium_100g: maybe(0.3, () => amt(0.6, 3)), proteins_100g: amt(15), fiber_100g: amt(6),
+    },
+  } as never, chance(0.2) ? {
+    calories: amt(400, 0), totalFat: amt(20), protein: amt(20), carbs: amt(60), fiber: amt(10), sugar: amt(40),
+    addedSugar: maybe(0.5, () => amt(30)), saturatedFat: amt(10), sodium: amt(1.5, 3), potassium: maybe(0.4, () => amt(0.8, 3)), servingSize: 40,
+  } as never : null, undefined, undefined);
+  const profile: Profile = {
+    id: 'g', label: 'g', values: pick(values), conditions: CONDS.filter(() => chance(0.2)),
+    sex: maybe(0.4, () => pick(['female', 'male', 'unspecified'] as const)), ageBand: maybe(0.5, () => pick(['adult', 'older_adult'] as const)),
+    goal: maybe(0.4, () => pick(['lose', 'maintain', 'build', 'unset'] as const)),
+  };
+  const ctx = { wholeFoodSugarMatrix: maybe(0.8, () => chance(0.2)), matrixDestroyedCategory: maybe(0.8, () => chance(0.2)) };
+  const query = pick(qaQueries);
+  qaCases.push({ sn, profile, ctx, query, simulate: simulateAddition(sn, profile, query, ctx), suggest: suggestAdditions(sn, profile, ctx) });
+}
+write('qa-simulate.json', qaCases);
+write('qa-explain.json', {
+  topics: EXPLAIN_RULE_TOPICS, guide: topicGuide(),
+  explanations: [...EXPLAIN_RULE_TOPICS, 'no_such_topic', ''].map(t => ({ topic: t, result: explainRule(t) })),
+});
