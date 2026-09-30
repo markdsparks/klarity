@@ -17,3 +17,17 @@ import { PROTEIN_SOURCES } from '../src/data/protein-sources';
 import { RACC } from '../src/data/racc';
 write('protein-sources.json', PROTEIN_SOURCES);
 write('racc.json', RACC);
+
+import { E_NUMBER_NAMES } from '../src/data/e-number-names';
+import { REGULATORY_ADDITIVES } from '../src/data/regulatory-additives';
+import { LADDER_EXPLAINERS } from '../src/data/verdict-ladder';
+import { MATCHERS, NUTRITION_EXPLAINERS } from '../src/data/nutrition-explainers';
+import { CONDITIONS } from '../src/data/conditions';
+write('e-number-names.json', E_NUMBER_NAMES);
+write('regulatory-additives.json', Object.values(REGULATORY_ADDITIVES));
+write('verdict-ladder.json', LADDER_EXPLAINERS);
+write('nutrition-explainers.json', {
+  explainers: Object.values(NUTRITION_EXPLAINERS),
+  matchers: MATCHERS.map(([re, id]) => ({ pattern: re.source, flags: re.flags, id })),
+});
+write('conditions.json', CONDITIONS);

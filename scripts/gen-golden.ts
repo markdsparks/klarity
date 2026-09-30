@@ -148,3 +148,71 @@ for (let i = 0; i < 2000; i++) {
   fuzzCases.push({ input: { product, usda, profile, ctx, userServingGrams }, refs, servingNutrients: sn, assessment });
 }
 write('nutrition.json', fuzzCases);
+
+// ── verdict sentence + hero tone ──────────────────────────────────────────────
+import { heroTone, verdictSentence, joinNouns } from '../src/services/verdict-sentence';
+import { additiveLadderContext } from '../src/data/verdict-ladder';
+import { explainerForLine } from '../src/data/nutrition-explainers';
+import { matchByETags } from '../src/data/additive-index';
+import { REGULATORY_ADDITIVES } from '../src/data/regulatory-additives';
+
+const allAdditives = Object.values(ADDITIVES);
+const sometimesPool = allAdditives.filter(a => a.baseVerdict === 'sometimes');
+const contestedPool = allAdditives.filter(a => a.baseVerdict === 'contested');
+const HIGH_POOL = ['sat fat', 'sodium', 'sugar', 'added sugar', 'trans fat'];
+const shuffled = <T,>(xs: T[]) => xs.map(x => [rnd(), x] as const).sort((a, b) => a[0] - b[0]).map(p => p[1]);
+
+const sentenceCases = [];
+for (let i = 0; i < 1500; i++) {
+  const contested = chance(0.2) ? pick(contestedPool) : null;
+  const sometimes = shuffled(sometimesPool).slice(0, pick([0, 0, 1, 1, 2, 3, 4]));
+  const profile: Profile = {
+    id: 'g', label: 'g', values: pick(values), conditions: [],
+    goal: maybe(0.3, () => pick(['lose', 'maintain', 'build', 'unset'] as const)),
+  };
+  const input = {
+    contestedDriver: contested, sometimesAdditives: sometimes,
+    nutritionTone: pick(['good', 'ok', 'warn'] as const),
+    highNutrients: shuffled(HIGH_POOL).slice(0, pick([0, 1, 1, 2, 3])),
+    budgetNutrient: pick([null, null, 'sat fat', 'sodium'] as const),
+    nutritionBasis: maybe(0.4, () => pick(['usda-serving', 'off-serving', 'off-serving-text', 'user-serving', 'racc-estimate', 'per-100g'] as const)),
+    profile, proteinDv: pick([0, 10, 19, 20, 35, 80]),
+  };
+  sentenceCases.push({
+    input: { ...input, contestedDriver: contested?.id ?? null, sometimesAdditives: sometimes.map(a => a.id) },
+    sentence: verdictSentence(input as never), hero: heroTone(input as never),
+  });
+}
+write('verdict-sentence.json', { joinNouns: [[], ['a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']].map(x => ({ items: x, out: joinNouns(x) })), cases: sentenceCases });
+
+// ── ladder context ────────────────────────────────────────────────────────────
+const ladderCases = [];
+for (let i = 0; i < 400; i++) {
+  const glanceKey = pick(['clean', 'unrated', 'everyday', 'sometimes', 'contested'] as const);
+  const results = shuffled(allAdditives).slice(0, pick([0, 1, 1, 2, 3, 5])).map(a => ({
+    additiveId: a.id, verdict: chance(0.6) ? a.baseVerdict : pick(['everyday', 'sometimes', 'contested'] as const),
+  }));
+  const regulatoryCount = pick([0, 0, 1, 4]), unknownCount = pick([0, 0, 2]);
+  const ctx = additiveLadderContext(glanceKey, results.map(r => ({ additive: ADDITIVES[r.additiveId], verdict: r.verdict, profileNote: null })), regulatoryCount, unknownCount);
+  ladderCases.push({ glanceKey, results, regulatoryCount, unknownCount, ctx });
+}
+write('ladder-context.json', ladderCases);
+
+// ── explainer line matching: every line the nutrition fuzz produced + hand cases ──
+const lineSet = new Set<string>(['', 'nothing relevant', 'MODERATED BY fiber', 'Unsaturated fats', 'One protein source here']);
+for (const c of fuzzCases) for (const l of [...c.assessment.contextLines, ...c.assessment.profileNotes, c.assessment.summary]) lineSet.add(l);
+write('explainer-lines.json', [...lineSet].map(line => ({ line, id: explainerForLine(line)?.id ?? null })));
+
+// ── E-number tag matching ─────────────────────────────────────────────────────
+const knownE = allAdditives.filter(a => a.eNumber).map(a => a.eNumber as string);
+const regE = Object.keys(REGULATORY_ADDITIVES);
+const WEIRD = ['en:e150d', 'en:e471', 'xx:e1442', 'en:e160a(i)', 'en:e322i', 'en:not-an-e', 'en:e450iii', 'en:e415-xanthan', 'en:e', 'e407',
+  'en:E407', 'en:e14xx', 'fr:e330', 'en:e999', 'en:e1520', 'en:e100ii', 'en:e160aiv', 'en:e15x', 'en:e-407', ''];
+const tagFor = (e: string) => `${pick(['en', 'fr', 'de', 'EN'])}:${pick([e.toLowerCase(), e])}${chance(0.1) ? pick(['i', 'ii', 'iv', 'vi']) : ''}`;
+const eCases = [];
+for (let i = 0; i < 400; i++) {
+  const tags = Array.from({ length: Math.floor(rnd() * 6) }, () =>
+    chance(0.4) ? tagFor(pick(knownE)) : chance(0.4) ? tagFor(pick(regE)) : chance(0.3) ? pick(WEIRD) : tagFor(`E${100 + Math.floor(rnd() * 1500)}`));
+  eCases.push({ tags, result: matchByETags(tags) });
+}
+write('e-number-match.json', eCases);

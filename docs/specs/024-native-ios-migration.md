@@ -72,6 +72,8 @@ device test before cutover.
 - ✅ types, additives, verdict (2026-09-29)
 - ✅ nutrition (`computeServingNutrients`, `toneNutrition`), serving/RACC/user grams,
   protein quality, ingredient-text matching — 2,000-case seeded fuzz + fixtures
-- ⏳ verdict-sentence, verdict-ladder, nutrition-explainers, regulatory additives +
-  e-number index, OFF/USDA/Kroger clients, product-search, restaurant engine,
-  history/diagnostics
+- ✅ verdict-sentence + hero tone (1,500-case fuzz), verdict-ladder + per-product context,
+  nutrition-explainers + line matching, regulatory additives (EFSA) + E-number tiers,
+  conditions
+- ⏳ OFF/USDA/Kroger clients, product-search, restaurant engine, history/diagnostics,
+  common-additions/QA simulate-addition (with spec 014 port)

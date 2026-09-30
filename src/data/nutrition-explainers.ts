@@ -270,7 +270,7 @@ export const NUTRITION_EXPLAINERS: Record<string, NutritionExplainer> = {
 
 // Ordered [substring emitted by nutrition.ts, explainer id]. First match wins, so
 // more-specific phrases precede general ones.
-const MATCHERS: [RegExp, string][] = [
+export const MATCHERS: [RegExp, string][] = [
   [/packaged in whole fruit's fiber and structure/i, 'whole_food_sugar_matrix'],
   [/scored the full amount to be safe/i, 'sugar_basis_total_only'],
   [/scored on added sugar from the label/i, 'sugar_basis_added'],
