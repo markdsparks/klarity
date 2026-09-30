@@ -143,3 +143,4 @@ export async function clearHistory(): Promise<void> {
     // ignore
   }
 }
+export const normalizeEntry = normalize;

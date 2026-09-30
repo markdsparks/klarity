@@ -1,3 +1,4 @@
+import './golden-env';
 // Runs the TS engine over fixtures and writes the expected outputs the Swift
 // tests assert against (ADR-007: the TS engine is the correctness oracle).
 //   npx tsx scripts/gen-golden.ts
@@ -284,3 +285,62 @@ MENU_ITEMS.forEach((item, idx) => {
   }
 });
 write('restaurant-build.json', buildCases);
+
+// ── history + diagnostics pure logic ──────────────────────────────────────────
+import { distinctScanDays, frequencyLineEligible, mergeEntry, normalizeEntry, restaurantHistoryKey } from '../src/services/history';
+import { classifyOutcome, summarize } from '../src/services/diagnostics';
+
+const DAY = 86_400_000;
+// Anchor near the 2026 US DST boundaries (Mar 8, Nov 1) so day bucketing crosses a 23h/25h day.
+const ANCHORS = [Date.UTC(2026, 2, 8, 6), Date.UTC(2026, 10, 1, 5), Date.UTC(2026, 6, 15, 12), Date.UTC(2026, 0, 1, 5, 59), Date.UTC(2026, 0, 1, 6, 1)];
+const GLANCES = ['everyday', 'sometimes', 'contested', 'clean', 'unrated'] as const;
+const record = () => ({
+  barcode: pick(['0123', 'restaurant:cfa_spicy_deluxe', '99887766']), productName: 'P', brand: 'B',
+  imageUrl: maybe(0.5, () => 'https://i.test/x.jpg'),
+  additiveGlance: pick(GLANCES), nutritionTone: pick(['good', 'ok', 'warn'] as const),
+  scannedAt: pick(ANCHORS) + int(-20, 20) * DAY / 4,
+  restaurant: maybe(0.7, () => ({ itemId: 'cfa_spicy_deluxe', removedIds: ['a'], addedIds: maybe(0.5, () => ['b']) })),
+});
+const entryFuzz = () => {
+  const n = int(1, 14);
+  const stamps = Array.from({ length: n }, () => pick(ANCHORS) + int(-30, 5) * DAY / 3 + int(0, 3) * 3_600_000).sort((a, b) => b - a);
+  return {
+    ...record(), scannedAt: stamps[0], scanCount: n + int(0, 5), scanTimestamps: stamps,
+    buySignal: maybe(0.6, () => pick(['regular', 'just_checking'] as const)),
+  };
+};
+
+const mergeCases = Array.from({ length: 300 }, () => {
+  const prior = chance(0.7) ? entryFuzz() : undefined;
+  const rec = record();
+  return { prior: prior ?? null, record: rec, merged: mergeEntry(prior as never, rec as never) };
+});
+const freqCases = Array.from({ length: 600 }, () => {
+  const entry = entryFuzz();
+  const windowDays = pick([1, 7, 14, 30]);
+  const now = pick(ANCHORS) + int(-5, 25) * DAY / 2;
+  const amber = chance(0.6);
+  return { entry, windowDays, now, amber, distinct: distinctScanDays(entry as never, windowDays, now), eligible: frequencyLineEligible(entry as never, amber, windowDays, now) };
+});
+// Legacy AsyncStorage entries: written before frequency tracking / spec 006 M2 (also the import path for Swift).
+const legacy = Array.from({ length: 80 }, () => {
+  const e: Record<string, unknown> = { ...entryFuzz() };
+  if (chance(0.5)) { delete e.scanCount; }
+  if (chance(0.5)) { delete e.scanTimestamps; }
+  return { input: e, normalized: normalizeEntry(e as never) };
+});
+const outcomeInputs = [];
+for (const source of ['barcode', 'search', 'restaurant'] as const) for (const found of [true, false])
+  for (const rated of [0, 2]) for (const reg of [0, 1]) for (const unk of [0, 3]) for (const hasNutrition of [true, false])
+    outcomeInputs.push({ source, found, ratedAdditiveCount: rated, regulatoryAdditiveCount: reg, unknownAdditiveCount: unk, hasNutrition });
+const outcomes = ['confident', 'clean', 'unrated-additive', 'regulatory-only', 'thin-nutrition', 'not-found', 'restaurant'] as const;
+const summaryRecords = Array.from({ length: 200 }, () => ({
+  at: int(1, 1e9), source: pick(['barcode', 'search', 'restaurant'] as const), outcome: pick(outcomes),
+  sugarBasis: maybe(0.4, () => pick(['negligible', 'added-known', 'whole-food', 'disqualified', 'total-only'] as const)),
+}));
+write('history.json', {
+  merge: mergeCases, frequency: freqCases, legacy,
+  restaurantKeys: ['cfa_spicy_deluxe', '', 'x y'].map(id => ({ id, key: restaurantHistoryKey(id) })),
+  outcomes: outcomeInputs.map(input => ({ input, outcome: classifyOutcome(input) })),
+  summary: { records: summaryRecords, result: summarize(summaryRecords as never) },
+});
