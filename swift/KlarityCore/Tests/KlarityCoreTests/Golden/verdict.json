@@ -1,0 +1,10064 @@
+[
+ {
+  "additiveId": "carrageenan",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": "If you have active IBD, it's reasonable to limit carrageenan while this question is open — not because it's proven harmful, but because the gut-barrier signal is real and unresolved for your situation."
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": "If you have active IBD, it's reasonable to limit carrageenan while this question is open — not because it's proven harmful, but because the gut-barrier signal is real and unresolved for your situation."
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": "If you have active IBD, it's reasonable to limit carrageenan while this question is open — not because it's proven harmful, but because the gut-barrier signal is real and unresolved for your situation."
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carrageenan",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nitrite",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "titanium_dioxide",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aspartame",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ascorbic_acid",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "If you have IBD or IBS, the emulsifier–gut question is more relevant to you; reasonable to lean toward limiting while the human evidence matures."
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "If you have IBD or IBS, the emulsifier–gut question is more relevant to you; reasonable to lean toward limiting while the human evidence matures."
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "If you have IBD or IBS, the emulsifier–gut question is more relevant to you; reasonable to lean toward limiting while the human evidence matures."
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate80",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "citric_acid",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lecithin",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xanthan_gum",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "guar_gum",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pectin",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "msg",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_sorbate",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "mono_diglycerides",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_propionate",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "ssl",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "annatto",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "modified_starch",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acesulfame_k",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sucralose",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "lactic_acid",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "silicon_dioxide",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "locust_bean_gum",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acacia_gum",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "malic_acid",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "acetic_acid",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ascorbate",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tocopherols",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_lactate",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "microcrystalline_cellulose",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "powdered_cellulose",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_bicarbonate",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carnauba_wax",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "stevia",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "alpha_tocopherol",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_guanylate",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "disodium_inosinate",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "dimethylpolysiloxane",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbic_acid",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "glutamic_acid",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "curcumin",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "agar",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "methylcellulose",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_ferrocyanide",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_chloride",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "nisin",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_alginate",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_benzoate",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "tbhq",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bha",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "bht",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "phosphoric_acid",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_nitrate",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cmc",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cmc",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cmc",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "The gut-barrier and microbiome signal is directly relevant for IBD and IBS — reasonable to limit CMC while the long-term evidence matures."
+ },
+ {
+  "additiveId": "cmc",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cmc",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cmc",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cmc",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cmc",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "The gut-barrier and microbiome signal is directly relevant for IBD and IBS — reasonable to limit CMC while the long-term evidence matures."
+ },
+ {
+  "additiveId": "cmc",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cmc",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cmc",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cmc",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cmc",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "The gut-barrier and microbiome signal is directly relevant for IBD and IBS — reasonable to limit CMC while the long-term evidence matures."
+ },
+ {
+  "additiveId": "cmc",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cmc",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "If you or a family member has asthma, sulfites are one of the few additives worth actively checking labels for — reactions are well-documented and can be significant."
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "If you or a family member has asthma, sulfites are one of the few additives worth actively checking labels for — reactions are well-documented and can be significant."
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "If you or a family member has asthma, sulfites are one of the few additives worth actively checking labels for — reactions are well-documented and can be significant."
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sulfites",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "Given the class-level emulsifier signal, it's reasonable to treat PGPR the same as other emulsifiers under IBD precaution — moderate rather than avoid."
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "Given the class-level emulsifier signal, it's reasonable to treat PGPR the same as other emulsifiers under IBD precaution — moderate rather than avoid."
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "Given the class-level emulsifier signal, it's reasonable to treat PGPR the same as other emulsifiers under IBD precaution — moderate rather than avoid."
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "pgpr",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": "Sugar alcohols including sorbitol are on the standard low-FODMAP elimination list — worth limiting if you have IBS regardless of the general-population threshold."
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": "Sugar alcohols including sorbitol are on the standard low-FODMAP elimination list — worth limiting if you have IBS regardless of the general-population threshold."
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": "Sugar alcohols including sorbitol are on the standard low-FODMAP elimination list — worth limiting if you have IBS regardless of the general-population threshold."
+ },
+ {
+  "additiveId": "sorbitol",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": "If dogs are in the household, treat any xylitol-containing product (gum, mints, some peanut butters) as you would a household chemical — out of paw's reach."
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": "If dogs are in the household, treat any xylitol-containing product (gum, mints, some peanut butters) as you would a household chemical — out of paw's reach."
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "xylitol",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": "If dogs are in the household, treat any xylitol-containing product (gum, mints, some peanut butters) as you would a household chemical — out of paw's reach."
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "saccharin",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "Sulfites are one of the few food additives with a real, FDA-documented reaction risk for asthmatics — an estimated 1 in 10 to 1 in 25 asthmatics are sulfite-sensitive. Worth discussing with your doctor if you notice wheezing after sulfite-containing foods or wine."
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "Sulfites are one of the few food additives with a real, FDA-documented reaction risk for asthmatics — an estimated 1 in 10 to 1 in 25 asthmatics are sulfite-sensitive. Worth discussing with your doctor if you notice wheezing after sulfite-containing foods or wine."
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "Sulfites are one of the few food additives with a real, FDA-documented reaction risk for asthmatics — an estimated 1 in 10 to 1 in 25 asthmatics are sulfite-sensitive. Worth discussing with your doctor if you notice wheezing after sulfite-containing foods or wine."
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_metabisulfite",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_phosphates",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "erythritol",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": "Sugar alcohols like maltitol are a common, well-documented trigger for bloating and GI upset even at doses that don’t bother most people — worth watching your personal threshold if you have IBS."
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": "Sugar alcohols like maltitol are a common, well-documented trigger for bloating and GI upset even at doses that don’t bother most people — worth watching your personal threshold if you have IBS."
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": "Sugar alcohols like maltitol are a common, well-documented trigger for bloating and GI upset even at doses that don’t bother most people — worth watching your personal threshold if you have IBS."
+ },
+ {
+  "additiveId": "maltitol",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "The study prompting EFSA’s re-evaluation used mouse models of colitis specifically — if you have IBD, this is worth keeping an eye on while the review is active, though it’s animal data, not a human finding yet."
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "The study prompting EFSA’s re-evaluation used mouse models of colitis specifically — if you have IBD, this is worth keeping an eye on while the review is active, though it’s animal data, not a human finding yet."
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "The study prompting EFSA’s re-evaluation used mouse models of colitis specifically — if you have IBD, this is worth keeping an eye on while the review is active, though it’s animal data, not a human finding yet."
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "calcium_disodium_edta",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "The same emulsifier-gut question that applies to polysorbate 80 reasonably extends to this close chemical relative — worth the same watchfulness while the evidence matures if you have IBD or IBS."
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "The same emulsifier-gut question that applies to polysorbate 80 reasonably extends to this close chemical relative — worth the same watchfulness while the evidence matures if you have IBD or IBS."
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "The same emulsifier-gut question that applies to polysorbate 80 reasonably extends to this close chemical relative — worth the same watchfulness while the evidence matures if you have IBD or IBS."
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate60",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "potassium_nitrite",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "carmine",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "benzoic_acid",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "This is the same sulfite family as sodium metabisulfite (E223) — if you have asthma, the same 1-in-10-to-1-in-25 sensitivity estimate applies here too."
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "This is the same sulfite family as sodium metabisulfite (E223) — if you have asthma, the same 1-in-10-to-1-in-25 sensitivity estimate applies here too."
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "This is the same sulfite family as sodium metabisulfite (E223) — if you have asthma, the same 1-in-10-to-1-in-25 sensitivity estimate applies here too."
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "sodium_sulphite",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "Same emulsifier-gut question as polysorbate 60 and 80 — worth the same watchfulness if you have IBD or IBS."
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "Same emulsifier-gut question as polysorbate 60 and 80 — worth the same watchfulness if you have IBD or IBS."
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": "Same emulsifier-gut question as polysorbate 60 and 80 — worth the same watchfulness if you have IBD or IBS."
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "polysorbate20",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "aluminium_sulfate",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_40",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_5",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "yellow_6",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "caramel_color_iv",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "red_3",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "blue_1",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "balanced",
+  "conditions": [],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "balanced",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "balanced",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "balanced",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "balanced",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "contested",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "precaution",
+  "conditions": [],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "precaution",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "precaution",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "precaution",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "precaution",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "sometimes",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "risk",
+  "conditions": [],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "risk",
+  "conditions": [
+   "asthma"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "risk",
+  "conditions": [
+   "ibd"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "risk",
+  "conditions": [
+   "ibs"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ },
+ {
+  "additiveId": "cyclamate",
+  "values": "risk",
+  "conditions": [
+   "pet_owner"
+  ],
+  "verdict": "everyday",
+  "profileNote": null
+ }
+]
