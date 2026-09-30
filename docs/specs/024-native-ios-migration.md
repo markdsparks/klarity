@@ -45,6 +45,22 @@ Ask-about-this (Foundation Models tools; port of spec 014) → Diagnostics.
 Design tokens from CLAUDE.md map to an asset catalog; system materials/Liquid
 Glass by default. Verified in Simulator (Search mode) and on device (scan).
 
+### Phase 2 progress
+- ✅ Slice 1 (2026-09-29): `native/` app (XcodeGen `project.yml`; `npm run native:gen` writes
+  gitignored `Config/Secrets.xcconfig` from `.env` and generates the project). Bundle id
+  `com.klarity.app.native` until cutover. Tabs: Scan (VisionKit DataScanner on device; Search +
+  barcode entry everywhere) · History · You. Result screen (hero sentence, two glance axes,
+  frequency card + buy signal, additives incl. regulatory/unrated tiers, nutrition card with
+  tappable annotations), ladder / explainer / serving-size sheets (native detents), additive and
+  EFSA regulatory evidence pages. Scan orchestration + screen derivations live in KlarityCore
+  (`ScanResolver`, `ProductAnalysis`). Verified live in the Simulator (search "cheerios" → result →
+  sheets → history persistence across relaunch → profile).
+- Persistence choice: history is one JSON file in Application Support (same shape as the RN
+  AsyncStorage value → cutover import is a straight decode) rather than SwiftData — revisit only
+  if multi-member profiles (Phase 3.5) need relational queries.
+- ⏳ Next slices: restaurant search + customizer; diagnostics logging + feedback + export;
+  Ask-about-this (Foundation Models); legacy AsyncStorage import; on-device scan pass.
+
 ## Phase 3 — Cutover
 Same bundle ID/ASC app; build number above RN's; TestFlight to family;
 one release of overlap testing. Then delete RN app, EAS, `ios/` generation,
