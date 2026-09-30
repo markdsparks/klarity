@@ -40,10 +40,13 @@ targets:
         KrogerTokenProxyURL: $(KROGER_TOKEN_PROXY_URL)
     settings:
       base:
-        # Separate from the RN app (com.klarity.app) until cutover — spec 024 Phase 3.
-        PRODUCT_BUNDLE_IDENTIFIER: com.klarity.app.native
+        # Cutover (spec 024 Phase 3): the same bundle id as the RN app, so TestFlight updates it in place and
+        # LegacyImport finds the RN app's AsyncStorage in the inherited sandbox.
+        PRODUCT_BUNDLE_IDENTIFIER: com.klarity.app
         MARKETING_VERSION: 0.2.0
-        CURRENT_PROJECT_VERSION: 1
+        # Must exceed every build ever uploaded: check `npx eas build:version:get -p ios` AND the last
+        # RN build's CFBundleVersion (CLAUDE.md "Build-number bookkeeping"). RN's last was 28.
+        CURRENT_PROJECT_VERSION: 29
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         TARGETED_DEVICE_FAMILY: "1"
