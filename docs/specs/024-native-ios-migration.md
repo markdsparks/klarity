@@ -65,8 +65,15 @@ Glass by default. Verified in Simulator (Search mode) and on device (scan).
   `RestaurantAnalysis`, 36 Swift tests). Hero / additives / nutrition card are shared components
   across packaged + restaurant results. Build edits update history in place (verified: scanCount
   stays 1, final build stored).
-- ⏳ Next slices: diagnostics logging + feedback + export; Ask-about-this (Foundation Models);
-  legacy AsyncStorage import; on-device scan pass (needs Mark's phone).
+- ✅ Design language applied (see design/README.md): K mark + app icon from one SwiftUI source,
+  text-safe ladder tones (contrast audit), LadderMark replaces card rails, ink launch screen.
+- ✅ Slice 3: diagnostics — outcome logging (barcode / not-found / restaurant), feedback sheet
+  on result, not-found and restaurant screens, "How Klarity's doing" with breakdown, sugar basis,
+  feedback list and JSON export (ShareLink; same shape as the RN export).
+- ✅ Spec 025 found during simulator testing and fixed in BOTH engines (parity kept): no nutrition
+  data no longer reads as "easy everyday pick".
+- ⏳ Next slices: Ask-about-this (Foundation Models); legacy AsyncStorage import; on-device scan
+  pass (needs Mark's phone).
 
 ## Phase 3 — Cutover
 Same bundle ID/ASC app; build number above RN's; TestFlight to family;

@@ -79,6 +79,37 @@ final class AppModel {
         HistoryFile.save(history)
     }
 
+    // MARK: Diagnostics (spec 009) — local-only, fire-and-forget, never affects a result
+
+    private(set) var outcomes: [ScanOutcomeRecord] = JSONFile.load("klarity-diagnostics.json") ?? []
+    private(set) var feedback: [FeedbackRecord] = JSONFile.load("klarity-feedback.json") ?? []
+
+    func logOutcome(_ record: ScanOutcomeRecord) {
+        outcomes = Array(([record] + outcomes).prefix(diagnosticsMaxRecords))
+        JSONFile.save(outcomes, "klarity-diagnostics.json")
+    }
+
+    func logFeedback(_ record: FeedbackRecord) {
+        feedback = Array(([record] + feedback).prefix(diagnosticsMaxRecords))
+        JSONFile.save(feedback, "klarity-feedback.json")
+    }
+
+    func clearDiagnostics() {
+        outcomes = []; feedback = []
+        JSONFile.save(outcomes, "klarity-diagnostics.json")
+        JSONFile.save(feedback, "klarity-feedback.json")
+    }
+
+    /// Spec 009 M3 — explicit user action only. Same JSON shape as the RN app's export.
+    func writeDiagnosticsExport() -> URL? {
+        let export = DiagnosticsExport(exportedAt: Date().timeIntervalSince1970 * 1000, outcomes: outcomes, feedback: feedback)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        guard let data = try? encoder.encode(export) else { return nil }
+        let url = URL.temporaryDirectory.appending(path: "klarity-diagnostics.json")
+        return (try? data.write(to: url, options: .atomic)) != nil ? url : nil
+    }
+
     // MARK: User serving (spec 023)
 
     func userServing(for barcode: String) -> Double? { userServings[barcode] }
@@ -92,6 +123,21 @@ final class AppModel {
 
     private static func load<T: Decodable>(_ type: T.Type, key: String, from defaults: UserDefaults) -> T? {
         defaults.data(forKey: key).flatMap { try? JSONDecoder().decode(T.self, from: $0) }
+    }
+}
+
+/// Small JSON documents in Application Support.
+enum JSONFile {
+    static func load<T: Decodable>(_ name: String) -> T? {
+        guard let data = try? Data(contentsOf: URL.applicationSupportDirectory.appending(path: name)) else { return nil }
+        return try? JSONDecoder().decode(T.self, from: data)
+    }
+
+    static func save<T: Encodable>(_ value: T, _ name: String) {
+        try? FileManager.default.createDirectory(at: URL.applicationSupportDirectory, withIntermediateDirectories: true)
+        if let data = try? JSONEncoder().encode(value) {
+            try? data.write(to: URL.applicationSupportDirectory.appending(path: name), options: .atomic)
+        }
     }
 }
 

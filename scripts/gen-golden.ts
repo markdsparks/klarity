@@ -173,7 +173,7 @@ for (let i = 0; i < 1500; i++) {
   };
   const input = {
     contestedDriver: contested, sometimesAdditives: sometimes,
-    nutritionTone: pick(['good', 'ok', 'warn'] as const),
+    nutritionTone: pick(['good', 'ok', 'warn', 'unknown'] as const),
     highNutrients: shuffled(HIGH_POOL).slice(0, pick([0, 1, 1, 2, 3])),
     budgetNutrient: pick([null, null, 'sat fat', 'sodium'] as const),
     nutritionBasis: maybe(0.4, () => pick(['usda-serving', 'off-serving', 'off-serving-text', 'user-serving', 'racc-estimate', 'per-100g'] as const)),

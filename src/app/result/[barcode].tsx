@@ -30,6 +30,7 @@ import {
 } from '@/services/history';
 import {
   computeServingNutrients,
+  hasNutritionData,
   isMatrixDestroyedCategory,
   isPersonalizedReference,
   referenceValues,
@@ -74,12 +75,14 @@ const NUTRITION_GLANCE: Record<NutritionTone, { bg: string; fg: string; label: s
   good: { bg: 'rgba(127,211,170,0.16)', fg: '#7fd3aa', label: 'Everyday'     },
   ok:   { bg: 'rgba(240,184,117,0.16)', fg: '#f0b875', label: 'Sometimes'    },
   warn: { bg: 'rgba(239,143,86,0.18)',  fg: '#ef8f56', label: 'Occasionally' },
+  unknown: { bg: 'rgba(159,173,191,0.12)', fg: '#9fadbf', label: 'No data' },
 };
 
 // Subtle hero color hint (spec 013 follow-up) — a soft tint + left accent bar
 // on the plain-language sentence card, keyed off the same driver that already
 // decides the sentence's wording (heroTone). A hint, not a merged score.
-const HERO_TONE: Record<'good' | 'sometimes' | 'warn' | 'contested', { bg: string; accent: string }> = {
+const HERO_TONE: Record<'good' | 'sometimes' | 'warn' | 'contested' | 'unknown', { bg: string; accent: string }> = {
+  unknown:   { bg: 'rgba(159,173,191,0.08)', accent: '#9fadbf' },
   good:      { bg: 'rgba(127,211,170,0.09)', accent: '#7fd3aa' },
   sometimes: { bg: 'rgba(240,184,117,0.10)', accent: '#f0b875' },
   warn:      { bg: 'rgba(239,143,86,0.12)',  accent: '#ef8f56' },
@@ -245,9 +248,10 @@ export default function ResultScreen() {
             ratedAdditiveCount: matchedAdditives.length,
             regulatoryAdditiveCount: regulatoryAdditives.length,
             unknownAdditiveCount: unknownAdditives.length,
-            hasNutrition: sn.calories != null,
+            hasNutrition: hasNutritionData(sn),
           }),
-          sugarBasis: baseAssessment.sugarBasis,
+          // No nutrition data → no sugar verdict to attribute (spec 025).
+          sugarBasis: hasNutritionData(sn) ? baseAssessment.sugarBasis : undefined,
           productName: product.product_name || undefined,
           barcode,
         });
@@ -451,9 +455,10 @@ export default function ResultScreen() {
             verdict={nutritionGlance.label}
             bg={nutritionGlance.bg}
             fg={nutritionGlance.fg}
-            onPress={() => setLadderInput({
+            // Spec 025: no nutrition data has no ladder position — not tappable.
+            onPress={nutritionToneToLadderLevel(nutrition.tone) == null ? undefined : () => setLadderInput({
               axis: 'nutrition',
-              level: nutritionToneToLadderLevel(nutrition.tone),
+              level: nutritionToneToLadderLevel(nutrition.tone)!,
               productContext: nutrition.summary,
               askContext,
             })}

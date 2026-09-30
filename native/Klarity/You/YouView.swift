@@ -63,6 +63,12 @@ struct YouView: View {
                 }
 
                 Section {
+                    NavigationLink("How Klarity's doing") { DiagnosticsView() }
+                } footer: {
+                    Text("How your scans resolved, your feedback, and an export — all on this device.")
+                }
+
+                Section {
                     HStack(spacing: 12) {
                         KlarityMark(stem: .primary, upperArm: Theme.good, lowerArm: Theme.goodText).frame(width: 28)
                         VStack(alignment: .leading, spacing: 1) {

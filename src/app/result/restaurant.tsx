@@ -71,6 +71,7 @@ const NUTRITION_GLANCE = {
   good: { bg: 'rgba(127,211,170,0.16)', fg: '#7fd3aa', label: 'Everyday'     },
   ok:   { bg: 'rgba(240,184,117,0.16)', fg: '#f0b875', label: 'Sometimes'    },
   warn: { bg: 'rgba(239,143,86,0.18)',  fg: '#ef8f56', label: 'Occasionally' },
+  unknown: { bg: 'rgba(159,173,191,0.12)', fg: '#9fadbf', label: 'No data' },
 };
 
 const VERDICT_PILL: Record<VerdictKey, { bg: string; fg: string; label: string }> = {
@@ -85,6 +86,7 @@ const HERO_TONE = {
   sometimes: { bg: 'rgba(240,184,117,0.10)', accent: '#f0b875' },
   warn:      { bg: 'rgba(239,143,86,0.12)',  accent: '#ef8f56' },
   contested: { bg: 'rgba(176,158,232,0.12)', accent: '#b09ee8' },
+  unknown:   { bg: 'rgba(159,173,191,0.08)', accent: '#9fadbf' },
 } as const;
 
 export default function RestaurantResultScreen() {
@@ -365,7 +367,8 @@ export default function RestaurantResultScreen() {
             style={({ pressed }) => [styles.glanceBadge, { backgroundColor: nutritionGlance.bg }, pressed && styles.glanceBadgePressed]}
             onPress={() => setLadderInput({
               axis: 'nutrition',
-              level: nutritionToneToLadderLevel(nutrition.tone),
+              // Chain-published nutrition always exists for menu items, so this is never null here.
+              level: nutritionToneToLadderLevel(nutrition.tone) ?? 'everyday',
               productContext: nutrition.summary,
               askContext,
             })}>

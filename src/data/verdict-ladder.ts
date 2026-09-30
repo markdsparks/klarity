@@ -119,7 +119,9 @@ export function getLadderExplainer(axis: LadderAxis, level: LadderLevel): Ladder
 // NutritionTone ('good'/'ok'/'warn') and additive VerdictKey ('everyday'/'sometimes'/
 // 'contested') both map onto LadderLevel directly except nutrition's 'warn', which
 // speaks as 'occasionally' on the shared ladder (spec 013).
-export function nutritionToneToLadderLevel(tone: 'good' | 'ok' | 'warn'): LadderLevel {
+// 'unknown' (no data, spec 025) has no ladder position — the chip isn't tappable.
+export function nutritionToneToLadderLevel(tone: 'good' | 'ok' | 'warn' | 'unknown'): LadderLevel | null {
+  if (tone === 'unknown') return null;
   if (tone === 'good') return 'everyday';
   if (tone === 'ok') return 'sometimes';
   return 'occasionally';

@@ -28,6 +28,7 @@ const TONE_ACCENT: Record<NutritionTone, string> = {
   good: '#1f9d6b',
   ok: '#c8821a',
   warn: '#c2410c',
+  unknown: '#8896a7',
 };
 
 const BADGE_LABEL = { usda: 'USDA', computed: 'Computed' } as const;
@@ -86,9 +87,10 @@ export function NutritionCard({
     <View style={[styles.card, { borderLeftWidth: 3, borderLeftColor: TONE_ACCENT[nutrition.tone] }]}>
       <Pressable
         style={({ pressed }) => [styles.cardHeader, pressed && styles.pressed]}
+        disabled={nutritionToneToLadderLevel(nutrition.tone) == null}
         onPress={() => onOpenLadder({
           axis: 'nutrition',
-          level: nutritionToneToLadderLevel(nutrition.tone),
+          level: nutritionToneToLadderLevel(nutrition.tone) ?? 'everyday',
           productContext: nutrition.summary,
           askContext,
         })}>

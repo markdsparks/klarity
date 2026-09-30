@@ -16,6 +16,7 @@ struct ResultView: View {
 
     @State private var phase: Phase = .loading
     @State private var sheet: ResultSheet?
+    @State private var feedbackOpen = false
 
     var body: some View {
         content
@@ -39,8 +40,17 @@ struct ResultView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Theme.heroBackground)
         case .notFound:
-            ContentUnavailableView("Product not found", systemImage: "magnifyingglass",
-                description: Text("We checked Open Food Facts, USDA, and Kroger and couldn't find this barcode."))
+            ContentUnavailableView {
+                Label("Product not found", systemImage: "magnifyingglass")
+            } description: {
+                Text("We checked Open Food Facts, USDA, and Kroger and couldn't find this barcode.")
+            } actions: {
+                Button("Tell us what this was") { feedbackOpen = true }
+            }
+            .sheet(isPresented: $feedbackOpen) {
+                FeedbackSheet(source: .notFound, categories: [.notFound], barcode: barcode,
+                              title: "What product was this?", notePrompt: "Product name / brand — helps us close the gap")
+            }
         case .failed(let message):
             ContentUnavailableView {
                 Label("Something went wrong", systemImage: "exclamationmark.triangle")
@@ -63,11 +73,18 @@ struct ResultView: View {
                     VStack(spacing: 14) {
                         AdditivesCard(results: analysis.additiveResults, regulatory: analysis.regulatory, unknown: analysis.unknown)
                         NutritionCard(data: analysis.nutritionCard, sheet: $sheet)
+                        Button("Something look off?") { feedbackOpen = true }
+                            .font(.subheadline)
+                            .padding(.top, 4)
                     }
                     .padding(16)
                 }
             }
             .background(Color(.systemGroupedBackground))
+            .sheet(isPresented: $feedbackOpen) {
+                FeedbackSheet(source: .barcode, categories: [.wrongVerdict, .wrongData, .missingAdditive, .other],
+                              productName: analysis.name, barcode: barcode)
+            }
         }
     }
 
@@ -78,11 +95,14 @@ struct ResultView: View {
             switch try await model.resolver.resolve(barcode) {
             case .notFound:
                 phase = .notFound
+                model.logOutcome(ScanOutcomeRecord(at: Date().timeIntervalSince1970 * 1000, source: .barcode,
+                                                   outcome: .notFound, barcode: barcode))
             case .found(let resolved):
                 phase = .ready(resolved)   // paint first — history must never delay the result
-                model.recordScan(ProductAnalysis.historyRecord(
-                    resolved, userServingGrams: model.userServing(for: barcode),
-                    now: Date().timeIntervalSince1970 * 1000))
+                let now = Date().timeIntervalSince1970 * 1000
+                model.recordScan(ProductAnalysis.historyRecord(resolved, userServingGrams: model.userServing(for: barcode), now: now))
+                model.logOutcome(ProductAnalysis.outcomeRecord(resolved, source: .barcode,
+                                                               userServingGrams: model.userServing(for: barcode), now: now))
             }
         } catch {
             phase = .failed((error as? ClientError) == .network ? "No internet connection." : "Could not load product.")
@@ -136,11 +156,13 @@ struct VerdictHero<Extra: View>: View {
                                     level: glance == .clean ? .everyday : LadderLevel(rawValue: glance.rawValue) ?? .everyday,
                                     context: additiveContext.text, link: additiveContext.link)
                 })
-                GlanceButton(axis: "NUTRITION", style: nutrition.tone.style) {
-                    sheet = .ladder(axis: .nutrition, level: nutritionToneToLadderLevel(nutrition.tone),
-                                    context: nutrition.summary, link: nil)
-                }
+                // No nutrition data (spec 025) has no ladder position — not tappable, like "Not rated".
+                GlanceButton(axis: "NUTRITION", style: nutrition.tone.style,
+                             action: nutritionToneToLadderLevel(nutrition.tone).map { level in
+                    { sheet = .ladder(axis: .nutrition, level: level, context: nutrition.summary, link: nil) }
+                })
             }
+            .fixedSize(horizontal: false, vertical: true)
             extra
         }
         .padding(16)
@@ -208,7 +230,7 @@ private struct GlanceButton: View {
                 }
             }
             .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(style.color.opacity(0.15), in: RoundedRectangle(cornerRadius: 12))
             .accessibilityElement(children: .combine)
             .accessibilityHint(action == nil ? "" : "Shows what this means and why")

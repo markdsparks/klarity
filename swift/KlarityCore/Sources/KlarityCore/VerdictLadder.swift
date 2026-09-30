@@ -32,12 +32,14 @@ public enum VerdictLadder {
     }
 }
 
-/// Nutrition's `warn` speaks as `occasionally` on the shared ladder (spec 013).
-public func nutritionToneToLadderLevel(_ tone: NutritionTone) -> LadderLevel {
+/// Nutrition's `warn` speaks as `occasionally` on the shared ladder (spec 013); `unknown` (no data,
+/// spec 025) has no ladder position.
+public func nutritionToneToLadderLevel(_ tone: NutritionTone) -> LadderLevel? {
     switch tone {
     case .good: return .everyday
     case .ok: return .sometimes
     case .warn: return .occasionally
+    case .unknown: return nil
     }
 }
 

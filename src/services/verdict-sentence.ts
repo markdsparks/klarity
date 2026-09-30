@@ -74,18 +74,32 @@ function nutritionCaveat(tone: NutritionTone, high: string[], staple: boolean): 
 // clean — so the hint never disagrees with the sentence it decorates. This is
 // NOT a new merged score: it reads the same fusion the sentence already makes,
 // it does not compute a new one. Keep this in sync if the branch order above changes.
-export type HeroTone = 'good' | 'sometimes' | 'warn' | 'contested';
+export type HeroTone = 'good' | 'sometimes' | 'warn' | 'contested' | 'unknown';
 
 export function heroTone(input: SentenceInput): HeroTone {
   const { contestedDriver, sometimesAdditives, nutritionTone, budgetNutrient } = input;
   if (contestedDriver) return 'contested';
   if (nutritionTone === 'warn') return 'warn';
   if (sometimesAdditives.length > 0) return 'sometimes';
+  if (nutritionTone === 'unknown') return 'unknown';
   if (budgetNutrient || nutritionTone === 'ok') return 'sometimes';
   return 'good';
 }
 
+// Spec 025 — no nutrition data: additive framing still leads, but the read is labeled half a read.
+const NO_NUTRITION_SUFFIX = " We couldn't find nutrition data, so this covers additives only.";
+
 export function verdictSentence(input: SentenceInput): string | null {
+  if (input.nutritionTone === 'unknown' && !input.contestedDriver) {
+    if (input.sometimesAdditives.length === 0) {
+      return "We couldn't find nutrition data for this one, so this is only half a read — nothing in the additives needs a second thought.";
+    }
+    return additiveSentence(input) + NO_NUTRITION_SUFFIX;
+  }
+  return fullSentence(input);
+}
+
+function fullSentence(input: SentenceInput): string | null {
   const { contestedDriver, sometimesAdditives, nutritionTone, highNutrients, budgetNutrient, nutritionBasis, profile, proteinDv } = input;
   const goalBuild = profile.goal === 'build' && proteinDv >= 20;
 
@@ -120,6 +134,16 @@ export function verdictSentence(input: SentenceInput): string | null {
     }
     return `An occasional pick, not an everyday one${tail} — worth going lighter across the rest of the day.`;
   }
+
+  const additive = additiveSentence(input);
+  if (additive) return additive;
+  return cleanSentence(input);
+}
+
+// Steps 3–4: framing driven by `sometimes` additives, or null when there are none.
+function additiveSentence(input: SentenceInput): string {
+  const { sometimesAdditives, nutritionTone, highNutrients, profile, proteinDv } = input;
+  const goalBuild = profile.goal === 'build' && proteinDv >= 20;
 
   // ── 3. A stack of `sometimes` additives — occasional, none alarming alone ──
   if (sometimesAdditives.length >= STACK_THRESHOLD) {
@@ -161,6 +185,13 @@ export function verdictSentence(input: SentenceInput): string | null {
         return `Fine in normal amounts — worth a glance at the details below.${caveat}`;
     }
   }
+  return '';
+}
+
+// Step 5: additives clean, nutrition not a concern.
+function cleanSentence(input: SentenceInput): string {
+  const { nutritionTone, budgetNutrient, profile, proteinDv } = input;
+  const goalBuild = profile.goal === 'build' && proteinDv >= 20;
 
   // ── 5. Additives clean, nutrition not a concern ──
   // Budget reframe (sat fat or sodium): keep the "don't live on these" trade-off in

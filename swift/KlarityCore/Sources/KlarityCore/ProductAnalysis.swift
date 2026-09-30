@@ -93,7 +93,8 @@ public struct ProductAnalysis: Sendable {
                 servingText = "per \(household?.lowercased() ?? p.servingSize ?? "")"
             } else { servingText = nil }
         }
-        servingEditable = sn.basis == .raccEstimate || sn.basis == .per100g || sn.basis == .userServing
+        // Nothing to scale when there's no nutrition data at all (spec 025).
+        servingEditable = hasNutritionData(sn) && (sn.basis == .raccEstimate || sn.basis == .per100g || sn.basis == .userServing)
         personalizedReference = isPersonalizedReference(profile)
         sugarThreshold = warnThresholds(for: profile).sugar
     }
@@ -102,6 +103,20 @@ public struct ProductAnalysis: Sendable {
         NutritionCardData(servingNutrients: servingNutrients, nutrition: nutrition, servingText: servingText,
                           servingEditable: servingEditable, badge: servingNutrients.basis == .usdaServing ? "USDA" : nil,
                           basisNotes: [], personalizedReference: personalizedReference, sugarThreshold: sugarThreshold)
+    }
+
+    /// Instrumentation record for a resolved scan — profile-independent, like history.
+    public static func outcomeRecord(_ r: ResolvedProduct, source: ScanSource, userServingGrams: Double?, now: Double) -> ScanOutcomeRecord {
+        let sn = computeServingNutrients(r.product, usda: r.usda, userServingGrams: userServingGrams)
+        let base = toneNutrition(sn, profile: .default,
+                                 context: NutritionContext(matrixDestroyedCategory: isMatrixDestroyedCategory(r.product.categoriesTags)))
+        let outcome = classifyOutcome(OutcomeInput(
+            source: source, found: true, ratedAdditiveCount: AdditiveData.additives(ids: r.additiveIds).count,
+            regulatoryAdditiveCount: r.regulatory.count, unknownAdditiveCount: r.unknown.count, hasNutrition: hasNutritionData(sn)))
+        // No nutrition data → no sugar verdict to attribute (spec 025).
+        return ScanOutcomeRecord(at: now, source: source, outcome: outcome,
+                                 sugarBasis: hasNutritionData(sn) ? base.sugarBasis : nil,
+                                 productName: r.product.productName, barcode: r.barcode)
     }
 
     /// The base-verdict (profile-independent) glance + tone that history stores, so entries stay objective.

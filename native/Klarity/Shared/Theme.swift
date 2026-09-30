@@ -102,10 +102,11 @@ extension NutritionTone {
         case .good: GlanceStyle(label: "Everyday", color: Theme.goodOnDark, level: .one)
         case .ok: GlanceStyle(label: "Sometimes", color: Theme.sometimesOnDark, level: .two)
         case .warn: GlanceStyle(label: "Occasionally", color: Theme.occasionallyOnDark, level: .three)
+        case .unknown: GlanceStyle(label: "No data", color: Theme.heroMuted, level: nil)
         }
     }
     var cardTone: Tone {
-        switch self { case .good: .everyday; case .ok: .sometimes; case .warn: .occasionally }
+        switch self { case .good: .everyday; case .ok: .sometimes; case .warn: .occasionally; case .unknown: .neutral }
     }
 }
 
@@ -116,6 +117,7 @@ extension HeroTone {
         case .sometimes: Theme.sometimesOnDark
         case .warn: Theme.occasionallyOnDark
         case .contested: Theme.contestedOnDark
+        case .unknown: Theme.heroMuted
         }
     }
 }

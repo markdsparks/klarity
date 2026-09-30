@@ -9,6 +9,7 @@ struct RestaurantResultView: View {
     @State private var sheet: ResultSheet?
     @State private var optionSheet: OptionSheetKind?
     @State private var recorded = false
+    @State private var feedbackOpen = false
 
     private let itemID: String
     private let seedRemoved: [String]
@@ -47,7 +48,11 @@ struct RestaurantResultView: View {
     /// First appearance records the scan (per-item frequency merge); later build edits update in place.
     private func persist(_ b: RestaurantBuild?) {
         guard let b, let record = RestaurantAnalysis.historyRecord(b, now: Date().timeIntervalSince1970 * 1000) else { return }
-        if recorded { model.updateRestaurantBuild(record) } else { recorded = true; model.recordScan(record) }
+        if recorded { model.updateRestaurantBuild(record); return }
+        recorded = true
+        model.recordScan(record)
+        model.logOutcome(ScanOutcomeRecord(at: record.scannedAt, source: .restaurant, outcome: .restaurant,
+                                           productName: record.productName, barcode: record.barcode))
     }
 
     private func content(build: RestaurantBuild, analysis a: RestaurantAnalysis) -> some View {
@@ -67,11 +72,16 @@ struct RestaurantResultView: View {
                         .font(.caption).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 4)
+                    Button("Something look off?") { feedbackOpen = true }.font(.subheadline)
                 }
                 .padding(16)
             }
         }
         .background(Color(.systemGroupedBackground))
+        .sheet(isPresented: $feedbackOpen) {
+            FeedbackSheet(source: .restaurant, categories: [.wrongVerdict, .wrongData, .missingAdditive, .other],
+                          productName: "\(a.chain.name) \(build.item.name)", barcode: restaurantHistoryKey(build.item.id))
+        }
     }
 }
 

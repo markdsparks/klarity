@@ -464,7 +464,7 @@ const MENU_ADDITIVE_STYLE: Record<AdditiveGlanceKey, { bg: string; fg: string; l
 const MENU_NUTRITION_STYLE: Record<NutritionTone, { bg: string; fg: string; label: string }> = {
   good: { bg: '#e8f7ef', fg: '#1f9d6b', label: 'Everyday'     },
   ok:   { bg: '#fdf3e3', fg: '#c8821a', label: 'Sometimes'    },
-  warn: { bg: '#fbe7db', fg: '#c2410c', label: 'Occasionally' },
+  warn: { bg: '#fbe7db', fg: '#c2410c', label: 'Occasionally' },  unknown: { bg: '#eef1f4', fg: '#5b6573', label: 'No data'      },
 };
 
 // Menu data is static, so standard-build glances are computed once per item.

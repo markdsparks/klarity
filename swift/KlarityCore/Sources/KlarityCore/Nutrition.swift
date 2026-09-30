@@ -4,7 +4,8 @@ import Foundation
 // docs/nutrition-evidence.md. Behavior must stay bit-identical to the TS engine
 // (golden-tested) until cutover — including its copy strings.
 
-public enum NutritionTone: String, Codable, Sendable { case good, ok, warn }
+/// `unknown` = no nutrition data at all (spec 025) — never scored as if it were clean.
+public enum NutritionTone: String, Codable, Sendable { case good, ok, warn, unknown }
 
 /// Optional per-call context `toneNutrition` needs beyond the raw numbers.
 public struct NutritionContext: Codable, Sendable, Equatable {
@@ -211,7 +212,19 @@ private func buildContextLines(_ sn: ServingNutrients, sugarLabel: String, goal:
     return lines
 }
 
+/// Spec 025 — the single definition of "we have nutrition data". Missing %DVs otherwise score as 0, which
+/// would read a record with no nutriments as the cleanest possible food.
+public func hasNutritionData(_ sn: ServingNutrients) -> Bool {
+    let grams: [Double?] = [sn.calories, sn.totalFat, sn.carbs, sn.sugar, sn.satFat, sn.transFat, sn.sodium, sn.potassium, sn.protein, sn.fiber]
+    let dvs: [Int?] = [sn.fatDv, sn.carbsDv, sn.sugarDv, sn.addedSugarDv, sn.satFatDv, sn.sodiumDv, sn.proteinDv, sn.fiberDv]
+    return grams.contains { $0 != nil } || dvs.contains { $0 != nil }
+}
+
 public func toneNutrition(_ sn: ServingNutrients, profile: Profile, context ctx: NutritionContext? = nil) -> NutritionAssessment {
+    if !hasNutritionData(sn) {
+        return NutritionAssessment(tone: .unknown, summary: "No nutrition data on file for this product", profileNotes: [],
+                                   contextLines: [], highNutrients: [], budgetNutrient: nil, sugarBasis: .negligible)
+    }
     let t = warnThresholds(for: profile)
     let sugarDvBasis = sugarBasisDv(sn)
     let sodiumDv = sn.sodiumDv ?? 0, satFatDv = sn.satFatDv ?? 0

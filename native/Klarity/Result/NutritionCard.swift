@@ -25,20 +25,24 @@ struct NutritionCard: View {
     var body: some View {
         Card {
             Button {
-                sheet = .ladder(axis: .nutrition, level: nutritionToneToLadderLevel(data.nutrition.tone),
-                                context: data.nutrition.summary, link: nil)
+                if let level = nutritionToneToLadderLevel(data.nutrition.tone) {
+                    sheet = .ladder(axis: .nutrition, level: level, context: data.nutrition.summary, link: nil)
+                }
             } label: {
                 HStack(spacing: 8) {
                     Text("Nutrition").font(.headline)
                     Spacer()
                     let style = data.nutrition.tone.style
                     Text(style.label).font(.subheadline.weight(.semibold)).foregroundStyle(data.nutrition.tone.cardTone.text)
-                    if let level = style.level { LadderMark(level: level, color: data.nutrition.tone.cardTone.mark) }
-                    Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+                    if let level = style.level {
+                        LadderMark(level: level, color: data.nutrition.tone.cardTone.mark)
+                        Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+                    }
                 }
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .disabled(nutritionToneToLadderLevel(data.nutrition.tone) == nil)
 
             servingLine
             Text(data.nutrition.summary).font(.body.weight(.medium))
@@ -57,8 +61,10 @@ struct NutritionCard: View {
                 .disabled(a.explainer == nil)
             }
 
-            Divider().padding(.vertical, 2)
-            nutrientGrid
+            if data.nutrition.tone != .unknown {
+                Divider().padding(.vertical, 2)
+                nutrientGrid
+            }
         }
     }
 
