@@ -61,6 +61,17 @@ struct YouView: View {
                         OptionRow(label: label, hint: hint, selected: (model.profile.goal ?? .unset) == goal) { model.profile.goal = goal }
                     }
                 }
+
+                Section {
+                    HStack(spacing: 12) {
+                        KlarityMark(stem: .primary, upperArm: Theme.good, lowerArm: Theme.goodText).frame(width: 28)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("Klarity").font(.headline)
+                            Text("Evidence, not alarms. · v\(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                }
             }
             .navigationTitle("You")
         }

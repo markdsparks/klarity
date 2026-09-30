@@ -105,7 +105,15 @@ The key editorial rules:
 
 ---
 
-## Design tokens (use these — do not hardcode colors)
+## Design language
+
+The Klarity design system (brand book, tokens, components): https://claude.ai/artifact/D9bDf7yWgZeN5hztzF1XKq
+— see `design/README.md`. Native code: `native/Klarity/Shared/Theme.swift` + `Brand/KlarityMark.swift`.
+Key rules: color only ever means a ladder level; words use the `-text` tone variants (the plain ladder
+colors fail 4.5:1 as small text on light grounds); state is shown with `LadderMark`, never colored
+card rails; brand mint appears only in the mark and on the ink hero.
+
+## Design tokens (RN app — superseded by the design system above for native)
 
 From `src/constants/theme.ts`. The spike's visual design (`spike/index.html`) is the reference — match that feel:
 - `good`: #1f9d6b (green — everyday)

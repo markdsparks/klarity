@@ -108,7 +108,7 @@ private struct BuildCard: View {
                     }
                     .tint(Theme.good)
                 } else {
-                    HStack { Text(c.name); Spacer(); Pill(text: "Base", color: .secondary) }
+                    HStack { Text(c.name); Spacer(); Pill(text: "Base", tone: .neutral) }
                 }
             }
 
@@ -121,7 +121,7 @@ private struct BuildCard: View {
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Text("Change").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.good)
+                        Text("Change").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.goodText)
                     }
                     .contentShape(Rectangle())
                 }
@@ -173,7 +173,7 @@ private struct OptionSheet: View {
                             HStack(spacing: 6) {
                                 Text(calDeltaLabel(opt.calDelta)).monospacedDigit()
                                 Text("·")
-                                Text(opt.additiveNote).foregroundStyle(opt.additiveTone?.color ?? .secondary)
+                                Text(opt.additiveNote).foregroundStyle(opt.additiveTone?.tone.text ?? .secondary)
                             }
                             .font(.caption).foregroundStyle(.secondary)
                         }

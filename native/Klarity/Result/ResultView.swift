@@ -125,10 +125,8 @@ struct VerdictHero<Extra: View>: View {
                     .foregroundStyle(Theme.heroText)
                     .padding(14)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(heroTone.accent.opacity(0.11), in: RoundedRectangle(cornerRadius: 14))
-                    .overlay(alignment: .leading) {
-                        UnevenRoundedRectangle(topLeadingRadius: 14, bottomLeadingRadius: 14).fill(heroTone.accent).frame(width: 4)
-                    }
+                    // A quiet tint of the sentence's own driver — never a rail (design language: "the ladder mark, not the rail").
+                    .background(heroTone.accent.opacity(0.11), in: RoundedRectangle(cornerRadius: 16))
                 Text("The two axes behind it — tap either for why").font(.caption).foregroundStyle(Theme.heroMuted)
             }
 
@@ -203,14 +201,17 @@ private struct GlanceButton: View {
         Button { action?() } label: {
             VStack(alignment: .leading, spacing: 3) {
                 Text(axis).font(.caption2.weight(.semibold)).foregroundStyle(Theme.heroMuted)
-                HStack(spacing: 4) {
+                HStack(spacing: 6) {
                     Text(style.label).font(.headline).foregroundStyle(style.color)
-                    if action != nil { Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(style.color.opacity(0.7)) }
+                    Spacer(minLength: 4)
+                    if let level = style.level { LadderMark(level: level, color: style.color) }
                 }
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(style.color.opacity(0.16), in: RoundedRectangle(cornerRadius: 12))
+            .background(style.color.opacity(0.15), in: RoundedRectangle(cornerRadius: 12))
+            .accessibilityElement(children: .combine)
+            .accessibilityHint(action == nil ? "" : "Shows what this means and why")
         }
         .buttonStyle(.plain)
         .disabled(action == nil)
@@ -271,15 +272,15 @@ private struct AdditiveRow: View {
                 }
                 Text(result.additive.role).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
                 if let note = result.profileNote {
-                    Text("For you: \(note)").font(.subheadline).foregroundStyle(Theme.contested).lineLimit(3)
+                    Text("For you: \(note)").font(.subheadline).foregroundStyle(Theme.contestedText).lineLimit(3)
                 }
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 4) {
-                Pill(text: result.verdict.label, color: result.verdict.color)
+                Pill(text: result.verdict.label, tone: result.verdict.tone)
                 // Resolving for the user's values must never hide that regulators disagree.
                 if result.additive.baseVerdict == .contested && result.verdict != .contested {
-                    Pill(text: "Contested", color: Theme.contested)
+                    Pill(text: "Contested", tone: .contested)
                 }
             }
             Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary).padding(.top, 4)
@@ -303,7 +304,7 @@ private struct SimpleAdditiveRow: View {
                 Text(eNumber).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            if let pill { Pill(text: pill, color: color) }
+            if let pill { Pill(text: pill, tone: .neutral) }
         }
         .contentShape(Rectangle())
         .padding(.vertical, 2)
@@ -322,24 +323,17 @@ private struct SectionDivider: View {
     }
 }
 
+/// `surface-raised` card, `radius-lg`, `space-4` padding. No borders, shadows or colored rails — state is
+/// shown with a LadderMark in the header.
 struct Card<Content: View>: View {
     @ViewBuilder let content: Content
-    var accent: Color? = nil
 
-    init(accent: Color? = nil, @ViewBuilder content: () -> Content) {
-        self.accent = accent
-        self.content = content()
-    }
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) { content }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
-            .overlay(alignment: .leading) {
-                if let accent {
-                    UnevenRoundedRectangle(topLeadingRadius: 16, bottomLeadingRadius: 16).fill(accent).frame(width: 3)
-                }
-            }
     }
 }

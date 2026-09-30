@@ -53,7 +53,7 @@ struct LadderSheet: View {
                             HStack {
                                 Text("See the evidence for \(link.name)")
                                 Spacer()
-                                Pill(text: link.verdict.label, color: link.verdict.color)
+                                Pill(text: link.verdict.label, tone: link.verdict.tone)
                             }
                         }
                     }
@@ -173,6 +173,6 @@ struct TierBadge: View {
     }
 
     private var tierColor: Color {
-        switch tier { case .A: Theme.good; case .B: Theme.sometimes; case .C: Theme.occasionally; case .D: .secondary }
+        switch tier { case .A: Theme.goodText; case .B: Theme.sometimesText; case .C: Theme.occasionallyText; case .D: Theme.mutedText }
     }
 }

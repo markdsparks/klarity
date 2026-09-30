@@ -13,10 +13,10 @@ struct AdditiveDetailView: View {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(spacing: 6) {
-                            Pill(text: result.verdict.label, color: result.verdict.color)
+                            Pill(text: result.verdict.label, tone: result.verdict.tone)
                             // Resolving for the user's values must never hide that regulators disagree.
                             if additive.baseVerdict == .contested && result.verdict != .contested {
-                                Pill(text: "Contested", color: Theme.contested)
+                                Pill(text: "Contested", tone: .contested)
                             }
                             if let e = additive.eNumber { Text(e).font(.caption).foregroundStyle(.secondary) }
                         }
@@ -58,8 +58,8 @@ private struct EvidenceRow: View {
                 TierBadge(tier: item.tier)
                 Spacer()
                 switch item.applies {
-                case .no: Pill(text: "Dismissed", color: .secondary)
-                case .split: Pill(text: "Split", color: Theme.contested)
+                case .no: Pill(text: "Dismissed", tone: .neutral)
+                case .split: Pill(text: "Split", tone: .contested)
                 case .yes: EmptyView()
                 }
             }
@@ -79,7 +79,7 @@ struct RegulatoryDetailView: View {
         if let reg = ENumberIndex.regulatory[eNumber] {
             List {
                 Section {
-                    Pill(text: "Regulatory status", color: .secondary)
+                    Pill(text: "Regulatory status", tone: .neutral)
                     Text("EFSA permits this as a food additive. We haven't authored a dose/frequency verdict for it yet, so there's no Everyday/Sometimes call here.")
                         .font(.subheadline).foregroundStyle(.secondary)
                 }

@@ -43,9 +43,14 @@ struct ScanView: View {
             }
             .padding()
         } else {
-            ContentUnavailableView("Scanning isn't available here",
-                                   systemImage: "barcode.viewfinder",
-                                   description: Text("Search for a product above, or type its barcode."))
+            ContentUnavailableView {
+                VStack(spacing: 14) {
+                    KlarityMark(stem: .primary, upperArm: Theme.good, lowerArm: Theme.goodText).frame(width: 56)
+                    Text("Scanning isn't available here")
+                }
+            } description: {
+                Text("Search for a product above, or type its barcode.")
+            }
         }
     }
 
@@ -141,7 +146,7 @@ private struct SearchRow: View {
                         .font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer(minLength: 0)
-                if item.usdaVerified { Pill(text: "USDA", color: Theme.good) }
+                if item.usdaVerified { Pill(text: "USDA", tone: .everyday) }
             }
         }
     }
@@ -184,12 +189,12 @@ private struct MenuBrowser: View {
                         Text(hit.item.name).font(.body.weight(.medium))
                         HStack(spacing: 6) {
                             Text(hit.item.category).font(.caption).foregroundStyle(.secondary)
-                            Pill(text: glance.additiveGlance.style.label, color: glance.additiveGlance.cardColor)
-                            Pill(text: glance.nutritionTone.style.label, color: glance.nutritionTone.cardAccent)
+                            Pill(text: glance.additiveGlance.style.label, tone: glance.additiveGlance.cardTone)
+                            Pill(text: glance.nutritionTone.style.label, tone: glance.nutritionTone.cardTone)
                         }
                         if !hit.removedIds.isEmpty {
                             let names = hit.item.components.filter { hit.removedIds.contains($0.id) }.map(\.name)
-                            Text("Without \(names.joined(separator: ", "))").font(.caption).foregroundStyle(Theme.sometimes)
+                            Text("Without \(names.joined(separator: ", "))").font(.caption).foregroundStyle(Theme.sometimesText)
                         }
                     }
                 }

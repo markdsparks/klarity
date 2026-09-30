@@ -23,14 +23,17 @@ struct NutritionCard: View {
     }
 
     var body: some View {
-        Card(accent: data.nutrition.tone.cardAccent) {
+        Card {
             Button {
                 sheet = .ladder(axis: .nutrition, level: nutritionToneToLadderLevel(data.nutrition.tone),
                                 context: data.nutrition.summary, link: nil)
             } label: {
-                HStack {
+                HStack(spacing: 8) {
                     Text("Nutrition").font(.headline)
                     Spacer()
+                    let style = data.nutrition.tone.style
+                    Text(style.label).font(.subheadline.weight(.semibold)).foregroundStyle(data.nutrition.tone.cardTone.text)
+                    if let level = style.level { LadderMark(level: level, color: data.nutrition.tone.cardTone.mark) }
                     Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
                 }
                 .contentShape(Rectangle())
@@ -113,7 +116,7 @@ private struct NutrientRow: View {
 
     private var color: Color {
         guard let dv else { return .secondary }
-        if positive { return dv >= 20 ? Theme.good : .secondary }
-        return hot || dv >= 20 ? Theme.occasionally : .secondary
+        if positive { return dv >= 20 ? Theme.goodText : .secondary }
+        return hot || dv >= 20 ? Theme.occasionallyText : .secondary
     }
 }
