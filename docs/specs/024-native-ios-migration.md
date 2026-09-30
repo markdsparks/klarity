@@ -62,3 +62,16 @@ device test before cutover.
 - On-device Q&A (014) is un-headless-testable → keep its device-pass
   checklist; Swift port should be simpler (no `ai`/zod layers).
 - Loss of OTA → smaller, less frequent TestFlight drops.
+
+## Known TS quirks (ported faithfully; fix AFTER parity, in Swift only)
+- `(carbs - fiber).toFixed(0)` prints "-0 g net carbs" when fiber slightly exceeds
+  carbs (JS `toFixed` keeps the sign on negative values that round to zero).
+  Found by the nutrition fuzz golden; Swift matches it via `jsToFixed`.
+
+## Phase 1 progress
+- ✅ types, additives, verdict (2026-09-29)
+- ✅ nutrition (`computeServingNutrients`, `toneNutrition`), serving/RACC/user grams,
+  protein quality, ingredient-text matching — 2,000-case seeded fuzz + fixtures
+- ⏳ verdict-sentence, verdict-ladder, nutrition-explainers, regulatory additives +
+  e-number index, OFF/USDA/Kroger clients, product-search, restaurant engine,
+  history/diagnostics

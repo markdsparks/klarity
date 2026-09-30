@@ -12,3 +12,8 @@ const write = (name: string, value: unknown) => {
 };
 
 write('additives.json', Object.values(ADDITIVES));
+
+import { PROTEIN_SOURCES } from '../src/data/protein-sources';
+import { RACC } from '../src/data/racc';
+write('protein-sources.json', PROTEIN_SOURCES);
+write('racc.json', RACC);

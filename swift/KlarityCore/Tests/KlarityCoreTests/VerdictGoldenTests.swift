@@ -10,11 +10,6 @@ struct VerdictGoldenCase: Decodable {
     let profileNote: String?
 }
 
-func goldenData(_ name: String) throws -> Data {
-    let url = try #require(Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Golden"))
-    return try Data(contentsOf: url)
-}
-
 @Suite("Additive data")
 struct AdditiveDataTests {
     @Test func decodesEveryAdditive() throws {

@@ -1,0 +1,187 @@
+[
+ {
+  "grams": 32,
+  "label": "nut & seed butters",
+  "slugs": [
+   "en:nut-butters",
+   "en:peanut-butters",
+   "en:nut-and-seed-butters",
+   "en:almond-butters"
+  ]
+ },
+ {
+  "grams": 30,
+  "label": "nuts & seeds",
+  "slugs": [
+   "en:nuts",
+   "en:seeds",
+   "en:sunflower-seeds",
+   "en:pumpkin-seeds",
+   "en:mixed-nuts",
+   "en:almonds",
+   "en:cashews",
+   "en:pistachios",
+   "en:walnuts",
+   "en:peanuts"
+  ]
+ },
+ {
+  "grams": 110,
+  "label": "cottage cheese",
+  "slugs": [
+   "en:cottage-cheese"
+  ]
+ },
+ {
+  "grams": 30,
+  "label": "cheese",
+  "slugs": [
+   "en:cheeses",
+   "en:hard-cheeses",
+   "en:semi-hard-cheeses"
+  ]
+ },
+ {
+  "grams": 170,
+  "label": "yogurt",
+  "slugs": [
+   "en:yogurts",
+   "en:plain-yogurts",
+   "en:greek-yogurts"
+  ]
+ },
+ {
+  "grams": 87,
+  "label": "ice cream",
+  "slugs": [
+   "en:ice-creams",
+   "en:ice-creams-and-sorbets",
+   "en:frozen-desserts"
+  ]
+ },
+ {
+  "grams": 15,
+  "label": "hard candy",
+  "slugs": [
+   "en:hard-candies"
+  ]
+ },
+ {
+  "grams": 40,
+  "label": "chocolate",
+  "slugs": [
+   "en:chocolates",
+   "en:dark-chocolates",
+   "en:milk-chocolates",
+   "en:chocolate-candies"
+  ]
+ },
+ {
+  "grams": 40,
+  "label": "granola / snack bars",
+  "slugs": [
+   "en:cereal-bars",
+   "en:granola-bars",
+   "en:snack-bars",
+   "en:energy-bars"
+  ]
+ },
+ {
+  "grams": 40,
+  "label": "breakfast cereal",
+  "slugs": [
+   "en:breakfast-cereals",
+   "en:cereals"
+  ]
+ },
+ {
+  "grams": 30,
+  "label": "crackers",
+  "slugs": [
+   "en:crackers"
+  ]
+ },
+ {
+  "grams": 30,
+  "label": "chips & salty snacks",
+  "slugs": [
+   "en:chips-and-fries",
+   "en:crisps",
+   "en:potato-crisps",
+   "en:salty-snacks",
+   "en:pretzels",
+   "en:tortilla-chips"
+  ]
+ },
+ {
+  "grams": 30,
+  "label": "popcorn",
+  "slugs": [
+   "en:popcorns",
+   "en:popcorn"
+  ]
+ },
+ {
+  "grams": 30,
+  "label": "cookies",
+  "slugs": [
+   "en:cookies",
+   "en:biscuits"
+  ]
+ },
+ {
+  "grams": 30,
+  "label": "meat snacks",
+  "slugs": [
+   "en:jerky",
+   "en:beef-jerky",
+   "en:meat-snacks",
+   "en:dried-meats"
+  ]
+ },
+ {
+  "grams": 40,
+  "label": "dried fruit",
+  "slugs": [
+   "en:dried-fruits",
+   "en:raisins"
+  ]
+ },
+ {
+  "grams": 50,
+  "label": "bread",
+  "slugs": [
+   "en:breads",
+   "en:sliced-breads",
+   "en:sandwich-breads"
+  ]
+ },
+ {
+  "grams": 14,
+  "label": "butter / margarine",
+  "slugs": [
+   "en:butters",
+   "en:margarines"
+  ]
+ },
+ {
+  "grams": 14,
+  "label": "oils",
+  "slugs": [
+   "en:vegetable-oils",
+   "en:olive-oils",
+   "en:cooking-oils"
+  ]
+ },
+ {
+  "grams": 240,
+  "label": "beverage",
+  "slugs": [
+   "en:sodas",
+   "en:fruit-juices",
+   "en:juices",
+   "en:sweetened-beverages",
+   "en:iced-teas"
+  ]
+ }
+]

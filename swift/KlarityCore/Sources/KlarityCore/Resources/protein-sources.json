@@ -1,0 +1,134 @@
+[
+ {
+  "id": "whey_protein_isolate",
+  "name": "Whey protein isolate",
+  "aliases": [
+   "whey protein isolate",
+   "whey isolate",
+   "whey protein concentrate",
+   "whey protein",
+   "whey"
+  ],
+  "diaas": 1.09,
+  "source": "Mathai, Liu & Stein 2017, Br J Nutr"
+ },
+ {
+  "id": "milk_protein_casein",
+  "name": "Milk protein concentrate",
+  "aliases": [
+   "milk protein concentrate",
+   "micellar casein",
+   "casein",
+   "milk protein isolate"
+  ],
+  "diaas": 1.18,
+  "source": "Mathai, Liu & Stein 2017, Br J Nutr"
+ },
+ {
+  "id": "egg",
+  "name": "Whole egg",
+  "aliases": [
+   "whole egg",
+   "egg whites",
+   "egg white",
+   "dried egg",
+   "egg powder",
+   "liquid eggs",
+   "liquid egg"
+  ],
+  "diaas": 1.13,
+  "source": "Rutherfurd et al. 2015, J Nutr (cited in FAO 2013)"
+ },
+ {
+  "id": "meat_poultry_fish",
+  "name": "Meat, poultry, or fish",
+  "aliases": [
+   "chicken breast",
+   "chicken",
+   "turkey breast",
+   "turkey",
+   "beef",
+   "ground beef",
+   "pork",
+   "salmon",
+   "tuna",
+   "cod",
+   "white fish",
+   "fish"
+  ],
+  "diaas": 1.11,
+  "source": "Rutherfurd et al. 2015, J Nutr (beef, cited in FAO 2013) — representative of lean animal muscle protein generally"
+ },
+ {
+  "id": "soy_protein_isolate",
+  "name": "Soy protein isolate",
+  "aliases": [
+   "soy protein isolate",
+   "soy protein",
+   "isolated soy protein"
+  ],
+  "diaas": 0.9,
+  "limitingAminoAcid": "methionine",
+  "source": "Mathai, Liu & Stein 2017, Br J Nutr"
+ },
+ {
+  "id": "pea_protein",
+  "name": "Pea protein",
+  "aliases": [
+   "pea protein isolate",
+   "pea protein concentrate",
+   "pea protein"
+  ],
+  "diaas": 0.82,
+  "limitingAminoAcid": "methionine",
+  "source": "Mathai, Liu & Stein 2017, Br J Nutr"
+ },
+ {
+  "id": "rice_protein",
+  "name": "Rice protein",
+  "aliases": [
+   "rice protein concentrate",
+   "rice protein isolate",
+   "rice protein"
+  ],
+  "diaas": 0.42,
+  "limitingAminoAcid": "lysine",
+  "source": "Mathai, Liu & Stein 2017, Br J Nutr"
+ },
+ {
+  "id": "pumpkin_seed_protein",
+  "name": "Pumpkin seed protein",
+  "aliases": [
+   "pumpkin seed protein",
+   "pumpkin protein"
+  ],
+  "limitingAminoAcid": "lysine",
+  "source": "Multiple studies confirm lysine as the first limiting amino acid in pumpkin seed protein isolate (2025 review, PMC12652233); no consensus DIAAS value published yet"
+ },
+ {
+  "id": "wheat_gluten",
+  "name": "Wheat gluten",
+  "aliases": [
+   "wheat gluten",
+   "vital wheat gluten",
+   "seitan"
+  ],
+  "diaas": 0.25,
+  "limitingAminoAcid": "lysine",
+  "source": "FAO 2013 Dietary Protein Quality Evaluation in Human Nutrition"
+ },
+ {
+  "id": "gelatin_collagen",
+  "name": "Gelatin",
+  "aliases": [
+   "gelatin",
+   "gelatine",
+   "collagen",
+   "collagen peptides",
+   "hydrolyzed collagen"
+  ],
+  "diaas": 0,
+  "limitingAminoAcid": "tryptophan",
+  "source": "FAO 2013 Dietary Protein Quality Evaluation in Human Nutrition"
+ }
+]
