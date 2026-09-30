@@ -92,9 +92,18 @@ public struct Profile: Codable, Sendable, Equatable, Identifiable {
     }
 }
 
+extension Profile {
+    /// The profile-independent baseline used for stored/browsed glances, so they never shift with the profile.
+    public static let `default` = Profile(id: "default", label: "You", values: .balanced, conditions: [])
+}
+
 public struct AdditiveResult: Sendable, Equatable {
     public let additive: Additive
     /// May differ from `additive.baseVerdict` when the profile resolves a contested case.
     public let verdict: VerdictKey
     public let profileNote: String?
+
+    public init(additive: Additive, verdict: VerdictKey, profileNote: String?) {
+        self.additive = additive; self.verdict = verdict; self.profileNote = profileNote
+    }
 }

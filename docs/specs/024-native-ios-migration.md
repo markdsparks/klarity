@@ -78,8 +78,10 @@ device test before cutover.
 - ✅ OFF / USDA / Kroger clients + search ranking (dual retrieval, GTIN trust, dedupe) +
   enrichment/confidence gate. Verified by replaying 1,000+ TS-recorded scenarios (mocked
   fetch → served responses, output, AND requested URLs) through a stub `HTTPClient`.
-- ⏳ restaurant engine (search, build customizer), history/diagnostics,
-  common-additions/QA simulate-addition (with spec 014 port)
+- ✅ restaurant engine: 7-chain data, progressive search (1,800 fuzzed queries: chain
+  recognition, item narrowing, "no X" annotations), build math (adjusted nutrition, effective
+  ingredient text, glance) over 687 builds
+- ⏳ history/diagnostics pure logic, common-additions/QA simulate-addition (with spec 014 port)
 
 **Regenerating goldens:** `npm run golden` (TS side), `npm run test:swift` (Swift side).
 **Deliberate divergence:** `KrogerClient` shares one in-flight token request across concurrent

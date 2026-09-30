@@ -216,3 +216,71 @@ for (let i = 0; i < 400; i++) {
   eCases.push({ tags, result: matchByETags(tags) });
 }
 write('e-number-match.json', eCases);
+
+// ── restaurant: progressive search, modifier math, glance ─────────────────────
+import { createHash } from 'node:crypto';
+import { CATALOG, CHAINS, MENU_ITEMS } from '../src/data/restaurants';
+import { adjustedNutrition, effectiveIngredientText, menuItemGlance, restaurantServingNutrients, searchRestaurant } from '../src/services/restaurant-search';
+import { DEFAULT_PROFILE } from '../src/hooks/use-profile';
+
+const sha = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 16);
+const chop = (s: string) => s.slice(0, int(1, s.length));
+const int = (lo: number, hi: number) => lo + Math.floor(rnd() * (hi - lo + 1));
+
+function noisy(s: string): string {
+  let out = s;
+  if (chance(0.2)) out = out.toUpperCase();
+  if (chance(0.15)) out = out.replace(/ /g, '  ');
+  if (chance(0.1)) out = ' ' + out + ' ';
+  if (chance(0.1)) out = out.replace(/(\w)$/, "$1's");
+  if (chance(0.1)) out = out.replace(/ /, '-');
+  return out;
+}
+
+const queries: string[] = ['', '   ', 'zzz', 'chick', 'chic', 'chi', 'ch', "chick-fil-a's", 'subway footlong', 'no pickles', 'panda', 'the', 'burger'];
+for (let i = 0; i < 1800; i++) {
+  const chain = pick(CHAINS);
+  const items = MENU_ITEMS.filter(x => x.chainId === chain.id);
+  const alias = pick([...chain.aliases, chain.name]);
+  const chainPart = chance(0.6) ? alias : chance(0.6) ? chop(alias) : alias.split(' ').slice(0, int(1, alias.split(' ').length)).join(' ');
+  const item = pick(items);
+  const itemWords = item.name.split(' ');
+  const itemPart = chance(0.15) ? '' : chance(0.5) ? item.name : chance(0.5) ? itemWords.slice(0, int(1, itemWords.length)).map(w => chance(0.3) ? chop(w) : w).join(' ')
+    : chance(0.5) ? pick(item.aliases ?? [item.name]) : itemWords.join('').toLowerCase();
+  const removable = item.components.filter(c => c.removable);
+  const mod = chance(0.4) && removable.length ? ` ${pick(['no', 'without', 'minus', 'hold the', 'no'])} ${pick(removable).name.split(' ').slice(0, int(1, 3)).join(' ')}${chance(0.2) ? ` no ${pick(removable).name}` : ''}` : '';
+  const q = chance(0.85) ? `${chainPart} ${itemPart}${mod}` : `${itemPart}${mod} ${chainPart}`;
+  queries.push(noisy(q));
+}
+const searchCases = queries.map(q => {
+  const r = searchRestaurant(q);
+  return {
+    query: q, kind: r.kind,
+    chainId: 'chain' in r ? r.chain.id : null,
+    filtered: r.kind === 'menu' ? r.filtered : null,
+    hits: r.kind === 'menu' ? r.hits.map(h => ({ itemId: h.item.id, removedIds: h.removedIds })) : null,
+  };
+});
+write('restaurant-search.json', searchCases);
+
+const catalogIds = CATALOG.map(c => c.id);
+const buildCases: unknown[] = [];
+const refsDefault = referenceValues(DEFAULT_PROFILE);
+MENU_ITEMS.forEach((item, idx) => {
+  for (let k = 0; k < 3; k++) {
+    const removedIds = k === 0 ? [] : [...item.components.filter(c => chance(0.4)).map(c => c.id), ...(chance(0.1) ? ['no_such_component'] : [])];
+    const pool = [...(item.addOnIds ?? []), ...(item.slots ?? []).flatMap(s => s.optionIds), ...(chance(0.2) ? [pick(catalogIds)] : []), ...(chance(0.05) ? ['no_such_catalog'] : [])];
+    const addedIds = k === 0 ? [] : shuffled(pool).slice(0, int(0, Math.min(3, pool.length)));
+    const adj = adjustedNutrition(item, removedIds, addedIds);
+    const text = effectiveIngredientText(item, removedIds, addedIds);
+    const sn = restaurantServingNutrients(adj.nutrition, refsDefault);
+    buildCases.push({
+      itemId: item.id, removedIds, addedIds,
+      adjusted: { nutrition: adj.nutrition, computed: adj.computed, basis: adj.basis, unadjustedRemovalIds: adj.unadjustedRemovals.map(c => c.id) },
+      textHash: sha(text), textLen: text.length, text: idx % 25 === 0 ? text : null,
+      servingNutrients: sn,
+      glance: menuItemGlance(item, removedIds, addedIds),
+    });
+  }
+});
+write('restaurant-build.json', buildCases);
