@@ -14,7 +14,7 @@ func goldenData(_ name: String) throws -> Data {
 }
 
 /// JSON value wrapper so golden fixtures can be decoded as opaque trees and diffed.
-enum JSON: Decodable, Equatable {
+enum JSON: Codable, Equatable {
     case null, bool(Bool), number(Double), string(String), array([JSON]), object([String: JSON])
 
     init(from decoder: Decoder) throws {
@@ -25,6 +25,18 @@ enum JSON: Decodable, Equatable {
         else if let s = try? c.decode(String.self) { self = .string(s) }
         else if let a = try? c.decode([JSON].self) { self = .array(a) }
         else { self = .object(try c.decode([String: JSON].self)) }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.singleValueContainer()
+        switch self {
+        case .null: try c.encodeNil()
+        case .bool(let b): try c.encode(b)
+        case .number(let n): try c.encode(n)
+        case .string(let s): try c.encode(s)
+        case .array(let a): try c.encode(a)
+        case .object(let o): try c.encode(o)
+        }
     }
 
     init<E: Encodable>(encoding value: E) throws {

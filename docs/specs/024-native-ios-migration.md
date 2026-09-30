@@ -75,5 +75,12 @@ device test before cutover.
 - ✅ verdict-sentence + hero tone (1,500-case fuzz), verdict-ladder + per-product context,
   nutrition-explainers + line matching, regulatory additives (EFSA) + E-number tiers,
   conditions
-- ⏳ OFF/USDA/Kroger clients, product-search, restaurant engine, history/diagnostics,
+- ✅ OFF / USDA / Kroger clients + search ranking (dual retrieval, GTIN trust, dedupe) +
+  enrichment/confidence gate. Verified by replaying 1,000+ TS-recorded scenarios (mocked
+  fetch → served responses, output, AND requested URLs) through a stub `HTTPClient`.
+- ⏳ restaurant engine (search, build customizer), history/diagnostics,
   common-additions/QA simulate-addition (with spec 014 port)
+
+**Regenerating goldens:** `npm run golden` (TS side), `npm run test:swift` (Swift side).
+**Deliberate divergence:** `KrogerClient` shares one in-flight token request across concurrent
+callers; the TS client lets each of search's 8 parallel candidates mint its own.

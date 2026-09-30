@@ -52,7 +52,9 @@
     "build:preview": "eas build --platform ios --profile preview",
     "build:sim": "eas build --platform ios --profile development",
     "build:device": "eas build --platform ios --profile development-device",
-    "submit:ios": "eas submit --platform ios --profile preview --latest"
+    "submit:ios": "eas submit --platform ios --profile preview --latest",
+    "golden": "tsx scripts/export-data.ts && tsx scripts/gen-golden.ts && tsx scripts/gen-golden-network.ts",
+    "test:swift": "swift test --package-path swift/KlarityCore"
   },
   "jest": {
     "preset": "jest-expo",
