@@ -80,7 +80,10 @@ Glass by default. Verified in Simulator (Search mode) and on device (scan).
   It only finds data once the native app ships under `com.klarity.app` (cutover).
 - ✅ Ask about this — Foundation Models, redesigned as guided classification + deterministic dispatch
   (see spec 014 native addendum). Verified live in the Simulator across all four question kinds.
-- ⏳ Next: on-device pass (scanner + Q&A on Mark's phone), then Phase 3 cutover.
+- ✅ On-device pass 1 (2026-09-30, Mark's iPhone 17 Pro Max): found the scanner acting only on
+  VisionKit's didAdd (payload often arrives in a later update) — fixed; Pure Leaf UPC scanned,
+  resolved and rendered correctly (Mark confirmed).
+- ⏳ Next: a few more real-product scans (store brands, long ingredient lists), then Phase 3 cutover.
 
 ## Phase 3 — Cutover
 Same bundle ID/ASC app; build number above RN's; TestFlight to family;
