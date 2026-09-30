@@ -43,6 +43,21 @@ final class AppModel {
         profile = Self.load(Profile.self, key: Keys.profile, from: defaults) ?? .default
         userServings = Self.load([String: Double].self, key: Keys.servings, from: defaults) ?? [:]
         history = HistoryFile.load()
+        importLegacyDataOnce()
+    }
+
+    /// Cutover (spec 024): the first launch under the RN app's bundle id adopts its AsyncStorage data. Runs
+    /// once; fills only categories that are still empty here; never deletes the RN files (they stay as a fallback).
+    private func importLegacyDataOnce() {
+        let flag = "KLARITY_LEGACY_IMPORT_V1"
+        guard !UserDefaults.standard.bool(forKey: flag), let bundleID = Bundle.main.bundleIdentifier else { return }
+        defer { UserDefaults.standard.set(true, forKey: flag) }
+        guard let legacy = LegacyImport.find(bundleID: bundleID) else { return }
+        if let p = legacy.profile, UserDefaults.standard.data(forKey: Keys.profile) == nil { profile = p }
+        if history.isEmpty, !legacy.history.isEmpty { history = legacy.history; HistoryFile.save(history) }
+        if userServings.isEmpty { userServings = legacy.userServings }
+        if outcomes.isEmpty, !legacy.outcomes.isEmpty { outcomes = legacy.outcomes; JSONFile.save(outcomes, "klarity-diagnostics.json") }
+        if feedback.isEmpty, !legacy.feedback.isEmpty { feedback = legacy.feedback; JSONFile.save(feedback, "klarity-feedback.json") }
     }
 
     // MARK: History

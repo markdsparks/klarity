@@ -43,31 +43,40 @@ private struct HistoryRow: View {
     var body: some View {
         HStack(spacing: 12) {
             ProductThumbnail(url: entry.imageUrl.flatMap(URL.init(string:)), name: entry.productName)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(entry.productName).font(.body.weight(.medium)).lineLimit(1)
-                HStack(spacing: 6) {
-                    // Two axes, never combined — each dot names its axis.
-                    Dot(color: entry.additiveGlance.style.color, label: "Additives \(entry.additiveGlance.style.label.lowercased())")
-                    Dot(color: entry.nutritionTone.style.color, label: "Nutrition \(entry.nutritionTone.style.label.lowercased())")
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(entry.productName).font(.body.weight(.medium)).lineLimit(1)
+                    Spacer(minLength: 8)
+                    Text(Date(timeIntervalSince1970: entry.scannedAt / 1000), format: .relative(presentation: .named))
+                        .font(.caption).foregroundStyle(.secondary).lineLimit(1).fixedSize()
                 }
-            }
-            Spacer(minLength: 0)
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(Date(timeIntervalSince1970: entry.scannedAt / 1000), format: .relative(presentation: .named))
-                    .font(.caption).foregroundStyle(.secondary)
-                if entry.scanCount > 1 { Text("×\(entry.scanCount)").font(.caption2).foregroundStyle(.tertiary) }
+                // Two axes, never combined — each names its axis and shows its ladder position.
+                HStack(spacing: 14) {
+                    AxisReading(axis: "Additives", style: entry.additiveGlance.style, tone: entry.additiveGlance.cardTone)
+                    AxisReading(axis: "Nutrition", style: entry.nutritionTone.style, tone: entry.nutritionTone.cardTone)
+                    Spacer(minLength: 0)
+                    if entry.scanCount > 1 { Text("×\(entry.scanCount)").font(.caption).foregroundStyle(.tertiary).fixedSize() }
+                }
             }
         }
     }
 }
 
-private struct Dot: View {
-    let color: Color
-    let label: String
+private struct AxisReading: View {
+    let axis: String
+    let style: GlanceStyle
+    let tone: Tone
+
     var body: some View {
-        HStack(spacing: 4) {
-            Circle().fill(color).frame(width: 7, height: 7)
-            Text(label).font(.caption).foregroundStyle(.secondary)
+        HStack(spacing: 5) {
+            Text(axis).font(.caption).foregroundStyle(.secondary).lineLimit(1).fixedSize()
+            if let level = style.level {
+                LadderMark(level: level, color: tone.mark)
+            } else {
+                Text("—").font(.caption).foregroundStyle(.tertiary)
+            }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(axis): \(style.label)")
     }
 }
