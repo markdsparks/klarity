@@ -26,8 +26,13 @@ struct ResultView: View {
             .toolbarColorScheme(.dark, for: .navigationBar)
             .task(id: barcode) { await load() }
             .sheet(item: $sheet) { sheet in
-                ResultSheetView(sheet: sheet, barcode: barcode)
+                ResultSheetView(sheet: sheet, barcode: barcode, ask: readyAskContext)
             }
+    }
+
+    private var readyAskContext: AskContext? {
+        guard case .ready(let r) = phase else { return nil }
+        return ProductAnalysis(r, profile: model.profile, userServingGrams: model.userServing(for: barcode)).askContext
     }
 
     @ViewBuilder private var content: some View {
@@ -225,6 +230,7 @@ private struct GlanceButton: View {
                 Text(axis).font(.caption2.weight(.semibold)).foregroundStyle(Theme.heroMuted)
                 HStack(spacing: 6) {
                     Text(style.label).font(.headline).foregroundStyle(style.color)
+                        .lineLimit(1).minimumScaleFactor(0.75)
                     Spacer(minLength: 4)
                     if let level = style.level { LadderMark(level: level, color: style.color) }
                 }

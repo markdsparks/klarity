@@ -39,7 +39,10 @@ struct RestaurantResultView: View {
             }
         }
         .onChange(of: build) { _, b in persist(b) }
-        .sheet(item: $sheet) { ResultSheetView(sheet: $0, barcode: restaurantHistoryKey(itemID)) }
+        .sheet(item: $sheet) {
+            ResultSheetView(sheet: $0, barcode: restaurantHistoryKey(itemID),
+                            ask: build.flatMap { RestaurantAnalysis($0, profile: model.profile) }?.askContext)
+        }
         .sheet(item: $optionSheet) { kind in
             OptionSheet(kind: kind, build: Binding(get: { build! }, set: { build = $0 }))
         }

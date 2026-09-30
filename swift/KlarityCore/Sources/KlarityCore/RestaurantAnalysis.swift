@@ -13,6 +13,7 @@ public struct RestaurantAnalysis: Sendable {
     public let nutritionCard: NutritionCardData
     public let removed: [MenuComponent]
     public let added: [CatalogComponent]
+    public let askContext: AskContext
 
     public init?(_ build: RestaurantBuild, profile: Profile) {
         let item = build.item
@@ -51,6 +52,8 @@ public struct RestaurantAnalysis: Sendable {
             badge: adj.computed ? "Computed" : nil, basisNotes: notes,
             personalizedReference: isPersonalizedReference(profile), sugarThreshold: warnThresholds(for: profile).sugar)
 
+        askContext = AskContext(servingNutrients: sn, profile: profile,
+                                context: NutritionContext(wholeFoodSugarMatrix: item.wholeFoodSugarMatrix))
         removed = item.components.filter { build.removedIds.contains($0.id) }
         added = build.addedIds.compactMap(Restaurants.catalogComponent(id:))
     }

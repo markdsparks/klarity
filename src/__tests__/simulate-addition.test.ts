@@ -135,7 +135,9 @@ describe('simulateAddition', () => {
       expect(result.mechanism).toMatch(/^you'd need about 2 potatoes — not 1 medium/i);
       expect(result.mechanism).not.toMatch(/potato of/i);
       expect(result.mechanism).toMatch(/match this product's 1400 mg of sodium/i);
-      expect(result.mechanism).toMatch(/only reaches about 926 mg \(from 0 mg\)/i);
+      // Potassium is missing on this fixture, not zero — the copy must say so (spec 025's lesson).
+      expect(result.mechanism).toMatch(/it adds about 926 mg of potassium \(this item's own potassium isn't published, so none is counted\)/i);
+      expect(result.mechanism).not.toMatch(/from 0 mg/i);
     });
 
     it('crosses the threshold — potassium fully matches sodium, softening the flag', () => {
@@ -146,8 +148,14 @@ describe('simulateAddition', () => {
       expect(result.found).toBe(true);
       expect(result.after?.tone).not.toBe('warn');
       expect(result.changed).toBe(true);
-      expect(result.mechanism).toMatch(/potassium would go from about 0 mg to 926 mg/i);
+      expect(result.mechanism).toMatch(/this adds about 926 mg of potassium — enough on its own/i);
       expect(result.mechanism).toMatch(/match this product's 500 mg of sodium/i);
+    });
+
+    it('known potassium is reported as a from → to change', () => {
+      const withK = { ...highSodiumNoPotassiumSn, potassium: 0.2, potassiumDv: 4 };
+      const result = simulateAddition(withK, baseProfile, 'baked potato');
+      expect(result.mechanism).toMatch(/potassium only reaches about 1126 mg \(from 200 mg\)/i);
     });
 
     it('an addition with no potassium data reports no sodium mechanism', () => {

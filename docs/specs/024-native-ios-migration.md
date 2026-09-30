@@ -78,7 +78,9 @@ Glass by default. Verified in Simulator (Search mode) and on device (scan).
   diagnostics, feedback — each key independent. Runs once at launch, fills only empty categories,
   never deletes the RN files. Verified by planting a real-format store in the Simulator sandbox.
   It only finds data once the native app ships under `com.klarity.app` (cutover).
-- ⏳ Next slices: Ask-about-this (Foundation Models); on-device scan pass (needs Mark's phone).
+- ✅ Ask about this — Foundation Models, redesigned as guided classification + deterministic dispatch
+  (see spec 014 native addendum). Verified live in the Simulator across all four question kinds.
+- ⏳ Next: on-device pass (scanner + Q&A on Mark's phone), then Phase 3 cutover.
 
 ## Phase 3 — Cutover
 Same bundle ID/ASC app; build number above RN's; TestFlight to family;

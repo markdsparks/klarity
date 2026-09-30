@@ -48,6 +48,8 @@ public struct ProductAnalysis: Sendable {
     public let servingEditable: Bool
     public let personalizedReference: Bool
     public let sugarThreshold: Int
+    /// What the on-device Q&A reasons over (spec 014) — the same numbers and context this screen scored.
+    public let askContext: AskContext
 
     public init(_ r: ResolvedProduct, profile: Profile, userServingGrams: Double? = nil) {
         let p = r.product
@@ -97,6 +99,8 @@ public struct ProductAnalysis: Sendable {
         servingEditable = hasNutritionData(sn) && (sn.basis == .raccEstimate || sn.basis == .per100g || sn.basis == .userServing)
         personalizedReference = isPersonalizedReference(profile)
         sugarThreshold = warnThresholds(for: profile).sugar
+        askContext = AskContext(servingNutrients: sn, profile: profile,
+                                context: NutritionContext(matrixDestroyedCategory: ctx.matrixDestroyedCategory))
     }
 
     public var nutritionCard: NutritionCardData {

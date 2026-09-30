@@ -19,13 +19,14 @@ enum ResultSheet: Identifiable {
 struct ResultSheetView: View {
     let sheet: ResultSheet
     let barcode: String
+    var ask: AskContext?
 
     var body: some View {
         switch sheet {
         case .ladder(let axis, let level, let context, let link):
-            LadderSheet(explainer: VerdictLadder.explainer(axis, level), context: context, link: link)
+            LadderSheet(explainer: VerdictLadder.explainer(axis, level), context: context, link: link, ask: ask)
         case .explainer(let e):
-            ExplainerSheet(explainer: e)
+            ExplainerSheet(explainer: e, ask: ask)
         case .serving:
             ServingSizeSheet(barcode: barcode)
         }
@@ -37,6 +38,7 @@ struct LadderSheet: View {
     let explainer: LadderExplainer
     let context: String
     let link: AdditiveLink?
+    var ask: AskContext?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -58,6 +60,7 @@ struct LadderSheet: View {
                         }
                     }
                 }
+                if let ask { AskAboutThisSection(ask: ask) }
                 Section("How we calculate it") { Text(explainer.method).foregroundStyle(.secondary) }
                 Section("The ladder") {
                     ForEach(explainer.steps, id: \.level) { step in
@@ -82,6 +85,7 @@ struct LadderSheet: View {
 
 struct ExplainerSheet: View {
     let explainer: NutritionExplainer
+    var ask: AskContext?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -93,6 +97,7 @@ struct ExplainerSheet: View {
                     TierBadge(tier: explainer.tier)
                 }
                 Section("Source") { Text(explainer.source).foregroundStyle(.secondary) }
+                if let ask { AskAboutThisSection(ask: ask) }
             }
             .navigationTitle(explainer.title)
             .navigationBarTitleDisplayMode(.inline)

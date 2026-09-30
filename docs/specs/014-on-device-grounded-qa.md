@@ -761,3 +761,34 @@ was real investigative work not worth re-deriving. The throwaway manual test
 screen (`qa-smoke-test.tsx`) and its temporary You-tab entry are removed —
 their job (prove the path works) is done, and they have zero automated
 value going forward.
+
+---
+
+## Native addendum (2026-09-30) — guided classification replaces tool calling
+
+The Swift port (`KlarityCore/AskAboutThis.swift`) keeps the non-negotiable principle — the model is an
+interface onto the deterministic engine, never a source of claims — but changes HOW its choice is
+captured. The RN design let the model call tools. The first native simulator pass reproduced the
+RN device-pass failures immediately: "what could I add to fix this?" became `simulate_addition("spinach")`;
+with invented ingredients rejected, the model then picked an irrelevant sugar explainer on a
+sodium-flagged item, and first-call-wins locked it in.
+
+Now the model only CLASSIFIES, by guided generation (constrained decoding into a `@Generable` type):
+1. Stage 1 — `AskClassification { kind: simulateAddition | suggestAdditions | explainRule | unsupported,
+   ingredient }`, with a short prompt carrying one example per kind (the topic list is NOT in it; in one
+   prompt it pulled generic questions toward explainRule).
+2. Stage 2, explainRule only — a topic id chosen under a `DynamicGenerationSchema(anyOf: explainRuleTopics)`,
+   so no other value is possible.
+3. `AskAboutThis.answer(for:)` — pure, unit-tested dispatch. A simulateAddition whose ingredient isn't in
+   the user's own words is treated as the generic question it is; unknown topics and unsupported
+   questions get Klarity's own decline copy. The model never writes user-facing text at all.
+
+Gone by construction: multi-call races, argument invention reaching the user, context overflow from
+tool results, and model-authored declines. Verified live in the iOS 26 Simulator (Apple Intelligence
+model) on a sodium-flagged item: generic add → sodium-specific ranked additions; "why does potassium
+matter for sodium?" → the sodium_potassium explainer; "what if I add a banana?" → the engine's
+mechanism line; a medication question → the decline copy.
+
+Found on the same pass and fixed in BOTH engines: the sodium/potassium mechanism printed
+"(from 0 mg)" when an item's potassium is simply unpublished (all chain items). The math still counts
+it as 0 (cautious), but the copy now says the potassium isn't published — missing is not zero (spec 025).
