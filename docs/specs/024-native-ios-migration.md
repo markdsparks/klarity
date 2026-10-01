@@ -1,6 +1,6 @@
 # Spec 024 — Native iOS Migration (RN → Swift/SwiftUI)
 
-**Status:** Approved 2026-09-29 (ADR-007). Phase 0 done; **Phase 1 done** (2026-09-29); Phase 2 next.
+**Status:** Complete. Phases 0–2 done 2026-09-29/30; **cutover 2026-10-01** (TestFlight 0.2.0 (29), Mark confirmed working); RN app removed.
 **Assumptions taken as defaults (Mark to override):** iOS-only permanently;
 minimum iOS 26; Fettle adopts `KlarityCore` later, not during migration;
 multi-member profiles (Phase 3.5) waits for Swift.
@@ -137,3 +137,10 @@ tests), on-device model behavior (spec 014's 15th device pass), and UI. Those ar
 **Regenerating goldens:** `npm run golden` (TS side), `npm run test:swift` (Swift side).
 **Deliberate divergence:** `KrogerClient` shares one in-flight token request across concurrent
 callers; the TS client lets each of search's 8 parallel candidates mint its own.
+
+## Phase 3 — done (2026-10-01)
+- Native app shipped as `com.klarity.app` 0.2.0 (29) via TestFlight; Mark confirmed it working.
+- RN app removed: `src/`, Expo/RN dependencies, `assets/`, jest/eslint/tsconfig, AGENTS.md, the TS-engine
+  golden generators. `app.json`/`eas.json` trimmed to what `eas submit` needs.
+- Evidence data is now canonical in `KlarityCore/Resources/*.json`; `scripts/ingest-openfoodtox.js` writes
+  `regulatory-additives.json` directly. Golden fixtures are frozen regression fixtures.
