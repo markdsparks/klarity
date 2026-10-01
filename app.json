@@ -2,48 +2,15 @@
   "expo": {
     "name": "Klarity",
     "slug": "klarity",
-    "version": "0.1.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "klarity",
-    "userInterfaceStyle": "automatic",
+    "owner": "mdspark",
+    "version": "0.2.0",
     "ios": {
-      "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.klarity.app",
-      "infoPlist": {
-        "NSCameraUsageDescription": "Klarity needs your camera to scan food barcodes.",
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
-    "plugins": [
-      "expo-router",
-      "expo-camera",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#208AEF"
-        }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "bundleIdentifier": "com.klarity.app"
     },
     "extra": {
-      "router": {},
       "eas": {
         "projectId": "03cbdde6-1fd1-4fd5-9bc0-fa273ecbdfbe"
       }
-    },
-    "owner": "mdspark",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/03cbdde6-1fd1-4fd5-9bc0-fa273ecbdfbe"
-    },
-    "platforms": [
-      "ios"
-    ]
+    }
   }
 }

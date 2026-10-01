@@ -2,15 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "expo-web",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["expo", "start", "--web", "--port", "8097"],
-      "port": 8097
-    },
-    {
       "name": "fettle-web",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["expo", "start", "/Users/markdsparks/fettle", "--web", "--port", "8098"],
+      "runtimeArgs": [
+        "expo",
+        "start",
+        "/Users/markdsparks/fettle",
+        "--web",
+        "--port",
+        "8098"
+      ],
       "port": 8098
     }
   ]
