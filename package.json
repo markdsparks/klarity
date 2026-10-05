@@ -7,7 +7,8 @@
     "test:swift": "swift test --package-path swift/KlarityCore",
     "build:native": "bash scripts/build-native-ios.sh",
     "submit:native": "eas submit --platform ios --profile preview --path native/build/export/Klarity.ipa --non-interactive",
-    "ingest:efsa": "node scripts/ingest-openfoodtox.js"
+    "ingest:efsa": "node scripts/ingest-openfoodtox.js",
+    "bench:scan": "set -a && . ./.env && set +a && swift run --package-path swift/KlarityCore klarity-bench run bench/scan-coverage/barcodes.tsv bench/scan-coverage/runs/$(date +%F)"
   },
   "devDependencies": {
     "eas-cli": "^20.4.0",
