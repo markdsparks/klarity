@@ -8,7 +8,7 @@ struct DiagnosticsView: View {
     @State private var exportURL: URL?
     @State private var confirmClear = false
 
-    private static let order: [ScanOutcome] = [.confident, .clean, .restaurant, .unratedAdditive, .regulatoryOnly, .thinNutrition, .notFound]
+    private static let order: [ScanOutcome] = [.confident, .clean, .restaurant, .unratedAdditive, .regulatoryOnly, .noIngredients, .thinNutrition, .notFound]
 
     var body: some View {
         let summary = summarize(model.outcomes)
@@ -101,6 +101,7 @@ extension ScanOutcome {
         case .clean: "No additives"
         case .unratedAdditive: "Unrated additive"
         case .regulatoryOnly: "Permitted-status only"
+        case .noIngredients: "No ingredient list"
         case .thinNutrition: "No nutrition data"
         case .notFound: "Not found"
         case .restaurant: "Restaurant item"

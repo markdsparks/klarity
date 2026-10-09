@@ -26,7 +26,7 @@ struct ScanResolverTests {
 
     @Test func analysisGlanceAndServingLabel() {
         var p = OFFProduct()
-        p.productName = "Test Bar"; p.brands = "Acme, Parent Co"; p.categoriesTags = ["en:nuts"]
+        p.productName = "Test Bar"; p.brands = "Acme, Parent Co"; p.categoriesTags = ["en:nuts"]; p.ingredientsText = "almonds"
         var n = OFFNutriments(); n.sugars100g = 5; n.energyKcal100g = 600
         p.nutriments = n
         let r = ResolvedProduct(barcode: "1", product: p, additiveIds: [], regulatory: [], unknown: [], usda: nil, kroger: nil)
@@ -101,5 +101,31 @@ struct ScanResolverTests {
         await #expect(throws: ClientError.network) {
             try await resolver(off: nil, krogerHasIt: false).resolve("011110626271")
         }
+    }
+
+    // MARK: No ingredient list is missing data, never "no additives" (2026-10-08 benchmark: 10/300 products)
+
+    @Test func noIngredientListIsNoDataNotClean() {
+        var p = OFFProduct(); p.productName = "Store Cookies"
+        var n = OFFNutriments(); n.sugars100g = 30; n.energyKcal100g = 480
+        let bare = ResolvedProduct(barcode: "1", product: p, additiveIds: [], regulatory: [], unknown: [], usda: nil, kroger: nil)
+        #expect(!bare.hasIngredientData)
+        let a = ProductAnalysis(bare, profile: .default)
+        #expect(a.glance == .noData)
+        #expect(a.sentence == "We couldn't find an ingredient list or nutrition data for this one, so there's nothing to judge yet.")
+        #expect(ProductAnalysis.outcomeRecord(bare, source: .barcode, userServingGrams: nil, now: 0).outcome == .noIngredients)
+        #expect(ProductAnalysis.historyRecord(bare, userServingGrams: nil, now: 0).additiveGlance == .noData)
+
+        p.nutriments = n
+        let withNutrition = ProductAnalysis(ResolvedProduct(barcode: "1", product: p, additiveIds: [], regulatory: [], unknown: [],
+                                                            usda: nil, kroger: nil), profile: .default)
+        #expect(withNutrition.sentence?.hasSuffix("We couldn't find an ingredient list, so this covers nutrition only.") == true)
+        #expect(withNutrition.sentence?.contains("clean additives") == false)
+
+        // Any one source's ingredient list — or OFF's own additive tags — is enough to make "clean" a real claim.
+        let k = KrogerMatch(matched: true, hasIngredients: true, ingredientStatement: "flour, sugar", description: nil, brand: nil, imageUrl: nil)
+        #expect(ResolvedProduct(barcode: "1", product: p, additiveIds: [], regulatory: [], unknown: [], usda: nil, kroger: k).hasIngredientData)
+        var tagged = p; tagged.additivesTags = ["en:e330"]
+        #expect(ResolvedProduct(barcode: "1", product: tagged, additiveIds: [], regulatory: [], unknown: [], usda: nil, kroger: nil).hasIngredientData)
     }
 }

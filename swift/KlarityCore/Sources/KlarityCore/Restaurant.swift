@@ -330,7 +330,7 @@ public func adjustedNutrition(_ item: MenuItem, removedIds: [String], addedIds: 
 
 // MARK: - Menu glance
 
-public enum AdditiveGlanceKey: String, Codable, Sendable { case everyday, sometimes, contested, clean, unrated }
+public enum AdditiveGlanceKey: String, Codable, Sendable { case everyday, sometimes, contested, clean, unrated, noData = "no-data" }
 
 public struct MenuGlance: Codable, Sendable, Equatable {
     public let additiveGlance: AdditiveGlanceKey
@@ -340,9 +340,10 @@ public struct MenuGlance: Codable, Sendable, Equatable {
 /// Profile-independent glance for a build — powers the menu browser's pills and history entries (base
 /// verdicts, default-profile tone, so stored/browsed glances don't shift with the profile).
 public func menuItemGlance(_ item: MenuItem, removedIds: [String] = [], addedIds: [String] = []) -> MenuGlance {
-    let verdicts = AdditiveData.matchByIngredientText(effectiveIngredientText(item, removedIds: removedIds, addedIds: addedIds))
-        .compactMap { AdditiveData.additive(id: $0)?.baseVerdict }
-    let glance: AdditiveGlanceKey = verdicts.isEmpty ? .clean
+    let text = effectiveIngredientText(item, removedIds: removedIds, addedIds: addedIds)
+    let verdicts = AdditiveData.matchByIngredientText(text).compactMap { AdditiveData.additive(id: $0)?.baseVerdict }
+    // No published ingredient text (e.g. fountain drinks) is missing data, not an additive-free item.
+    let glance: AdditiveGlanceKey = verdicts.isEmpty ? (hasText(text) ? .clean : .noData)
         : verdicts.contains(.contested) ? .contested
         : verdicts.contains(.sometimes) ? .sometimes : .everyday
     let profile = Profile.default
@@ -351,3 +352,5 @@ public func menuItemGlance(_ item: MenuItem, removedIds: [String] = [], addedIds
     let tone = toneNutrition(sn, profile: profile, context: NutritionContext(wholeFoodSugarMatrix: item.wholeFoodSugarMatrix)).tone
     return MenuGlance(additiveGlance: glance, nutritionTone: tone)
 }
+
+func hasText(_ s: String?) -> Bool { !(s ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }

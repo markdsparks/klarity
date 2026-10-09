@@ -68,7 +68,7 @@ struct RestaurantResultView: View {
                 }
                 VStack(spacing: 14) {
                     BuildCard(build: Binding(get: { self.build ?? build }, set: { self.build = $0 }), optionSheet: $optionSheet)
-                    AdditivesCard(results: a.additiveResults)
+                    AdditivesCard(results: a.additiveResults, noIngredientData: a.glance == .noData)
                     NutritionCard(data: a.nutritionCard, sheet: $sheet)
                     Text("Source: \(a.chain.source.label) (FDA menu-labeling disclosure) · retrieved \(a.chain.source.retrieved)"
                          + (a.chain.coverage == .nutritionOnly ? " · nutrition only — ingredient statements not published" : ""))

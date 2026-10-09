@@ -55,7 +55,9 @@ public struct AdditiveContext: Codable, Sendable, Equatable {
     public let link: AdditiveLink?
 }
 
-public enum GlanceKey: String, Codable, Sendable { case clean, unrated, everyday, sometimes, contested }
+/// `noData` = no ingredient list from any source — nothing was read, which is not the same as "no additives"
+/// (CLAUDE.md: never score missing data as zero; the additive-axis twin of spec 025).
+public enum GlanceKey: String, Codable, Sendable { case clean, unrated, everyday, sometimes, contested, noData = "no-data" }
 
 /// Per-product "why" for the additives ladder sheet — built entirely from data already on screen.
 public func additiveLadderContext(_ glanceKey: GlanceKey, _ results: [AdditiveResult],
@@ -66,6 +68,8 @@ public func additiveLadderContext(_ glanceKey: GlanceKey, _ results: [AdditiveRe
         return ctx(regulatoryCount + unknownCount > 0
             ? "No dose/frequency-rated additives were detected — anything else listed is regulatory-status or not-yet-rated only."
             : "No additives were detected in this product.")
+    case .noData:
+        return ctx("We couldn't find an ingredient list for this product, so there's nothing to rate — that's missing data, not a clean result.")
     case .unrated:
         return ctx("This product's additives aren't yet in our rated database, so there's no dose/frequency verdict to show yet.")
     case .contested:

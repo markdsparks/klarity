@@ -26,7 +26,7 @@ public struct RestaurantAnalysis: Sendable {
             .enumerated()
             .sorted { ($0.element.profileNote != nil ? 1 : 0, -$0.offset) > ($1.element.profileNote != nil ? 1 : 0, -$1.offset) }
             .map(\.element)
-        glance = overallAdditiveGlance(additiveResults.map(\.verdict), unratedCount: 0)
+        glance = overallAdditiveGlance(additiveResults.map(\.verdict), unratedCount: 0, hasIngredientData: hasText(text))
 
         let adj = adjustedNutrition(item, removedIds: build.removedIds, addedIds: build.addedIds)
         let sn = restaurantServingNutrients(adj.nutrition, refs: referenceValues(for: profile))
@@ -37,7 +37,8 @@ public struct RestaurantAnalysis: Sendable {
             contestedDriver: matched.first { $0.baseVerdict == .contested },
             sometimesAdditives: matched.filter { $0.baseVerdict == .sometimes },
             nutritionTone: nutrition.tone, highNutrients: nutrition.highNutrients,
-            budgetNutrient: nutrition.budgetNutrient, profile: profile, proteinDv: sn.proteinDv ?? 0)
+            budgetNutrient: nutrition.budgetNutrient, profile: profile, proteinDv: sn.proteinDv ?? 0,
+            additivesUnknown: glance == .noData)
         sentence = verdictSentence(input)
         heroTone = KlarityCore.heroTone(input)
         additiveContext = additiveLadderContext(glance, additiveResults)

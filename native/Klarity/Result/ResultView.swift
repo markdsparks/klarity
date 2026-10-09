@@ -76,7 +76,8 @@ struct ResultView: View {
                         }
                     }
                     VStack(spacing: 14) {
-                        AdditivesCard(results: analysis.additiveResults, regulatory: analysis.regulatory, unknown: analysis.unknown)
+                        AdditivesCard(results: analysis.additiveResults, regulatory: analysis.regulatory, unknown: analysis.unknown,
+                                      noIngredientData: analysis.glance == .noData)
                         NutritionCard(data: analysis.nutritionCard, sheet: $sheet)
                         Button("Something look off?") { feedbackOpen = true }
                             .font(.subheadline)
@@ -152,11 +153,14 @@ struct VerdictHero<Extra: View>: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     // A quiet tint of the sentence's own driver — never a rail (design language: "the ladder mark, not the rail").
                     .background(heroTone.accent.opacity(0.11), in: RoundedRectangle(cornerRadius: 16))
-                Text("The two axes behind it — tap either for why").font(.caption).foregroundStyle(Theme.heroMuted)
+                // Only promise a tap when an axis has a ladder to open (No data / Not rated don't).
+                if glance != .unrated && glance != .noData || nutritionToneToLadderLevel(nutrition.tone) != nil {
+                    Text("The two axes behind it — tap either for why").font(.caption).foregroundStyle(Theme.heroMuted)
+                }
             }
 
             HStack(spacing: 10) {
-                GlanceButton(axis: "ADDITIVES", style: glance.style, action: glance == .unrated ? nil : {
+                GlanceButton(axis: "ADDITIVES", style: glance.style, action: glance == .unrated || glance == .noData ? nil : {
                     sheet = .ladder(axis: .additives,
                                     level: glance == .clean ? .everyday : LadderLevel(rawValue: glance.rawValue) ?? .everyday,
                                     context: additiveContext.text, link: additiveContext.link)
@@ -252,6 +256,8 @@ struct AdditivesCard: View {
     let results: [AdditiveResult]
     var regulatory: [RegulatoryAdditive] = []
     var unknown: [UnknownAdditive] = []
+    /// No ingredient list from any source — say that, never "no additives detected".
+    var noIngredientData = false
 
     private var total: Int { results.count + regulatory.count + unknown.count }
 
@@ -263,7 +269,8 @@ struct AdditivesCard: View {
                 if total > 0 { Text("\(total) in product").font(.subheadline).foregroundStyle(.secondary) }
             }
             if total == 0 {
-                Text("No additives detected.").foregroundStyle(.secondary)
+                Text(noIngredientData ? "No ingredient list on file for this product, so there's nothing to check yet."
+                                      : "No additives detected.").foregroundStyle(.secondary)
             }
             ForEach(results, id: \.additive.id) { r in
                 NavigationLink(value: Route.additive(id: r.additive.id)) { AdditiveRow(result: r) }

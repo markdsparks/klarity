@@ -78,6 +78,8 @@ extension GlanceKey {
         case .contested: GlanceStyle(label: "Contested", color: Theme.contestedOnDark, level: .split)
         case .clean: GlanceStyle(label: "No additives", color: Theme.goodOnDark, level: .one)
         case .unrated: GlanceStyle(label: "Not rated", color: Theme.heroMuted, level: nil)
+        // No ingredient list — same treatment as nutrition's "No data" (spec 025): no ladder position.
+        case .noData: GlanceStyle(label: "No data", color: Theme.heroMuted, level: nil)
         }
     }
 }
@@ -90,7 +92,7 @@ extension AdditiveGlanceKey {
         case .everyday, .clean: .everyday
         case .sometimes: .sometimes
         case .contested: .contested
-        case .unrated: .neutral
+        case .unrated, .noData: .neutral
         }
     }
 }

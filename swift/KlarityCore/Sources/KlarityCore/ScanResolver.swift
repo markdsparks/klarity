@@ -13,6 +13,13 @@ public struct ResolvedProduct: Sendable, Equatable {
     public var unknown: [UnknownAdditive]
     public var usda: USDANutrition?
     public var kroger: KrogerMatch?
+
+    /// Whether ANY source gave us something to read on the additive axis: an ingredient list, or OFF's own
+    /// parsed additive tags. False means "no additives found" would be a claim we can't make.
+    public var hasIngredientData: Bool {
+        !(product.additivesTags ?? []).isEmpty
+            || [product.ingredientsText, usda?.ingredients, kroger?.ingredientStatement].contains { hasText($0) }
+    }
 }
 
 public enum ScanResolution: Sendable, Equatable {
