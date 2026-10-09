@@ -2061,9 +2061,32 @@
  },
  {
   "id": "sodium_phosphates",
-  "name": "Sodium phosphates",
+  "name": "Sodium and potassium phosphates",
+  "aliases": [
+   "sodium phosphate",
+   "sodium phosphates",
+   "disodium phosphate",
+   "trisodium phosphate",
+   "monosodium phosphate",
+   "potassium phosphate",
+   "potassium phosphates",
+   "dipotassium phosphate",
+   "monopotassium phosphate",
+   "tripotassium phosphate",
+   "sodium tripolyphosphate",
+   "potassium tripolyphosphate",
+   "sodium hexametaphosphate",
+   "sodium polyphosphate",
+   "tetrasodium pyrophosphate"
+  ],
   "eNumber": "E339",
-  "role": "Additive phosphate — texture, moisture retention, pH control (common in processed meat, cheese products, and colas)",
+  "coversENumbers": [
+   "E340",
+   "E450III",
+   "E451",
+   "E452"
+  ],
+  "role": "Processing phosphates — moisture retention in deli meat, smooth melt in processed cheese, acidity and mineral balance in colas, sports drinks, and creamers",
   "benefit": "functional",
   "avoidability": "moderate",
   "baseVerdict": "sometimes",
@@ -2784,5 +2807,277 @@
   },
   "subgroupNotes": {},
   "contestedGuidance": "Not present in US products, so no action needed domestically — worth knowing about only if you're evaluating food purchased abroad."
+ },
+ {
+  "id": "leavening_phosphates",
+  "name": "Leavening and calcium phosphates",
+  "aliases": [
+   "monocalcium phosphate",
+   "calcium phosphate",
+   "calcium phosphates",
+   "tricalcium phosphate",
+   "dicalcium phosphate",
+   "calcium acid phosphate",
+   "sodium acid pyrophosphate",
+   "disodium pyrophosphate",
+   "disodium dihydrogen pyrophosphate"
+  ],
+  "eNumber": "E341",
+  "coversENumbers": [
+   "E450"
+  ],
+  "role": "Baking-powder acids that make breads, crackers, and breading rise; calcium phosphate also prevents caking and adds calcium",
+  "benefit": "functional",
+  "avoidability": "n/a",
+  "baseVerdict": "everyday",
+  "headline": "Baking powder's acid half — what makes biscuits, crackers, and breading rise. EFSA counts these toward its shared phosphate limit, but at leavening amounts a serving uses a small part of it.",
+  "exposure": {
+   "typical": "Leavening amounts in baked goods and breading",
+   "concerning": "None at leavening use for the general population",
+   "note": "The phosphate concern in EFSA's 2019 review is cumulative intake from processed food. Processing phosphates in deli meat, processed cheese, and colas are rated separately (Sometimes)."
+  },
+  "evidence": [
+   {
+    "tier": "A",
+    "applies": true,
+    "claim": "EFSA group ADI: 40 mg phosphorus/kg bw/day (2019), shared with the processing phosphates",
+    "why": "One limit covers every phosphate additive, so these count toward the same daily total. Leavening is a small contributor to it."
+   },
+   {
+    "tier": "B",
+    "applies": true,
+    "claim": "People with reduced kidney function are advised to limit additive phosphate of every kind",
+    "why": "EFSA's ADI explicitly does not apply to people with moderate-to-severe kidney disease, where additive phosphate is absorbed and retained more readily."
+   }
+  ],
+  "openQuestion": null,
+  "subgroupNotes": {}
+ },
+ {
+  "id": "caramel_color_iii",
+  "name": "Caramel color (ammonia, Type III)",
+  "eNumber": "E150C",
+  "role": "Brown color in beer, soy sauce, gravies, and baked goods",
+  "benefit": "cosmetic",
+  "avoidability": "easy",
+  "baseVerdict": "contested",
+  "headline": "Made with ammonia, so like the Type IV caramel in colas it carries 4-MEI. It also carries THI, which affected the immune system in rats — so EFSA gave it a tighter limit than the other caramels. Regulators say food levels are fine; California's 4-MEI listing disagrees.",
+  "exposure": {
+   "typical": "Small amounts for color; EFSA's 2012 refined estimate found no population group above the caramel-color group limit",
+   "concerning": "4-MEI is IARC Group 2B based on rodent studies at doses far above food exposure",
+   "note": "Types C and D both form 4-MEI; only Type C (this one) carries THI. Plain caramel (E150a) has neither."
+  },
+  "evidence": [
+   {
+    "tier": "A",
+    "applies": "split",
+    "claim": "4-MEI: IARC Group 2B; listed under California Prop 65",
+    "why": "The same by-product behind the cola caramel controversy. IARC's classification is a hazard call from animal studies, not a measured dietary risk."
+   },
+   {
+    "tier": "A",
+    "applies": "split",
+    "claim": "EFSA (2011): group ADI 300 mg/kg bw/day for caramel colors, with E150c held to 100 mg/kg bw/day inside it",
+    "why": "EFSA judged food-level use safe but set the stricter E150c limit because of uncertainty over THI. Its 2012 refined exposure assessment found the group ADI was not exceeded by any population group."
+   },
+   {
+    "tier": "C",
+    "applies": true,
+    "claim": "THI, a manufacturing by-product, affected the immune system in animal studies",
+    "why": "Animal data only — this is the specific reason E150c gets a tighter limit than E150a or E150d, not a demonstrated effect in people."
+   }
+  ],
+  "openQuestion": {
+   "text": "Whether THI's effects in animals have any relevance at human food exposure hasn't been resolved; EFSA chose a stricter limit over a conclusion.",
+   "subgroup": null
+  },
+  "subgroupNotes": {},
+  "contestedGuidance": "Purely cosmetic. At occasional use the exposure is low; if it shows up in foods you eat daily, it's an easy one to skip since the color does nothing for taste or safety."
+ },
+ {
+  "id": "caramel_color_i",
+  "name": "Plain caramel (Type I)",
+  "eNumber": "E150A",
+  "role": "Brown color made by heating sugar",
+  "benefit": "cosmetic",
+  "avoidability": "easy",
+  "baseVerdict": "everyday",
+  "headline": "Sugar heated until it browns — no ammonia or sulfite in the process, so none of the 4-MEI or THI behind the caramel-color controversy.",
+  "exposure": {
+   "typical": "Small amounts for color",
+   "concerning": "None at food levels",
+   "note": "The 4-MEI concern applies to Types C and D (E150c, E150d). US labels usually just say \"caramel color\" without the type; this entry applies only when the source identifies it as plain caramel."
+  },
+  "evidence": [
+   {
+    "tier": "A",
+    "applies": true,
+    "claim": "EFSA (2011): covered by the caramel-color group ADI of 300 mg/kg bw/day",
+    "why": "EFSA's 2012 refined exposure assessment found the group ADI was not exceeded by any population group."
+   }
+  ],
+  "openQuestion": null,
+  "subgroupNotes": {}
+ },
+ {
+  "id": "sodium_erythorbate",
+  "name": "Sodium erythorbate",
+  "aliases": [
+   "erythorbic acid",
+   "sodium isoascorbate"
+  ],
+  "eNumber": "E316",
+  "coversENumbers": [
+   "E315"
+  ],
+  "role": "Antioxidant and curing aid, mostly in hot dogs, bacon, and deli meat",
+  "benefit": "functional",
+  "avoidability": "n/a",
+  "baseVerdict": "everyday",
+  "headline": "A close chemical cousin of vitamin C used in cured meats — it speeds curing and helps limit the nitrosamines that nitrite can form. EFSA re-checked it in 2016 and kept its limit.",
+  "exposure": {
+   "typical": "Hundreds of ppm in cured meats",
+   "concerning": "EFSA found no population group above its ADI",
+   "note": "Despite the resemblance it has little vitamin C activity. If a cured meat concerns you, the nitrite is the ingredient worth weighing, not this."
+  },
+  "evidence": [
+   {
+    "tier": "A",
+    "applies": true,
+    "claim": "EFSA (2016) re-evaluation: ADI of 6 mg/kg bw/day maintained; no genotoxicity or carcinogenicity concern",
+    "why": "The ADI covers erythorbic acid (E315) and sodium erythorbate (E316) together, and EFSA found no population group exceeding it at reported use levels."
+   }
+  ],
+  "openQuestion": null,
+  "subgroupNotes": {}
+ },
+ {
+  "id": "glycerol",
+  "name": "Glycerol",
+  "aliases": [
+   "glycerin",
+   "glycerine",
+   "vegetable glycerin"
+  ],
+  "eNumber": "E422",
+  "role": "Humectant — keeps bars, soft baked goods, and icings moist",
+  "benefit": "functional",
+  "avoidability": "n/a",
+  "baseVerdict": "everyday",
+  "headline": "The backbone every dietary fat is built on, used to keep foods soft and moist. EFSA's 2017 re-evaluation found no need for a numerical limit.",
+  "exposure": {
+   "typical": "A few percent in protein bars and soft baked goods",
+   "concerning": "None at food levels",
+   "note": "EFSA's 2022 follow-up tightened purity specifications (heavy metals, acrolein) rather than changing the safety conclusion."
+  },
+  "evidence": [
+   {
+    "tier": "A",
+    "applies": true,
+    "claim": "EFSA (2017): no need for a numerical ADI; no genotoxicity or carcinogenicity concern",
+    "why": "Consistent with JECFA's long-standing \"ADI not specified\". Glycerol is released whenever the body digests ordinary fats."
+   }
+  ],
+  "openQuestion": null,
+  "subgroupNotes": {}
+ },
+ {
+  "id": "paprika_extract",
+  "name": "Paprika extract",
+  "aliases": [
+   "paprika oleoresin",
+   "oleoresin paprika",
+   "capsanthin",
+   "capsorubin"
+  ],
+  "eNumber": "E160C",
+  "role": "Natural red-orange color from paprika peppers",
+  "benefit": "cosmetic",
+  "avoidability": "easy",
+  "baseVerdict": "everyday",
+  "headline": "The red-orange pigments of paprika peppers, concentrated for color — the same carotenoids you'd get from the spice.",
+  "exposure": {
+   "typical": "Small amounts for color in snacks, sauces, and meats",
+   "concerning": "None at food levels",
+   "note": "Plain \"paprika\" on a label is the spice itself, not this additive."
+  },
+  "evidence": [
+   {
+    "tier": "A",
+    "applies": true,
+    "claim": "EFSA (2015) re-evaluation: ADI of 24 mg/kg bw/day (1.7 mg/kg bw/day as total carotenoids)",
+    "why": "A numerical limit set with standard safety margins; typical color-level use sits well within it."
+   }
+  ],
+  "openQuestion": null,
+  "subgroupNotes": {}
+ },
+ {
+  "id": "citrates",
+  "name": "Citrates (sodium, potassium, calcium)",
+  "aliases": [
+   "sodium citrate",
+   "sodium citrates",
+   "trisodium citrate",
+   "potassium citrate",
+   "potassium citrates",
+   "calcium citrate",
+   "calcium citrates"
+  ],
+  "eNumber": "E331",
+  "coversENumbers": [
+   "E332",
+   "E333"
+  ],
+  "role": "Acidity regulator and emulsifying salt (what makes processed cheese melt smoothly)",
+  "benefit": "functional",
+  "avoidability": "n/a",
+  "baseVerdict": "everyday",
+  "headline": "Salts of citric acid — the sourness in citrus. Citrate is a normal part of your own metabolism, and JECFA set no limit at all.",
+  "exposure": {
+   "typical": "Small fractions of a percent in drinks, cheese, and sauces",
+   "concerning": "None at food levels",
+   "note": "Sodium citrate adds a little sodium; it's counted in the label's sodium figure, which is where to look if sodium matters to you."
+  },
+  "evidence": [
+   {
+    "tier": "A",
+    "applies": true,
+    "claim": "JECFA (1973): group ADI \"not limited\" for citric acid and its sodium, potassium, and calcium salts",
+    "why": "The same group evaluation behind citric acid's safety rating — citrate is an everyday intermediate of human metabolism."
+   }
+  ],
+  "openQuestion": null,
+  "subgroupNotes": {}
+ },
+ {
+  "id": "datem",
+  "name": "DATEM",
+  "aliases": [
+   "diacetyl tartaric acid esters of mono- and diglycerides",
+   "diacetyl tartaric acid ester of mono- and diglycerides",
+   "diacetyl tartaric and fatty acid esters of glycerol"
+  ],
+  "eNumber": "E472E",
+  "role": "Dough strengthener in bread and buns",
+  "benefit": "functional",
+  "avoidability": "n/a",
+  "baseVerdict": "everyday",
+  "headline": "A dough conditioner that helps bread rise and hold its shape. EFSA's 2020 re-evaluation found no adverse effects relevant to people.",
+  "exposure": {
+   "typical": "Fractions of a percent in packaged bread",
+   "concerning": "None at reported use levels",
+   "note": "Built from glycerides (fat) and tartaric acid (the acid in grapes)."
+  },
+  "evidence": [
+   {
+    "tier": "A",
+    "applies": true,
+    "claim": "EFSA (2020) re-evaluation of E472a–f: no safety concern at reported uses",
+    "why": "No adverse effects relevant for humans were identified. E472e's limit is derived from the tartaric acid group ADI (240 mg/kg bw/day as tartaric acid)."
+   }
+  ],
+  "openQuestion": null,
+  "subgroupNotes": {}
  }
 ]

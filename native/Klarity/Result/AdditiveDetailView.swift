@@ -18,7 +18,7 @@ struct AdditiveDetailView: View {
                             if additive.baseVerdict == .contested && result.verdict != .contested {
                                 Pill(text: "Contested", tone: .contested)
                             }
-                            if let e = additive.eNumber { Text(e).font(.caption).foregroundStyle(.secondary) }
+                            if let e = additive.eNumberLabel { Text(e).font(.caption).foregroundStyle(.secondary) }
                         }
                         Text(additive.role).font(.subheadline).foregroundStyle(.secondary)
                     }

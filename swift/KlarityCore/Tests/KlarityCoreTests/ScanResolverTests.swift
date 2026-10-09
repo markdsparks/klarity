@@ -42,18 +42,44 @@ struct ScanResolverTests {
     // MARK: E-number forms (2026-10-05 benchmark: sub-variant tags were the #1 cause of "unrated")
 
     @Test func specificFormsResolveToTheirParentsEvidence() {
-        let r = ENumberIndex.match(tags: ["en:e322i", "en:e500ii", "en:e340ii", "en:e341iii"])
-        #expect(r.matched == ["lecithin", "sodium_bicarbonate"])
-        #expect(r.regulatory.map(\.eNumber) == ["E340"])
-        #expect(r.unknown.map(\.eNumber) == ["E341"])
-        #expect(r.unknown.first?.name == "Calcium phosphates")
+        // Each tier of the lookup: authored evidence, EFSA regulatory status, and a name-only unknown.
+        #expect(ENumberIndex.match(tags: ["en:e322i", "en:e500ii"]).matched == ["lecithin", "sodium_bicarbonate"])
+        #expect(ENumberIndex.match(tags: ["en:e101ii"]).regulatory.map(\.eNumber) == ["E101"])
+        let unknown = ENumberIndex.match(tags: ["en:e304i"]).unknown
+        #expect(unknown.map(\.eNumber) == ["E304"])
+        #expect(unknown.first?.name == ENumberIndex.name(for: "E304"))
+        #expect(unknown.first?.name != "E304")
     }
 
     @Test func separatelyAuthoredFormsStayDistinctAndParentFormsDedupe() {
         #expect(ENumberIndex.match(tags: ["en:e460i", "en:e460ii"]).matched.count == 2)
         #expect(ENumberIndex.match(tags: ["en:e322", "en:e322i"]).matched == ["lecithin"])
-        #expect(ENumberIndex.match(tags: ["en:e340", "en:e340i", "en:e340ii"]).regulatory.count == 1)
-        #expect(ENumberIndex.match(tags: ["en:e150c"]).regulatory.map(\.eNumber) == ["E150C"])   // a letter class, not a form
+        #expect(ENumberIndex.match(tags: ["en:e101", "en:e101i", "en:e101ii"]).regulatory.count == 1)
+        // A letter is a distinct class, not a form: Type III caramel never falls through to Type IV's evidence.
+        #expect(ENumberIndex.match(tags: ["en:e150c"]).matched == ["caramel_color_iii"])
+        #expect(ENumberIndex.match(tags: ["en:e150d"]).matched == ["caramel_color_iv"])
+    }
+
+    // MARK: Group coverage + the phosphate split (Mark, 2026-10-08)
+
+    @Test func groupEntriesCoverTheirRegulatorsGroup() {
+        #expect(ENumberIndex.match(tags: ["en:e332ii", "en:e333"]).matched == ["citrates"])
+        #expect(ENumberIndex.match(tags: ["en:e315"]).matched == ["sodium_erythorbate"])
+        #expect(AdditiveData.additive(id: "citrates")?.eNumberLabel == "E331 + 2 related")
+        #expect(AdditiveData.additive(id: "glycerol")?.eNumberLabel == "E422")
+    }
+
+    @Test func leaveningPhosphatesAreSplitFromProcessingPhosphates() {
+        // Baked-goods forms → leavening (everyday); meat/cheese/drink forms → processing (sometimes).
+        #expect(ENumberIndex.match(tags: ["en:e341i", "en:e450i", "en:e450"]).matched == ["leavening_phosphates"])
+        #expect(ENumberIndex.match(tags: ["en:e340ii", "en:e451i", "en:e452", "en:e450iii"]).matched == ["sodium_phosphates"])
+        #expect(AdditiveData.additive(id: "leavening_phosphates")?.baseVerdict == .everyday)
+        #expect(AdditiveData.additive(id: "sodium_phosphates")?.baseVerdict == .sometimes)
+
+        // US label text: "monocalcium phosphate" must not read as calcium/sodium processing phosphate, and vice versa.
+        #expect(AdditiveData.matchByIngredientText("flour, monocalcium phosphate, sodium acid pyrophosphate") == ["leavening_phosphates"])
+        #expect(AdditiveData.matchByIngredientText("pork, water, salt, sodium phosphate") == ["sodium_phosphates"])
+        #expect(AdditiveData.matchByIngredientText("sodium aluminum phosphate").isEmpty)   // E541 — a different additive
     }
 
     // MARK: Source resolution — "not in OFF" falls back; an OFF outage is surfaced, never masked

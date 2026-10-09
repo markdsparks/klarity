@@ -69,6 +69,16 @@ public struct Additive: Codable, Sendable, Equatable, Identifiable {
     public let openQuestion: OpenQuestion?
     public let subgroupNotes: [String: String]
     public let contestedGuidance: String?
+    /// Other E-numbers this entry's evidence covers — when the regulator evaluated them as one group
+    /// (EFSA's 2019 phosphate group ADI, JECFA's citric-acid-and-salts group). Never a "similar enough" link.
+    public let coversENumbers: [String]?
+
+    /// Caption for rows/detail: a group entry must not claim to be the one E-number on a product's label.
+    public var eNumberLabel: String? {
+        guard let e = eNumber else { return nil }
+        let covered = coversENumbers ?? []
+        return covered.isEmpty ? e : "\(e) + \(covered.count) related"
+    }
 }
 
 public enum ProfileValues: String, Codable, Sendable, CaseIterable { case balanced, precaution, risk }

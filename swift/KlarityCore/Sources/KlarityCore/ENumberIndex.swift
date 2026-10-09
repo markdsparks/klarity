@@ -62,7 +62,9 @@ public enum ENumberIndex {
     /// E-number (uppercase, e.g. "E407") → hand-authored additive id.
     static let authored: [String: String] = {
         var index: [String: String] = [:]
-        for a in AdditiveData.all { if let e = a.eNumber { index[e.uppercased()] = a.id } }
+        for a in AdditiveData.all {
+            for e in [a.eNumber].compactMap({ $0 }) + (a.coversENumbers ?? []) { index[e.uppercased()] = a.id }
+        }
         return index
     }()
 
