@@ -13,6 +13,13 @@ public struct ResolvedProduct: Sendable, Equatable {
     public var unknown: [UnknownAdditive]
     public var usda: USDANutrition?
     public var kroger: KrogerMatch?
+
+    /// Whether ANY source gave us something to read on the additive axis: an ingredient list, or OFF's own
+    /// parsed additive tags. False means "no additives found" would be a claim we can't make.
+    public var hasIngredientData: Bool {
+        !(product.additivesTags ?? []).isEmpty
+            || [product.ingredientsText, usda?.ingredients, kroger?.ingredientStatement].contains { hasText($0) }
+    }
 }
 
 public enum ScanResolution: Sendable, Equatable {
@@ -59,9 +66,11 @@ public struct ScanResolver: Sendable {
         self.off = off; self.usda = usda; self.kroger = kroger
     }
 
-    /// All three sources are independent barcode lookups fetched together. Only OFF's failure is meaningful
-    /// (surfaced as the offline error); USDA never throws by contract, and Kroger is corroboration — a Kroger
-    /// failure of ANY kind degrades to "no Kroger data", never breaks the scan.
+    /// All three sources are independent barcode lookups fetched together. A genuine "not in OFF" (OFF's 404)
+    /// falls through to USDA/Kroger synthesis; an OFF *failure* (offline, 429, 5xx) is surfaced as the error.
+    /// Deliberately not masked by a USDA/Kroger-only result: that screen would claim "No nutrition data on
+    /// file" when the data exists and was merely unreachable. USDA never throws by contract; a Kroger failure
+    /// of any kind is "no Kroger data".
     public func resolve(_ barcode: String) async throws -> ScanResolution {
         async let offProduct = off.fetchProduct(barcode)
         async let usdaNutrition = usda.fetchNutrition(barcode)

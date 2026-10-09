@@ -52,3 +52,6 @@ native/Klarity.xcodeproj/
 native/Config/Secrets.xcconfig
 native/Klarity/Info.plist
 native/build/
+
+# Scan-coverage bench runs — contain third-party product data (Kroger forbids caching), never commit
+bench/scan-coverage/runs/

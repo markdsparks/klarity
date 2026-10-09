@@ -226,7 +226,10 @@ public struct OFFClient: Sendable {
 
     private func fetchProductRaw(_ barcode: String) async throws -> OFFProduct? {
         let url = "\(Self.productBase)/\(encodeURIComponent(barcode)).json?fields=\(Self.fields)"
-        let data = try await requestJSON(ProductResponse.self, url)
+        // OFF v2 answers an unknown barcode with HTTP 404 + `{"status":0}` — a definitive "not in OFF", not a
+        // failure. Treating it as an error skipped the USDA/Kroger fallback entirely (2026-10-05 benchmark).
+        let data: ProductResponse
+        do { data = try await requestJSON(ProductResponse.self, url) } catch ClientError.http(404) { return nil }
         guard data.status == 1, let product = data.product else { return nil }
         return product
     }

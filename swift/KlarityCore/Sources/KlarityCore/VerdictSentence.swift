@@ -18,14 +18,16 @@ public struct SentenceInput: Sendable {
     public var nutritionBasis: NutritionBasis?
     public var profile: Profile
     public var proteinDv: Int
+    /// No ingredient list from any source — the additive axis has nothing to read (never "clean additives").
+    public var additivesUnknown: Bool
 
     public init(contestedDriver: Additive?, sometimesAdditives: [Additive], nutritionTone: NutritionTone,
                 highNutrients: [String], budgetNutrient: BudgetNutrient?, nutritionBasis: NutritionBasis? = nil,
-                profile: Profile, proteinDv: Int) {
+                profile: Profile, proteinDv: Int, additivesUnknown: Bool = false) {
         self.contestedDriver = contestedDriver; self.sometimesAdditives = sometimesAdditives
         self.nutritionTone = nutritionTone; self.highNutrients = highNutrients
         self.budgetNutrient = budgetNutrient; self.nutritionBasis = nutritionBasis
-        self.profile = profile; self.proteinDv = proteinDv
+        self.profile = profile; self.proteinDv = proteinDv; self.additivesUnknown = additivesUnknown
     }
 }
 
@@ -64,6 +66,7 @@ private func nutritionCaveat(_ tone: NutritionTone, _ high: [String], staple: Bo
 public enum HeroTone: String, Codable, Sendable { case good, sometimes, warn, contested, unknown }
 
 public func heroTone(_ input: SentenceInput) -> HeroTone {
+    if input.additivesUnknown { return input.nutritionTone == .warn ? .warn : .unknown }
     if input.contestedDriver != nil { return .contested }
     if input.nutritionTone == .warn { return .warn }
     if !input.sometimesAdditives.isEmpty { return .sometimes }
@@ -75,7 +78,16 @@ public func heroTone(_ input: SentenceInput) -> HeroTone {
 /// Spec 025 — no nutrition data: additive framing still leads, but the read is labeled half a read.
 private let noNutritionSuffix = " We couldn't find nutrition data, so this covers additives only."
 
+/// The additive-axis twin: no ingredient list, so nutrition leads and the read is labeled half a read.
+private let noIngredientsSuffix = " We couldn't find an ingredient list, so this covers nutrition only."
+
 public func verdictSentence(_ input: SentenceInput) -> String? {
+    if input.additivesUnknown {
+        if input.nutritionTone == .unknown {
+            return "We couldn't find an ingredient list or nutrition data for this one, so there's nothing to judge yet."
+        }
+        return nutritionOnlySentence(input) + noIngredientsSuffix
+    }
     if input.nutritionTone == .unknown && input.contestedDriver == nil {
         if input.sometimesAdditives.isEmpty {
             return "We couldn't find nutrition data for this one, so this is only half a read — nothing in the additives needs a second thought."
@@ -155,6 +167,22 @@ private func additiveSentence(_ input: SentenceInput) -> String? {
         }
     }
     return nil
+}
+
+/// Nutrition-axis framing that makes no claim about additives (used when there's no ingredient list).
+private func nutritionOnlySentence(_ input: SentenceInput) -> String {
+    if input.nutritionTone == .warn {
+        if input.nutritionBasis == .per100g {
+            return "We couldn't confirm a serving size, so the nutrition below is shown per 100 g — worth a look before you decide."
+        }
+        let noun = joinNouns(input.highNutrients)
+        return "Nutrition-wise, an occasional pick\(noun.isEmpty ? "" : " — high in \(noun)")."
+    }
+    if let budget = input.budgetNutrient {
+        return "Nutrition holds up — just budget the \(budget == .satFat ? "saturated fat" : "sodium") if you're having several a day."
+    }
+    if input.nutritionTone == .ok { return "Nutrition that's middling but nothing to avoid." }
+    return "Nutrition holds up well per serving."
 }
 
 /// Step 5: additives clean, nutrition not a concern.

@@ -10,6 +10,7 @@ public enum ScanOutcome: String, Codable, Sendable, CaseIterable {
     case clean                              // no additives detected + usable nutrition
     case unratedAdditive = "unrated-additive"   // additives present we can't verdict yet
     case regulatoryOnly = "regulatory-only"     // only permitted-status additives, no dose verdict
+    case noIngredients = "no-ingredients"       // product found but no ingredient list from any source
     case thinNutrition = "thin-nutrition"       // product found but no usable nutrition
     case notFound = "not-found"                 // barcode not in OFF/USDA/Kroger
     case restaurant                         // resolved to a curated chain menu item
@@ -24,9 +25,11 @@ public struct OutcomeInput: Sendable {
     public var regulatoryAdditiveCount: Int
     public var unknownAdditiveCount: Int
     public var hasNutrition: Bool
+    public var hasIngredientData: Bool
 
     public init(source: ScanSource, found: Bool, ratedAdditiveCount: Int, regulatoryAdditiveCount: Int,
-                unknownAdditiveCount: Int, hasNutrition: Bool) {
+                unknownAdditiveCount: Int, hasNutrition: Bool, hasIngredientData: Bool = true) {
+        self.hasIngredientData = hasIngredientData
         self.source = source; self.found = found; self.ratedAdditiveCount = ratedAdditiveCount
         self.regulatoryAdditiveCount = regulatoryAdditiveCount
         self.unknownAdditiveCount = unknownAdditiveCount; self.hasNutrition = hasNutrition
@@ -40,6 +43,7 @@ public func classifyOutcome(_ i: OutcomeInput) -> ScanOutcome {
     // outranks the nutrition gap when a scan has both.
     if i.unknownAdditiveCount > 0 { return .unratedAdditive }
     if i.ratedAdditiveCount == 0 && i.regulatoryAdditiveCount > 0 { return .regulatoryOnly }
+    if i.ratedAdditiveCount == 0 && !i.hasIngredientData { return .noIngredients }
     if !i.hasNutrition { return .thinNutrition }
     if i.ratedAdditiveCount == 0 { return .clean }
     return .confident

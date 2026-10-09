@@ -5,8 +5,8 @@ import Foundation
 
 /// Glance for the additive axis. History stores the base-verdict glance (objective); the screen uses
 /// profile-resolved verdicts so the hero badge agrees with the rows below it.
-public func overallAdditiveGlance(_ verdicts: [VerdictKey], unratedCount: Int) -> GlanceKey {
-    if verdicts.isEmpty && unratedCount == 0 { return .clean }
+public func overallAdditiveGlance(_ verdicts: [VerdictKey], unratedCount: Int, hasIngredientData: Bool = true) -> GlanceKey {
+    if verdicts.isEmpty && unratedCount == 0 { return hasIngredientData ? .clean : .noData }
     if verdicts.isEmpty { return .unrated }
     if verdicts.contains(.contested) { return .contested }
     if verdicts.contains(.sometimes) { return .sometimes }
@@ -69,7 +69,8 @@ public struct ProductAnalysis: Sendable {
             .map(\.element)
         regulatory = r.regulatory
         unknown = r.unknown
-        glance = overallAdditiveGlance(additiveResults.map(\.verdict), unratedCount: r.regulatory.count + r.unknown.count)
+        glance = overallAdditiveGlance(additiveResults.map(\.verdict), unratedCount: r.regulatory.count + r.unknown.count,
+                                       hasIngredientData: r.hasIngredientData)
 
         // Layer 1 is driven by BASE verdicts so a contested additive keeps contested framing even when
         // the profile's values resolve it.
@@ -78,7 +79,7 @@ public struct ProductAnalysis: Sendable {
             sometimesAdditives: matched.filter { $0.baseVerdict == .sometimes },
             nutritionTone: nutrition.tone, highNutrients: nutrition.highNutrients,
             budgetNutrient: nutrition.budgetNutrient, nutritionBasis: sn.basis,
-            profile: profile, proteinDv: sn.proteinDv ?? 0)
+            profile: profile, proteinDv: sn.proteinDv ?? 0, additivesUnknown: glance == .noData)
         sentence = verdictSentence(input)
         heroTone = KlarityCore.heroTone(input)
         additiveContext = additiveLadderContext(glance, additiveResults, regulatoryCount: r.regulatory.count, unknownCount: r.unknown.count)
@@ -116,7 +117,8 @@ public struct ProductAnalysis: Sendable {
                                  context: NutritionContext(matrixDestroyedCategory: isMatrixDestroyedCategory(r.product.categoriesTags)))
         let outcome = classifyOutcome(OutcomeInput(
             source: source, found: true, ratedAdditiveCount: AdditiveData.additives(ids: r.additiveIds).count,
-            regulatoryAdditiveCount: r.regulatory.count, unknownAdditiveCount: r.unknown.count, hasNutrition: hasNutritionData(sn)))
+            regulatoryAdditiveCount: r.regulatory.count, unknownAdditiveCount: r.unknown.count, hasNutrition: hasNutritionData(sn),
+            hasIngredientData: r.hasIngredientData))
         // No nutrition data → no sugar verdict to attribute (spec 025).
         return ScanOutcomeRecord(at: now, source: source, outcome: outcome,
                                  sugarBasis: hasNutritionData(sn) ? base.sugarBasis : nil,
@@ -127,7 +129,8 @@ public struct ProductAnalysis: Sendable {
     public static func historyRecord(_ r: ResolvedProduct, userServingGrams: Double?, now: Double) -> ScanRecord {
         let base = ProductAnalysis(r, profile: .default, userServingGrams: userServingGrams)
         let baseGlance = overallAdditiveGlance(AdditiveData.additives(ids: r.additiveIds).map(\.baseVerdict),
-                                               unratedCount: r.regulatory.count + r.unknown.count)
+                                               unratedCount: r.regulatory.count + r.unknown.count,
+                                               hasIngredientData: r.hasIngredientData)
         let baseTone = toneNutrition(computeServingNutrients(r.product, usda: r.usda, userServingGrams: userServingGrams),
                                      profile: .default,
                                      context: NutritionContext(matrixDestroyedCategory: isMatrixDestroyedCategory(r.product.categoriesTags))).tone
