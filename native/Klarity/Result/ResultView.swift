@@ -303,7 +303,7 @@ private struct AdditiveRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     Text(result.additive.name).font(.body.weight(.medium))
-                    if let e = result.additive.eNumber { Text(e).font(.caption).foregroundStyle(.secondary) }
+                    if let e = result.additive.eNumberLabel { Text(e).font(.caption).foregroundStyle(.secondary) }
                 }
                 Text(result.additive.role).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
                 if let note = result.profileNote {
