@@ -66,7 +66,23 @@ public enum ENumberIndex {
         return index
     }()
 
-    public static func name(for eNumber: String) -> String { names[eNumber.uppercased()] ?? eNumber }
+    public static func name(for eNumber: String) -> String {
+        lineage(eNumber.uppercased()).lazy.compactMap { names[$0] }.first ?? eNumber
+    }
+
+    // A roman-numeral suffix marks a specific form of a parent additive ("E322i" lecithins → E322, "E500ii"
+    // sodium hydrogen carbonate → E500). The letter class excludes I/V/X so "E341II" strips to E341, not E341I.
+    private static let formSuffix = try! NSRegularExpression(pattern: #"^(E[0-9]+[A-HJ-UWYZ]?)(?:I{1,3}|IV|VI{0,3}|IX)$"#)
+
+    /// The codes an E-number can be looked up under, most specific first. OFF tags the specific form; our
+    /// evidence (authored, EFSA, names) is usually written for the parent. Exact form first, so forms we
+    /// author separately (E460i powdered vs E460ii microcrystalline cellulose) stay distinct.
+    static func lineage(_ eNumber: String) -> [String] {
+        let range = NSRange(eNumber.startIndex..., in: eNumber)
+        guard let m = formSuffix.firstMatch(in: eNumber, range: range),
+              let r = Range(m.range(at: 1), in: eNumber) else { return [eNumber] }
+        return [eNumber, String(eNumber[r])]
+    }
 
     // "en:e407" → E407, "en:e150d" → E150D. ASCII digits only, matching JS's \d.
     private static let tagPattern = try! NSRegularExpression(
@@ -76,20 +92,23 @@ public enum ENumberIndex {
     /// (EFSA, spec 002), and unknown. Hand-authored always wins when an E-number is in both.
     public static func match(tags: [String]) -> AdditiveMatchResult {
         var result = AdditiveMatchResult()
-        var seenIDs = Set<String>(), seenENumbers = Set<String>()
+        // Deduped on what each tag RESOLVES to, so "e322" + "e322i" is one lecithin row, not two.
+        var seen = Set<String>()
         for tag in tags {
             let range = NSRange(tag.startIndex..., in: tag)
             guard let m = tagPattern.firstMatch(in: tag, range: range),
                   let r = Range(m.range(at: 1), in: tag) else { continue }
-            let eNum = "E" + tag[r].uppercased()
-            if !seenENumbers.insert(eNum).inserted { continue }
+            let forms = lineage("E" + tag[r].uppercased())
 
-            if let id = authored[eNum] {
-                if seenIDs.insert(id).inserted { result.matched.append(id) }
-                continue
+            if let id = forms.lazy.compactMap({ authored[$0] }).first {
+                if seen.insert("id:" + id).inserted { result.matched.append(id) }
+            } else if let reg = forms.lazy.compactMap({ regulatory[$0] }).first {
+                if seen.insert(reg.eNumber).inserted { result.regulatory.append(reg) }
+            } else {
+                // Unrated either way — but shown under the code we can actually name ("E341 Calcium phosphates").
+                let code = forms.first { names[$0] != nil } ?? forms[0]
+                if seen.insert(code).inserted { result.unknown.append(UnknownAdditive(eNumber: code, name: name(for: code), rawTag: tag)) }
             }
-            if let reg = regulatory[eNum] { result.regulatory.append(reg) }
-            else { result.unknown.append(UnknownAdditive(eNumber: eNum, name: name(for: eNum), rawTag: tag)) }
         }
         return result
     }

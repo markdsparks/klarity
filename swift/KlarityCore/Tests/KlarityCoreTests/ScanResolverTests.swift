@@ -38,4 +38,68 @@ struct ScanResolverTests {
         let edited = ProductAnalysis(r, profile: .default, userServingGrams: 45)
         #expect(edited.servingText == "45 g · your serving size")
     }
+
+    // MARK: E-number forms (2026-10-05 benchmark: sub-variant tags were the #1 cause of "unrated")
+
+    @Test func specificFormsResolveToTheirParentsEvidence() {
+        let r = ENumberIndex.match(tags: ["en:e322i", "en:e500ii", "en:e340ii", "en:e341iii"])
+        #expect(r.matched == ["lecithin", "sodium_bicarbonate"])
+        #expect(r.regulatory.map(\.eNumber) == ["E340"])
+        #expect(r.unknown.map(\.eNumber) == ["E341"])
+        #expect(r.unknown.first?.name == "Calcium phosphates")
+    }
+
+    @Test func separatelyAuthoredFormsStayDistinctAndParentFormsDedupe() {
+        #expect(ENumberIndex.match(tags: ["en:e460i", "en:e460ii"]).matched.count == 2)
+        #expect(ENumberIndex.match(tags: ["en:e322", "en:e322i"]).matched == ["lecithin"])
+        #expect(ENumberIndex.match(tags: ["en:e340", "en:e340i", "en:e340ii"]).regulatory.count == 1)
+        #expect(ENumberIndex.match(tags: ["en:e150c"]).regulatory.map(\.eNumber) == ["E150C"])   // a letter class, not a form
+    }
+
+    // MARK: Source resolution — "not in OFF" falls back; an OFF outage is surfaced, never masked
+
+    private struct Stub: HTTPClient {
+        let respond: @Sendable (String) -> (Int, String)?
+        func send(_ request: URLRequest) async throws -> (data: Data, status: Int) {
+            guard let (status, body) = respond(request.url!.absoluteString) else { throw ClientError.network }
+            return (Data(body.utf8), status)
+        }
+    }
+
+    private func resolver(off: (Int, String)?, krogerHasIt: Bool) -> ScanResolver {
+        let http = Stub { url in
+            if url.contains("openfoodfacts") { return off }
+            if url.contains("proxy.test") { return (200, #"{"access_token":"t","expires_in":1800}"#) }
+            if url.contains("api.kroger.com") {
+                return (200, krogerHasIt ? #"{"data":[{"description":"Store Cookies","brand":"Kroger","nutritionInformation":[{"ingredientStatement":"flour, red 40"}]}]}"# : #"{"data":[]}"#)
+            }
+            return (404, "{}")   // USDA: no match
+        }
+        return ScanResolver(off: OFFClient(http: http, sleep: { _ in }), usda: USDAClient(http: http),
+                            kroger: KrogerClient(http: http, tokenProxyURL: "https://proxy.test/token"))
+    }
+
+    @Test func offNotFoundFallsBackToKroger() async throws {
+        let r = try await resolver(off: (404, #"{"status":0}"#), krogerHasIt: true).resolve("011110626271")
+        guard case .found(let p) = r else { Issue.record("expected found, got \(r)"); return }
+        #expect(p.product.productName == "Store Cookies")
+        #expect(p.additiveIds.contains("red_40"))
+    }
+
+    @Test func offNotFoundAndNobodyElseIsAnHonestNotFound() async throws {
+        #expect(try await resolver(off: (404, #"{"status":0}"#), krogerHasIt: false).resolve("011110626271") == .notFound)
+    }
+
+    /// Not masked even when Kroger has it — a Kroger-only screen would falsely say "No nutrition data on file".
+    @Test func offOutageSurfacesTheErrorEvenWhenKrogerResolved() async {
+        await #expect(throws: ClientError.http(429)) {
+            try await resolver(off: (429, "{}"), krogerHasIt: true).resolve("011110626271")
+        }
+    }
+
+    @Test func offOutageWithNoOtherSourceStillSurfacesTheError() async {
+        await #expect(throws: ClientError.network) {
+            try await resolver(off: nil, krogerHasIt: false).resolve("011110626271")
+        }
+    }
 }
