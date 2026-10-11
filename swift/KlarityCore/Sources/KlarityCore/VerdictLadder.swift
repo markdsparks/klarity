@@ -76,7 +76,7 @@ public func additiveLadderContext(_ glanceKey: GlanceKey, _ results: [AdditiveRe
         let contested = results.filter { $0.additive.baseVerdict == .contested }
         if contested.count == 1 {
             let a = contested[0].additive
-            return ctx("\(a.name) is Contested here.", link: AdditiveLink(id: a.id, name: a.name, verdict: .contested))
+            return ctx("Contested here: \(a.name).", link: AdditiveLink(id: a.id, name: a.name, verdict: .contested))
         }
         if contested.count > 1 {
             return ctx("\(joinNouns(contested.map(\.additive.name))) are Contested here — check the additives list for each disagreement.")

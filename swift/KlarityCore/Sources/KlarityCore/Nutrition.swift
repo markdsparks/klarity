@@ -93,7 +93,10 @@ public func computeServingNutrients(
         s.totalFat = u.totalFat;     s.fatDv = dv(u.totalFat, refs.totalFat)
         s.carbs = u.carbs;           s.carbsDv = dv(u.carbs, refs.carbs)
         s.sugar = u.sugar;           s.sugarDv = dv(u.sugar, refs.sugar)
-        s.addedSugar = u.addedSugar; s.addedSugarDv = dv(u.addedSugar, refs.addedSugar)
+        // USDA records often omit Added Sugars; OFF frequently has it. Borrow OFF's added:total ratio (unit-free —
+        // milk servings are in mL) rather than leave the label's own added-sugar line unused.
+        let added = u.addedSugar ?? offAddedShare(p.nutriments).flatMap { share in u.sugar.map { $0 * share } }
+        s.addedSugar = added;        s.addedSugarDv = dv(added, refs.addedSugar)
         s.satFat = u.saturatedFat;   s.satFatDv = dv(u.saturatedFat, refs.satFat)
         s.transFat = u.transFat
         s.sodium = u.sodium;         s.sodiumDv = dv(u.sodium, refs.sodium)
@@ -131,6 +134,10 @@ public func computeServingNutrients(
     s.totalFat = scale(n.fat100g);          s.fatDv = dv(s.totalFat, refs.totalFat)
     s.carbs = scale(n.carbohydrates100g);   s.carbsDv = dv(s.carbs, refs.carbs)
     s.sugar = scale(n.sugars100g);          s.sugarDv = dv(s.sugar, refs.sugar)
+    // Trust OFF's added sugar only when it's consistent with total sugar; otherwise score total (the safe error).
+    if let added = n.addedSugars100g, added >= 0, n.sugars100g.map({ added <= $0 + 0.5 }) ?? true {
+        s.addedSugar = scale(added);        s.addedSugarDv = dv(s.addedSugar, refs.addedSugar)
+    }
     s.satFat = scale(n.saturatedFat100g);   s.satFatDv = dv(s.satFat, refs.satFat)
     s.transFat = scale(n.transFat100g)
     s.sodium = scale(n.sodium100g);         s.sodiumDv = dv(s.sodium, refs.sodium)
@@ -138,6 +145,12 @@ public func computeServingNutrients(
     s.protein = scale(n.proteins100g);      s.proteinDv = dv(s.protein, refs.protein)
     s.fiber = scale(n.fiber100g);           s.fiberDv = dv(s.fiber, refs.fiber)
     return s
+}
+
+/// OFF's added-sugar share of total sugar, when its record has a consistent pair (added ≤ total).
+func offAddedShare(_ n: OFFNutriments?) -> Double? {
+    guard let added = n?.addedSugars100g, let total = n?.sugars100g, added >= 0, added <= total + 0.5 else { return nil }
+    return total > 0 ? min(added / total, 1) : 0
 }
 
 /// Warn thresholds in %DV. Baseline is FDA's 5/20 rule; conditions and the weight-loss goal tighten it.

@@ -143,6 +143,13 @@ struct Row: Codable {
     var servingBasis: String?
     var hasNutrition: Bool
     var ms: Int
+    // What the shopper reads (for the verdict-copy review) — default profile.
+    var sentence: String? = nil
+    var heroTone: String? = nil
+    var additiveRows: [String]? = nil      // "Name · verdict"
+    var nutritionSummary: String? = nil
+    var highNutrients: [String]? = nil
+    var servingText: String? = nil
 }
 
 /// Rough E-number ↔ audit-name bridge, so a regulatory/unknown detection counts as "seen" in the audit.
@@ -201,6 +208,13 @@ func analyze(_ barcode: String, _ category: String, resolver: ScanResolver) asyn
     row.sugarBasis = record.sugarBasis?.rawValue
     row.servingBasis = analysis.servingNutrients.basis?.rawValue
     row.hasNutrition = hasNutritionData(analysis.servingNutrients)
+    row.sentence = analysis.sentence
+    row.heroTone = analysis.heroTone.rawValue
+    row.additiveRows = analysis.additiveResults.map { "\($0.additive.name) · \($0.verdict.rawValue)" }
+        + analysis.regulatory.map { "\($0.name) (\($0.eNumber)) · permitted" } + analysis.unknown.map { "\($0.name) (\($0.eNumber)) · unrated" }
+    row.nutritionSummary = analysis.nutrition.summary
+    row.highNutrients = analysis.nutrition.highNutrients
+    row.servingText = analysis.servingText
     row.ms = Int(Date().timeIntervalSince(start) * 1000)
     return row
 }

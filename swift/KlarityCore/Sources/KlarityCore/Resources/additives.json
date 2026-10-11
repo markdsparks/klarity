@@ -286,9 +286,9 @@
    },
    {
     "tier": "B",
-    "applies": false,
-    "claim": "Risk for soy-allergic individuals",
-    "why": "Soy lecithin contains <0.1% soy protein — too little to trigger reactions in all but the most extreme allergies. EFSA and FDA agree it does not require a soy allergen warning."
+    "applies": true,
+    "claim": "Soy lecithin is declared as a soy allergen",
+    "why": "US law (FALCPA) requires soy lecithin to be labeled as soy in any use; FDA withdrew its release-agent leniency in 2013. Reactions are uncommon because the protein content is very low, but people with severe soy allergy should treat it as soy."
    }
   ],
   "openQuestion": null,
@@ -380,7 +380,7 @@
   "benefit": "functional",
   "avoidability": "moderate",
   "baseVerdict": "everyday",
-  "headline": "The only additive with its own persistent myth. Blinded studies have consistently failed to reproduce 'MSG symptoms' — the science is settled.",
+  "headline": "The additive with its own persistent myth: blinded studies keep failing to reproduce \"MSG symptoms\" at normal food doses. EFSA did set a daily limit in 2017, and heavy intake across a whole diet can approach it.",
   "exposure": {
    "typical": "0.1–0.8 g per dish; contributes 12% sodium vs 39% for table salt",
    "concerning": "None established at food levels",
@@ -392,6 +392,12 @@
     "applies": true,
     "claim": "JECFA ADI \"not specified\" / FDA GRAS",
     "why": "Glutamic acid is a non-essential amino acid found in every protein-containing food. Universally approved."
+   },
+   {
+    "tier": "A",
+    "applies": true,
+    "claim": "EFSA (2017): group ADI 30 mg/kg bw/day for glutamic acid and glutamates (E620–625)",
+    "why": "EFSA estimated that some groups' total intake can exceed this limit, and noted its own estimate likely overstates real exposure. Most glutamate in a diet is the natural kind in protein foods; one product's added MSG is a small share."
    },
    {
     "tier": "B",
@@ -559,18 +565,31 @@
  },
  {
   "id": "modified_starch",
-  "name": "Acetylated distarch adipate",
+  "name": "Modified food starch",
   "aliases": [
    "modified corn starch",
    "modified food starch",
    "modified starch"
   ],
   "eNumber": "E1422",
-  "role": "Thickener (starch modified for heat and acid stability)",
+  "coversENumbers": [
+   "E1404",
+   "E1410",
+   "E1412",
+   "E1413",
+   "E1414",
+   "E1420",
+   "E1440",
+   "E1442",
+   "E1450",
+   "E1451",
+   "E1452"
+  ],
+  "role": "Thickener — starch adjusted to stay thick through cooking, freezing, and acidic conditions",
   "benefit": "functional",
   "avoidability": "n/a",
   "baseVerdict": "everyday",
-  "headline": "Food starch chemically stabilized to stay thick through cooking, freezing, and acidic conditions. No safety concerns at food levels.",
+  "headline": "Food starch adjusted to hold up through cooking and freezing. EFSA re-evaluated all twelve modified starches in 2017 and found no need for a numerical limit.",
   "exposure": {
    "typical": "Percent-level in sauces, soups, and dressings",
    "concerning": "None at food levels",
@@ -580,8 +599,8 @@
    {
     "tier": "A",
     "applies": true,
-    "claim": "JECFA ADI \"not specified\" / FDA GRAS",
-    "why": "Modified starches are reviewed individually. E1422 and the broader family of permitted modified starches all clear safety review."
+    "claim": "EFSA (2017): no numerical ADI needed for the modified starches (E1404–E1452); JECFA ADI \"not specified\"",
+    "why": "Broken down by digestive enzymes and gut bacteria much like ordinary starch. EFSA reviewed the twelve together and found no safety concern at reported uses."
    }
   ],
   "openQuestion": null,
@@ -600,7 +619,7 @@
   "benefit": "functional",
   "avoidability": "moderate",
   "baseVerdict": "everyday",
-  "headline": "The sweetener that pairs with aspartame or sucralose in diet drinks. Regulatory consensus is solid; the original 1970s safety studies were dated but EFSA's 2000 re-review held.",
+  "headline": "The sweetener that pairs with aspartame or sucralose in diet drinks. EFSA's full 2025 re-evaluation found no genotoxicity concern and raised its safe daily limit.",
   "exposure": {
    "typical": "Far below ADI in a normal diet — not metabolized, excreted unchanged",
    "concerning": "None established at food levels",
@@ -610,14 +629,14 @@
    {
     "tier": "A",
     "applies": true,
-    "claim": "FDA approved 1988 / JECFA ADI 15 mg/kg bw / EFSA affirmed 2000",
-    "why": "Not classified by IARC. EFSA re-evaluated in 2000 and maintained approval."
+    "claim": "EFSA (2025) re-evaluation: ADI 15 mg/kg bw/day (up from the SCF's 9 in 2000); JECFA ADI 15 mg/kg bw; FDA approved 1988",
+    "why": "EFSA weighed in-vitro, animal, and human studies published through 2024: no genotoxicity concern for acesulfame K or its breakdown products, and the highest exposure estimates sit below the ADI for all population groups. Not classified by IARC."
    },
    {
     "tier": "C",
     "applies": false,
     "claim": "Thyroid and metabolic concerns in rodent studies",
-    "why": "1970s rodent studies at very high doses showed thyroid effects. EFSA reviewed and concluded no safety concern at food use levels."
+    "why": "1970s rodent studies at very high doses showed thyroid effects. Later reviews, most recently EFSA's 2025 re-evaluation, found no safety concern at food use levels."
    }
   ],
   "openQuestion": null,
@@ -705,7 +724,7 @@
   "benefit": "functional",
   "avoidability": "n/a",
   "baseVerdict": "everyday",
-  "headline": "Purified sand, essentially. One of the most inert substances used in food — passes through the body without being absorbed in any meaningful amount.",
+  "headline": "Synthetic amorphous silica — the same compound as quartz, but in a non-crystalline form. One of the most inert substances in food; passes through essentially unabsorbed.",
   "exposure": {
    "typical": "Trace amounts (<2%) in spice blends, shredded cheese, powdered products",
    "concerning": "No established adverse intake level",
@@ -1304,7 +1323,7 @@
     "tier": "A",
     "applies": true,
     "claim": "JECFA: ADI 'not specified'; EFSA (2017): group ADI 30 mg/kg bw/day for E620–625",
-    "why": "JECFA’s category is its most favorable; EFSA’s 2017 group ADI is a conservative, precautionary figure set during a routine re-evaluation, not a response to a new safety signal."
+    "why": "JECFA's category is its most favorable. EFSA's 2017 re-evaluation set a group ADI and estimated that some groups' total intake can exceed it, while noting its estimate likely overstates real exposure — a reason to keep an eye on heavy, all-day intake, not on a single product."
    },
    {
     "tier": "B",
@@ -1507,8 +1526,8 @@
    {
     "tier": "A",
     "applies": true,
-    "claim": "JECFA ADI 0–2.0 mg/kg bw/day (2013); EFSA-confirmed ADI 0.13 mg/kg bw/day (2006)",
-    "why": "Reviewed by both major bodies with no safety concern identified at food-use levels."
+    "claim": "EFSA (2017): ADI 1 mg/kg bw/day (raised from 0.13 after a new 90-day study); JECFA ADI 0–2.0 mg/kg bw/day (2013)",
+    "why": "Reviewed by both major bodies with no safety concern identified at food-use levels; EFSA found exposure below the new ADI for all population groups."
    },
    {
     "tier": "A",
@@ -1625,14 +1644,14 @@
     "why": "Multiple rodent studies document liver effects. Some in vitro genotoxicity data — not confirmed in vivo at food doses, but the direction of the signal is consistent."
    },
    {
-    "tier": "B",
+    "tier": "C",
     "applies": true,
-    "claim": "US National Toxicology Program: possible immune effects",
-    "why": "NTP has raised concerns about TBHQ potentially impacting immune system function. Under continued review."
+    "claim": "Mouse studies (Michigan State, 2019): TBHQ blunted the immune response to flu infection",
+    "why": "Fewer flu-responsive T cells and slower recovery in mice fed TBHQ, first presented at a 2019 conference. Animal data, still early — the reason this is a \"watch the frequency\" note, not a human finding."
    }
   ],
   "openQuestion": {
-   "text": "The immune signal is early-stage; the liver toxicology is well-documented at above-limit doses. The question is whether margin at 0.02% is adequate.",
+   "text": "The immune signal is early and from mice; the liver toxicology is well-documented at above-limit doses. The question is whether the margin at 0.02% is adequate.",
    "subgroup": null
   },
   "subgroupNotes": {}
@@ -1734,8 +1753,8 @@
    {
     "tier": "A",
     "applies": true,
-    "claim": "FDA GRAS / JECFA ADI \"not specified\"",
-    "why": "Approved phosphate acidulant with long use history. Safe at typical single-serving intake."
+    "claim": "FDA GRAS; counts toward EFSA's phosphate group ADI (40 mg phosphorus/kg bw/day, 2019)",
+    "why": "Long use history as an acidulant. JECFA treats it under a maximum tolerable intake for phosphorus from all sources (70 mg/kg bw), since phosphorus is an essential nutrient. Safe at typical single-serving intake."
    },
    {
     "tier": "B",
@@ -1900,7 +1919,7 @@
     "tier": "A",
     "applies": true,
     "claim": "EFSA re-evaluated E476 in 2017 and set an ADI of 7.5 mg/kg bw/day — safe at current use levels.",
-    "why": "EFSA Journal 2017;15(depends on issue):4661."
+    "why": "EFSA Journal (2017) — full re-evaluation, no safety concern at reported uses."
    },
    {
     "tier": "C",
@@ -2647,10 +2666,6 @@
  {
   "id": "caramel_color_iv",
   "name": "Caramel color (sulfite ammonia, Type IV)",
-  "aliases": [
-   "caramel color",
-   "caramel colour"
-  ],
   "eNumber": "E150D",
   "role": "Brown color in colas, soy sauce, beer, and baked goods",
   "benefit": "cosmetic",
@@ -2711,7 +2726,7 @@
    },
    {
     "tier": "A",
-    "applies": false,
+    "applies": "split",
     "claim": "FDA's own scientific review: the male rat thyroid tumors occurred via a rat-specific hormonal mechanism. No evidence of carcinogenicity in humans or other tested animals.",
     "why": "FDA's own 2025 announcement explicitly states there is no evidence FD&C Red No. 3 causes cancer in humans — the ban proceeded on statutory grounds despite this finding."
    },
@@ -2796,7 +2811,7 @@
    },
    {
     "tier": "A",
-    "applies": false,
+    "applies": "split",
     "claim": "JECFA (WHO/FAO) and EU regulators reviewed later evidence and established an ADI, permitting cyclamate's continued use — a different read of the same original data plus decades of follow-up research.",
     "why": "JECFA maintains an ADI of 11 mg/kg bw/day; the EU permits cyclamate under E952 with this ADI in place."
    }
@@ -3079,5 +3094,50 @@
   ],
   "openQuestion": null,
   "subgroupNotes": {}
+ },
+ {
+  "id": "caramel_color",
+  "name": "Caramel color (type not stated)",
+  "aliases": [
+   "caramel color",
+   "caramel colour",
+   "caramel coloring"
+  ],
+  "eNumber": "E150",
+  "genericOf": [
+   "caramel_color_i",
+   "caramel_color_iii",
+   "caramel_color_iv"
+  ],
+  "role": "Brown color in colas, cereals, sauces, breads, and gravies",
+  "benefit": "cosmetic",
+  "avoidability": "easy",
+  "baseVerdict": "contested",
+  "headline": "US labels just say \"caramel color\" — not which of the four types it is. Two types (III and IV, the common industrial ones) carry 4-MEI, a possible carcinogen in animal studies; regulators say food levels are fine, California's listing disagrees.",
+  "exposure": {
+   "typical": "Small amounts for color; FDA estimated a person would need over 1,000 cans of cola a day to reach the animal-study dose of 4-MEI",
+   "concerning": "4-MEI is IARC Group 2B based on rodent studies far above food exposure",
+   "note": "Plain caramel (Type I) has no 4-MEI. Because the label doesn't say which type this is, we show the open question rather than guess a type."
+  },
+  "evidence": [
+   {
+    "tier": "A",
+    "applies": "split",
+    "claim": "4-MEI (in Types III and IV): IARC Group 2B; listed under California Prop 65",
+    "why": "A hazard call from animal studies, not a measured dietary risk. California's listing pushed major colas to cut 4-MEI in US formulations."
+   },
+   {
+    "tier": "A",
+    "applies": "split",
+    "claim": "FDA (2014) and EFSA (2011–2012): caramel colors at food levels are not a safety concern",
+    "why": "EFSA set a group ADI of 300 mg/kg bw/day for caramel colors and found it wasn't exceeded by any population group in its 2012 refined estimate."
+   }
+  ],
+  "openQuestion": {
+   "text": "Which type a product uses isn't on US labels, and whether 4-MEI at today's reformulated levels carries any meaningful risk is unresolved.",
+   "subgroup": null
+  },
+  "subgroupNotes": {},
+  "contestedGuidance": "Purely cosmetic — the color does nothing for taste. At occasional use, exposure is low; if it's in things you have every day, it's an easy one to skip."
  }
 ]

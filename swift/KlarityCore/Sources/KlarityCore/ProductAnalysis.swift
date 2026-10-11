@@ -79,7 +79,8 @@ public struct ProductAnalysis: Sendable {
             sometimesAdditives: matched.filter { $0.baseVerdict == .sometimes },
             nutritionTone: nutrition.tone, highNutrients: nutrition.highNutrients,
             budgetNutrient: nutrition.budgetNutrient, nutritionBasis: sn.basis,
-            profile: profile, proteinDv: sn.proteinDv ?? 0, additivesUnknown: glance == .noData)
+            profile: profile, proteinDv: sn.proteinDv ?? 0, additivesUnknown: glance == .noData,
+            unratedAdditiveCount: r.regulatory.count + r.unknown.count)
         sentence = verdictSentence(input)
         heroTone = KlarityCore.heroTone(input)
         additiveContext = additiveLadderContext(glance, additiveResults, regulatoryCount: r.regulatory.count, unknownCount: r.unknown.count)

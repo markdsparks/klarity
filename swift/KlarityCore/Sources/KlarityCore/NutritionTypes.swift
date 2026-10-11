@@ -7,6 +7,9 @@ public struct OFFNutriments: Codable, Sendable, Equatable {
     public var proteins100g: Double?
     public var carbohydrates100g: Double?
     public var sugars100g: Double?
+    /// US labels have carried "Added Sugars" since 2020 and OFF transcribes it. Without it, a glass of plain
+    /// milk scored its lactose as sugar to cut back on (2026-10-10 verdict review: 10/10 milks "high in sugar").
+    public var addedSugars100g: Double?
     public var fat100g: Double?
     public var saturatedFat100g: Double?
     public var transFat100g: Double?
@@ -17,7 +20,7 @@ public struct OFFNutriments: Codable, Sendable, Equatable {
 
     enum CodingKeys: String, CodingKey {
         case energyKcal100g = "energy-kcal_100g", proteins100g = "proteins_100g",
-             carbohydrates100g = "carbohydrates_100g", sugars100g = "sugars_100g", fat100g = "fat_100g",
+             carbohydrates100g = "carbohydrates_100g", sugars100g = "sugars_100g", addedSugars100g = "added-sugars_100g", fat100g = "fat_100g",
              saturatedFat100g = "saturated-fat_100g", transFat100g = "trans-fat_100g", fiber100g = "fiber_100g",
              sodium100g = "sodium_100g", potassium100g = "potassium_100g", salt100g = "salt_100g"
         // keyCount is deliberately not a coding key — computed on decode, never encoded.
@@ -34,6 +37,7 @@ public struct OFFNutriments: Codable, Sendable, Equatable {
         proteins100g = try c.decodeIfPresent(Double.self, forKey: .proteins100g)
         carbohydrates100g = try c.decodeIfPresent(Double.self, forKey: .carbohydrates100g)
         sugars100g = try c.decodeIfPresent(Double.self, forKey: .sugars100g)
+        addedSugars100g = try c.decodeIfPresent(Double.self, forKey: .addedSugars100g)
         fat100g = try c.decodeIfPresent(Double.self, forKey: .fat100g)
         saturatedFat100g = try c.decodeIfPresent(Double.self, forKey: .saturatedFat100g)
         transFat100g = try c.decodeIfPresent(Double.self, forKey: .transFat100g)
