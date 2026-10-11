@@ -50,10 +50,13 @@ public func synthesizeProduct(usda: USDANutrition?, kroger: KrogerMatch?) -> OFF
 public func detectAdditives(product: OFFProduct, usda: USDANutrition?, kroger: KrogerMatch?)
     -> (ids: [String], regulatory: [RegulatoryAdditive], unknown: [UnknownAdditive]) {
     let tags = ENumberIndex.match(tags: product.additivesTags ?? [])
-    var found = tags.matched
+    var textFound: [String] = []
     for text in [product.ingredientsText, usda?.ingredients, kroger?.ingredientStatement] {
-        found += AdditiveData.matchByIngredientText(text ?? "", excluding: Set(found))
+        textFound += AdditiveData.matchByIngredientText(text ?? "", excluding: Set(tags.matched + textFound))
     }
+    // A generic term read from the label beats OFF's guess at its specific form (one ingredient, one row).
+    let guessed = Set(textFound.compactMap { AdditiveData.additive(id: $0)?.genericOf }.joined())
+    let found = tags.matched.filter { !guessed.contains($0) } + textFound
     return (found, tags.regulatory, tags.unknown)
 }
 

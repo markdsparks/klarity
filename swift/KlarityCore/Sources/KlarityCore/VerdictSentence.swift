@@ -20,14 +20,17 @@ public struct SentenceInput: Sendable {
     public var proteinDv: Int
     /// No ingredient list from any source — the additive axis has nothing to read (never "clean additives").
     public var additivesUnknown: Bool
+    /// Additives present that we don't rate (regulatory-status-only or unknown) — "clean" would overclaim.
+    public var unratedAdditiveCount: Int
 
     public init(contestedDriver: Additive?, sometimesAdditives: [Additive], nutritionTone: NutritionTone,
                 highNutrients: [String], budgetNutrient: BudgetNutrient?, nutritionBasis: NutritionBasis? = nil,
-                profile: Profile, proteinDv: Int, additivesUnknown: Bool = false) {
+                profile: Profile, proteinDv: Int, additivesUnknown: Bool = false, unratedAdditiveCount: Int = 0) {
         self.contestedDriver = contestedDriver; self.sometimesAdditives = sometimesAdditives
         self.nutritionTone = nutritionTone; self.highNutrients = highNutrients
         self.budgetNutrient = budgetNutrient; self.nutritionBasis = nutritionBasis
         self.profile = profile; self.proteinDv = proteinDv; self.additivesUnknown = additivesUnknown
+        self.unratedAdditiveCount = unratedAdditiveCount
     }
 }
 
@@ -90,6 +93,9 @@ public func verdictSentence(_ input: SentenceInput) -> String? {
     }
     if input.nutritionTone == .unknown && input.contestedDriver == nil {
         if input.sometimesAdditives.isEmpty {
+            if input.unratedAdditiveCount > 0 {
+                return "We couldn't find nutrition data for this one, so this is only half a read — nothing we rate in the additives needs a second thought." + unratedNote(input.unratedAdditiveCount)
+            }
             return "We couldn't find nutrition data for this one, so this is only half a read — nothing in the additives needs a second thought."
         }
         return (additiveSentence(input) ?? "") + noNutritionSuffix
@@ -146,8 +152,8 @@ private func additiveSentence(_ input: SentenceInput) -> String? {
         let caveat = nutritionCaveat(input.nutritionTone, input.highNutrients, staple: goalBuild)
         switch driver.limitType {
         case .dose:
-            if goalBuild { return "Works as a daily staple for your goal — \(d) has a per-day limit you're nowhere near at a serving or two.\(caveat)" }
-            return "Fine to keep around day to day — \(d) has a per-day limit that normal servings stay well under.\(caveat)"
+            if goalBuild { return "Works as a daily staple for your goal — there's a per-day limit on \(d), and you're nowhere near it at a serving or two.\(caveat)" }
+            return "Fine to keep around day to day — there's a per-day limit on \(d), and normal servings stay well under it.\(caveat)"
         case .frequency:
             return "The question here is how often, not whether — fine now and then, worth spacing out rather than making routine.\(caveat)"
         case .sensitivity:
@@ -159,9 +165,9 @@ private func additiveSentence(_ input: SentenceInput) -> String? {
                 return "Because you lean cautious, treat \(d) as one to limit while the science is open — the signal is early but real, and there's no downside to easing off.\(caveat)"
             }
             if profile.values == .risk {
-                return "You act on settled evidence, not early signals — so \(d) is a non-issue at normal use; regulators approve it and the concern is still unproven in humans.\(caveat)"
+                return "You act on settled evidence, not early signals — so at normal use this is a non-issue; regulators approve \(d), and the concern is still unproven in humans.\(caveat)"
             }
-            return "\(d) is approved and fine at normal use — one early signal is still being studied, so limit it if you like staying ahead of open questions, or don't if that's not your worry.\(caveat)"
+            return "Approved and fine at normal use — one early signal on \(d) is still being studied, so cut back if you like staying ahead of open questions, or don't if that's not your worry.\(caveat)"
         case nil:
             return "Fine in normal amounts — worth a glance at the details below.\(caveat)"
         }
@@ -185,19 +191,30 @@ private func nutritionOnlySentence(_ input: SentenceInput) -> String {
     return "Nutrition holds up well per serving."
 }
 
+/// Additives we don't rate yet are named, never folded into "clean".
+private func unratedNote(_ n: Int) -> String {
+    n == 1 ? " One additive here isn't rated yet — it's in the list below."
+           : " \(n) additives here aren't rated yet — they're in the list below."
+}
+
 /// Step 5: additives clean, nutrition not a concern.
 private func cleanSentence(_ input: SentenceInput) -> String {
+    guard input.unratedAdditiveCount > 0 else { return ratedCleanSentence(input, clean: "clean additives", nothing: "nothing here") }
+    return ratedCleanSentence(input, clean: "no flagged additives", nothing: "nothing we rate here") + unratedNote(input.unratedAdditiveCount)
+}
+
+private func ratedCleanSentence(_ input: SentenceInput, clean: String, nothing: String) -> String {
     let goalBuild = input.profile.goal == .build && input.proteinDv >= 20
 
     // 5. Additives clean, nutrition not a concern. Budget reframe keeps the trade-off in the headline.
     if let budget = input.budgetNutrient {
         let name = budget == .satFat ? "saturated fat" : "sodium"
-        if goalBuild { return "A great everyday supplement for your goal — clean additives; just don't live on them, since the \(name) adds up." }
-        return "A solid everyday choice — clean additives; just budget the \(name) if you're having several a day."
+        if goalBuild { return "A great everyday supplement for your goal — \(clean); just don't live on them, since the \(name) adds up." }
+        return "A solid everyday choice — \(clean); just budget the \(name) if you're having several a day."
     }
     if input.nutritionTone == .ok {
-        if goalBuild { return "Works as a daily staple for your goal — clean additives, and the nutrition holds up." }
-        return "A solid regular choice — clean additives, and nutrition that's middling but nothing to avoid."
+        if goalBuild { return "Works as a daily staple for your goal — \(clean), and the nutrition holds up." }
+        return "A solid regular choice — \(clean), and nutrition that's middling but nothing to avoid."
     }
-    return "An easy everyday pick — nothing here needs a second thought."
+    return "An easy everyday pick — \(nothing) needs a second thought."
 }

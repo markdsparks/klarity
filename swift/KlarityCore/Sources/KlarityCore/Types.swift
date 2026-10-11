@@ -72,6 +72,10 @@ public struct Additive: Codable, Sendable, Equatable, Identifiable {
     /// Other E-numbers this entry's evidence covers — when the regulator evaluated them as one group
     /// (EFSA's 2019 phosphate group ADI, JECFA's citric-acid-and-salts group). Never a "similar enough" link.
     public let coversENumbers: [String]?
+    /// For a generic label term ("caramel color") whose specific form the label doesn't state: the specific
+    /// entries it stands for. When the generic is read from label text, a specific form that came only from
+    /// OFF's parser is OFF guessing from those same words — dropped rather than shown as a fact.
+    public let genericOf: [String]?
 
     /// Caption for rows/detail: a group entry must not claim to be the one E-number on a product's label.
     public var eNumberLabel: String? {

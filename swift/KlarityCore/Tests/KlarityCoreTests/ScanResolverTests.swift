@@ -154,4 +154,72 @@ struct ScanResolverTests {
         var tagged = p; tagged.additivesTags = ["en:e330"]
         #expect(ResolvedProduct(barcode: "1", product: tagged, additiveIds: [], regulatory: [], unknown: [], usda: nil, kroger: nil).hasIngredientData)
     }
+
+    // MARK: Verdict review, 2026-10-10
+
+    /// Reese's Puffs: label says "caramel color"; OFF's parser guessed E150c, our text matched it too. One
+    /// ingredient must be one row — the honest generic, not two invented types.
+    @Test func genericLabelTermBeatsOFFsGuessedSpecificForm() {
+        var p = OFFProduct()
+        p.additivesTags = ["en:e150c", "en:e339"]; p.ingredientsText = "sugar, cocoa, caramel color, trisodium phosphate"
+        let ids = detectAdditives(product: p, usda: nil, kroger: nil).ids
+        #expect(ids.contains("caramel_color"))
+        #expect(!ids.contains("caramel_color_iii") && !ids.contains("caramel_color_iv"))
+        #expect(ids.filter { $0 == "sodium_phosphates" }.count == 1)
+
+        // When the label itself doesn't use the generic words, OFF's specific tag stands (e.g. an EU "E150d").
+        var eu = OFFProduct(); eu.additivesTags = ["en:e150d"]; eu.ingredientsText = "water, sugar, colour: E150d"
+        #expect(detectAdditives(product: eu, usda: nil, kroger: nil).ids == ["caramel_color_iv"])
+    }
+
+    @Test func sentencesReadCorrectlyWithPluralAdditiveNames() {
+        let phosphates = AdditiveData.additive(id: "sodium_phosphates")!
+        let s = verdictSentence(SentenceInput(contestedDriver: nil, sometimesAdditives: [phosphates], nutritionTone: .good,
+                                              highNutrients: [], budgetNutrient: nil, profile: .default, proteinDv: 0))
+        #expect(s == "Fine to keep around day to day — there's a per-day limit on Sodium and potassium phosphates, and normal servings stay well under it.")
+        #expect(s?.contains("phosphates has") == false)
+    }
+
+    /// White bread with an unrated E930 was "nothing here needs a second thought" — an overclaim.
+    @Test func unratedAdditivesAreNeverFoldedIntoClean() {
+        func sentence(unrated: Int, tone: NutritionTone = .good) -> String? {
+            verdictSentence(SentenceInput(contestedDriver: nil, sometimesAdditives: [], nutritionTone: tone, highNutrients: [],
+                                          budgetNutrient: nil, profile: .default, proteinDv: 0, unratedAdditiveCount: unrated))
+        }
+        #expect(sentence(unrated: 0) == "An easy everyday pick — nothing here needs a second thought.")
+        #expect(sentence(unrated: 1) == "An easy everyday pick — nothing we rate here needs a second thought. One additive here isn't rated yet — it's in the list below.")
+        #expect(sentence(unrated: 2, tone: .ok)?.contains("clean additives") == false)
+        #expect(sentence(unrated: 2, tone: .ok)?.hasSuffix("2 additives here aren't rated yet — they're in the list below.") == true)
+    }
+
+    /// Plain milk: 12 g sugar per cup, all lactose, 0 g added on the label. OFF carries "added-sugars_100g".
+    @Test func offAddedSugarKeepsLactoseFromReadingAsSugarToCutBack() {
+        var p = OFFProduct(); p.productName = "2% Milk"; p.servingQuantity = 240; p.ingredientsText = "reduced fat milk, vitamin d3"
+        var n = OFFNutriments(); n.energyKcal100g = 50; n.sugars100g = 5; n.fat100g = 2; n.saturatedFat100g = 1.25; n.proteins100g = 3.3
+        n.addedSugars100g = 0
+        p.nutriments = n
+        let sn = computeServingNutrients(p, usda: nil)
+        #expect(sn.addedSugarDv == 0)
+        let a = toneNutrition(sn, profile: .default)
+        #expect(a.sugarBasis == .addedKnown)
+        #expect(!a.highNutrients.contains("sugar") && !a.highNutrients.contains("added sugar"))
+
+        // An inconsistent record (added > total) is ignored — we score total sugar rather than trust it.
+        var bad = n; bad.addedSugars100g = 9
+        p.nutriments = bad
+        #expect(computeServingNutrients(p, usda: nil).addedSugar == nil)
+    }
+
+    /// USDA matched but its record has no Added Sugars line; OFF has 0 added for the same milk.
+    @Test func usdaWithoutAddedSugarBorrowsOFFsShare() {
+        var p = OFFProduct(); var n = OFFNutriments(); n.sugars100g = 5; n.addedSugars100g = 0; p.nutriments = n
+        var u = USDANutrition(); u.sugar = 12; u.calories = 130; u.saturatedFat = 5; u.servingSize = 240; u.servingSizeUnit = "MLT"
+        let sn = computeServingNutrients(p, usda: u)
+        #expect(sn.addedSugar == 0)
+        #expect(toneNutrition(sn, profile: .default).sugarBasis == .addedKnown)
+
+        var sweet = n; sweet.addedSugars100g = 2.5     // half the sugar is added (e.g. a sweetened yogurt)
+        p.nutriments = sweet
+        #expect(computeServingNutrients(p, usda: u).addedSugar == 6)
+    }
 }
