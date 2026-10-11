@@ -107,12 +107,16 @@ card rails; brand mint appears only in the mark and on the ink hero.
 ```bash
 npm run native:gen     # .env → Config/Secrets.xcconfig, then regenerate Klarity.xcodeproj (after adding files too)
 npm run test:swift     # engine tests (golden parity fixtures + unit tests)
+npm run bench:scan     # 300 real barcodes through the app's resolver → coverage + verdict read-out (~15–30 min)
 ```
 
 Testing loop, fastest first:
 1. **`npm run test:swift`** — every engine change. Golden fixtures in `Tests/.../Golden` were generated
    from the TS engine before it was deleted; they are now frozen regression fixtures. A deliberate
    behavior change updates the affected fixture in the same commit, with the reason in the message.
+   **`npm run bench:scan`** after any change to resolution, evidence data, or verdict copy — it measures what
+   share of real scans end in a full verdict and records every sentence shoppers would read
+   (`bench/scan-coverage/`, read-outs committed, raw runs gitignored).
 2. **iOS Simulator** — build with `xcodebuild … -destination 'platform=iOS Simulator,name=iPhone 17 Pro'`
    and drive it with the Simulator tools. Search, results, restaurants, sheets, history and Ask about this
    (Apple Intelligence works in the Simulator) are all testable. No camera.
